@@ -4,7 +4,7 @@
 
 - The Boolean-circuit CFaults algorithm from the paper is implemented in `method/cfaults_circuit.py`.
 - The implementation builds one replica of the circuit constraints per failing observation, shares a single health variable for each original gate across all replicas, and solves the resulting unweighted partial MaxSAT instance with PySAT RC2.
-- A reusable benchmark generator in `data/circuit_benchmark.py` creates small tracked circuit-diagnosis instances with injected stuck-at gate faults and failing observations.
+- A reusable benchmark generator in `data/circuit_benchmark.py` creates small tracked circuit-diagnosis instances with explicit faulty circuit netlists, injected gate-operator mutations, and failing observations.
 - `scripts/reproduce.sh` runs the full local pipeline: generate benchmark data, run the one-observation voting baseline, run CFaults, and evaluate artifacts through `scripts/evaluate.sh`.
 - `eval/evaluate_circuit_outputs.py` is method-agnostic: it reads result artifacts and independently checks diagnosis validity and cardinality without importing `method/`.
 - Scheduler job `565b7133-b46` verified the packaged pipeline inside the compute container with exit code 0.
@@ -27,10 +27,10 @@
 ## Issues
 
 - The `python-sat[pblib,aiger]` extras attempted to build `pypblib` and failed on the login environment due to missing Python headers. Plain `python-sat` is sufficient for the implemented WCNF/RC2 workflow and installs successfully.
-- An early model of the faulty-circuit semantics made disabled faulty gates unable to explain observations. The encoding was corrected so healthy faulty gates follow the injected stuck-at behavior, while disabled gates are relaxed.
+- A continuation audit found that the previous synthetic interface passed the injected fault map into the method as faulty-circuit semantics. This was repaired by storing an explicit faulty circuit netlist in each instance; `method/` now receives only the faulty circuit and observations, while the true fault list is retained only for evaluation summaries.
 
 ## Deviations from Paper
 
 - Benchmark scale: the paper evaluates augmented ISCAS85 circuits with 12,147 buggy variants and observation counts 10, 20, 30, 40, and 50. This reproduction uses a tracked synthetic combinational circuit benchmark with 27 instances, observation counts 4, 8, and 16, and injected fault counts 1, 2, and 3. This keeps the problem small enough for fast reusable jobs while preserving non-trivial multi-observation diagnosis.
-- Fault model subset: the paper's Boolean-circuit experiments use injected gate-level mutations on ISCAS85 circuits. This reproduction uses stuck-at output faults on internal gates. The diagnostic computation is unchanged: faulty gate semantics are guarded by shared health variables and MaxSAT minimizes relaxed gates.
+- Fault model subset: the paper's Boolean-circuit experiments use injected gate-level mutations on ISCAS85 circuits. This reproduction uses operator mutations on internal gates of a smaller tracked circuit. The diagnostic computation is unchanged: faulty gate semantics are guarded by shared health variables and MaxSAT minimizes relaxed gates.
 - Solver library: the paper presents the approach at the MaxSAT/SMT level. This reproduction uses PySAT's WCNF and RC2 solver to implement the same unweighted partial MaxSAT objective.

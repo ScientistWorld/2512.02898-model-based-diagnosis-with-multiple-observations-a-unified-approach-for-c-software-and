@@ -46,7 +46,6 @@ class VarPool:
 def build_clauses(
     circuit: Circuit,
     observations: list[dict],
-    stuck_faults: dict[str, bool],
     diagnosis: list[str] | None = None,
 ) -> tuple[list[list[int]], dict[str, int], int]:
     disabled = set(diagnosis or [])
@@ -64,17 +63,14 @@ def build_clauses(
             clauses.append([v(name) if value else -v(name)])
         for gate in circuit.gates:
             out = v(gate.name)
-            if gate.name in stuck_faults:
-                clauses.append([-healthy[gate.name], out if stuck_faults[gate.name] else -out])
-            else:
-                clauses.extend(guarded_equiv_clauses(gate.op, out, [v(name) for name in gate.inputs], healthy[gate.name]))
+            clauses.extend(guarded_equiv_clauses(gate.op, out, [v(name) for name in gate.inputs], healthy[gate.name]))
         for name, value in obs["expected_outputs"].items():
             clauses.append([v(name) if value else -v(name)])
     return clauses, healthy, len(pool.ids)
 
 
-def diagnosis_valid(circuit: Circuit, observations: list[dict], diagnosis: list[str], stuck_faults: dict[str, bool]) -> bool:
-    clauses, _, _ = build_clauses(circuit, observations, stuck_faults, diagnosis)
+def diagnosis_valid(circuit: Circuit, observations: list[dict], diagnosis: list[str]) -> bool:
+    clauses, _, _ = build_clauses(circuit, observations, diagnosis)
     try:
         from pysat.solvers import Solver
 
@@ -94,8 +90,8 @@ def diagnosis_valid(circuit: Circuit, observations: list[dict], diagnosis: list[
         return False
 
 
-def optimum_cardinality(circuit: Circuit, observations: list[dict], stuck_faults: dict[str, bool]) -> int | None:
-    clauses, healthy, top = build_clauses(circuit, observations, stuck_faults)
+def optimum_cardinality(circuit: Circuit, observations: list[dict]) -> int | None:
+    clauses, healthy, top = build_clauses(circuit, observations)
     try:
         from pysat.examples.rc2 import RC2Stratified
         from pysat.formula import WCNF
@@ -118,22 +114,25 @@ def optimum_cardinality(circuit: Circuit, observations: list[dict], stuck_faults
 
         for size in range(len(gate_names) + 1):
             for subset in itertools.combinations(gate_names, size):
-                if diagnosis_valid(circuit, observations, list(subset), stuck_faults):
+                if diagnosis_valid(circuit, observations, list(subset)):
                     return size
     return None
 
 
-def load_instances(benchmark: Path) -> tuple[Circuit, dict[str, dict]]:
+def load_instances(benchmark: Path) -> dict[str, dict]:
     manifest = json.loads((benchmark / "manifest.json").read_text())
-    circuit = circuit_from_json(json.loads((benchmark / manifest["circuit"]).read_text()))
     instances = {}
     for entry in manifest["instances"]:
         instance = json.loads((benchmark / entry["path"]).read_text())
+        if "faulty_circuit" in instance:
+            instance["_faulty_circuit_obj"] = circuit_from_json(instance["faulty_circuit"])
+        else:
+            instance["_faulty_circuit_obj"] = circuit_from_json(json.loads((benchmark / manifest["circuit"]).read_text()))
         instances[instance["id"]] = instance
-    return circuit, instances
+    return instances
 
 
-def summarize_method(circuit: Circuit, instances: dict[str, dict], result_path: Path) -> dict:
+def summarize_method(instances: dict[str, dict], result_path: Path) -> dict:
     data = json.loads(result_path.read_text())
     rows = data["instances"]
     valid_count = 0
@@ -146,6 +145,7 @@ def summarize_method(circuit: Circuit, instances: dict[str, dict], result_path: 
     solved = 0
     for row in rows:
         instance = instances[row["id"]]
+        circuit = instance["_faulty_circuit_obj"]
         diagnoses = row.get("diagnoses") or []
         chosen = diagnoses[0] if diagnoses else []
         if not diagnoses:
@@ -154,12 +154,12 @@ def summarize_method(circuit: Circuit, instances: dict[str, dict], result_path: 
         obs_count = int(row["observation_count"])
         by_obs.setdefault(obs_count, {"total": 0, "localized": 0})
         by_obs[obs_count]["total"] += 1
-        valid = diagnosis_valid(circuit, instance["observations"], chosen, instance["faults"])
+        valid = diagnosis_valid(circuit, instance["observations"], chosen)
         valid_count += int(valid)
         cost = len(chosen)
         total_cost += cost
         total_elapsed += float(row.get("elapsed_sec", 0.0))
-        opt = optimum_cardinality(circuit, instance["observations"], instance["faults"])
+        opt = optimum_cardinality(circuit, instance["observations"])
         optimal = valid and opt == cost
         optimum_count += int(optimal)
         by_obs[obs_count]["localized"] += int(optimal)
@@ -191,15 +191,15 @@ def main() -> None:
     parser.add_argument("--baseline-result", type=Path, default=Path("checkpoints/bugassist_vote/results.json"))
     parser.add_argument("--out", type=Path, default=Path("scoring/scores.json"))
     args = parser.parse_args()
-    circuit, instances = load_instances(args.benchmark)
+    instances = load_instances(args.benchmark)
     summaries = {}
     if args.method_result.exists():
-        summaries["cfaults"] = summarize_method(circuit, instances, args.method_result)
+        summaries["cfaults"] = summarize_method(instances, args.method_result)
     if args.baseline_result.exists():
         # The baseline is reported as an extra artifact, but not scored against
         # the paper's circuit reference because BugAssist was not a circuit
         # baseline in Table 5.
-        summaries["_bugassist_vote_unscored"] = summarize_method(circuit, instances, args.baseline_result)
+        summaries["_bugassist_vote_unscored"] = summarize_method(instances, args.baseline_result)
     scored = {k: v for k, v in summaries.items() if not k.startswith("_")}
 
     localisation = {}

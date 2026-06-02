@@ -18,6 +18,8 @@ from typing import Iterable
 
 
 OPS = {"AND", "OR", "XOR", "NAND", "NOR", "NOT", "BUF"}
+BINARY_OPS = ("AND", "OR", "XOR", "NAND", "NOR")
+UNARY_OPS = ("NOT", "BUF")
 
 
 @dataclass(frozen=True)
@@ -56,14 +58,10 @@ def eval_op(op: str, values: list[bool]) -> bool:
     raise ValueError(f"unknown op {op}")
 
 
-def evaluate(circuit: Circuit, assignment: dict[str, bool], stuck_faults: dict[str, bool] | None = None) -> dict[str, bool]:
+def evaluate(circuit: Circuit, assignment: dict[str, bool]) -> dict[str, bool]:
     values = dict(assignment)
-    stuck_faults = stuck_faults or {}
     for gate in circuit.gates:
-        if gate.name in stuck_faults:
-            values[gate.name] = stuck_faults[gate.name]
-        else:
-            values[gate.name] = eval_op(gate.op, [values[name] for name in gate.inputs])
+        values[gate.name] = eval_op(gate.op, [values[name] for name in gate.inputs])
     return {name: values[name] for name in circuit.outputs}
 
 
@@ -123,6 +121,26 @@ def all_inputs(names: tuple[str, ...]) -> list[dict[str, bool]]:
     return rows
 
 
+def mutate_gate_op(gate: Gate, rng: random.Random) -> str:
+    candidates = UNARY_OPS if len(gate.inputs) == 1 else BINARY_OPS
+    choices = [op for op in candidates if op != gate.op]
+    return rng.choice(choices)
+
+
+def mutate_circuit(circuit: Circuit, rng: random.Random, fault_count: int) -> tuple[Circuit, dict[str, dict[str, str]]]:
+    selected = set(rng.sample([gate.name for gate in circuit.gates], fault_count))
+    mutations: dict[str, dict[str, str]] = {}
+    mutated_gates: list[Gate] = []
+    for gate in circuit.gates:
+        if gate.name in selected:
+            new_op = mutate_gate_op(gate, rng)
+            mutations[gate.name] = {"from": gate.op, "to": new_op}
+            mutated_gates.append(Gate(gate.name, new_op, gate.inputs))
+        else:
+            mutated_gates.append(gate)
+    return Circuit(f"{circuit.name}_faulty", circuit.inputs, circuit.outputs, tuple(mutated_gates)), mutations
+
+
 def make_instance(
     circuit: Circuit,
     rng: random.Random,
@@ -130,13 +148,11 @@ def make_instance(
     observation_count: int,
     index: int,
 ) -> dict:
-    gates = list(circuit.gates)
-    faulty_gates = rng.sample([gate.name for gate in gates], fault_count)
-    stuck_faults = {gate: bool(rng.getrandbits(1)) for gate in faulty_gates}
+    faulty_circuit, mutations = mutate_circuit(circuit, rng, fault_count)
     candidates = []
     for assignment in all_inputs(circuit.inputs):
         golden = evaluate(circuit, assignment)
-        faulty = evaluate(circuit, assignment, stuck_faults)
+        faulty = evaluate(faulty_circuit, assignment)
         if golden != faulty:
             candidates.append({"inputs": assignment, "expected_outputs": golden, "faulty_outputs": faulty})
     if len(candidates) < observation_count:
@@ -146,7 +162,9 @@ def make_instance(
         "id": f"{circuit.name}_f{fault_count}_o{observation_count}_{index:03d}",
         "fault_count": fault_count,
         "observation_count": observation_count,
-        "faults": stuck_faults,
+        "faults": sorted(mutations),
+        "fault_mutations": mutations,
+        "faulty_circuit": circuit_to_json(faulty_circuit),
         "observations": candidates[:observation_count],
     }
 
@@ -161,7 +179,7 @@ def generate_benchmark(out_dir: Path, seed: int, instances_per_setting: int) -> 
     manifest = {
         "name": "synthetic_cfaults_circuit",
         "circuit": f"circuits/{circuit.name}.json",
-        "deviation": "Small synthetic substitute for ISCAS85; same gate-fault observation task.",
+        "deviation": "Small synthetic substitute for ISCAS85; same gate-mutation observation task.",
         "instances": [],
     }
     for fault_count in (1, 2, 3):

@@ -1,8 +1,13 @@
 # Reproduction Milestones
 
-**Current: core_claim**
+**Current: method_runs**
 
 ## Progress Log
+
+### [2026-06-02 00:00] - method_runs
+- Audit found that the previous synthetic circuit interface passed the injected fault map into the method as faulty-circuit semantics, which was too close to exposing diagnosis labels.
+- Reworked the benchmark to store an explicit faulty circuit netlist per instance and updated the method, baseline, and evaluator to consume the faulty netlist without using the ground-truth fault list.
+- Fresh container verification is pending for the repaired interface.
 
 ### [2026-06-02 00:00] - core_claim
 - Implemented CFaults' Boolean-circuit multiple-observation diagnosis as a unified partial MaxSAT problem with one replicated circuit per failing observation and shared health variables per original gate.
@@ -14,4 +19,4 @@
 - The evaluation pipeline reads output artifacts and validates diagnoses without importing `method/`.
 
 ## Stop Justification
-- Completed at milestone `core_claim` on a scaled synthetic Boolean-circuit benchmark. Higher milestones would require expanding to augmented ISCAS85 and adding HSD/HSD-CM reproductions.
+- Not stopped: a repaired benchmark/method interface has been prepared and needs a fresh job before restoring `core_claim`.

@@ -1,7 +1,7 @@
 {
   "name": "synthetic_cfaults_circuit",
   "circuit": "circuits/three_bit_adder_logic.json",
-  "deviation": "Small synthetic substitute for ISCAS85; same gate-fault observation task.",
+  "deviation": "Small synthetic substitute for ISCAS85; same gate-mutation observation task.",
   "instances": [
     {
       "path": "instances/three_bit_adder_logic_f1_o4_000.json",

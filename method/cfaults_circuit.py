@@ -60,13 +60,10 @@ def guarded_equiv_clauses(op: str, out: int, ins: list[int], guard: int) -> list
     raise ValueError(f"unsupported op {op}")
 
 
-def build_unified_formula(
-    circuit: Circuit, observations: list[dict], stuck_faults: dict[str, bool] | None = None
-) -> tuple[list[Clause], list[int], VarPool, dict[str, int]]:
+def build_unified_formula(circuit: Circuit, observations: list[dict]) -> tuple[list[Clause], list[int], VarPool, dict[str, int]]:
     pool = VarPool()
     healthy = {gate.name: pool.id(f"h::{gate.name}") for gate in circuit.gates}
     hard: list[Clause] = []
-    stuck_faults = stuck_faults or {}
     for obs_idx, obs in enumerate(observations):
         def v(name: str) -> int:
             return pool.id(f"o{obs_idx}::{name}")
@@ -75,11 +72,8 @@ def build_unified_formula(
             hard.append([v(name) if value else -v(name)])
         for gate in circuit.gates:
             out = v(gate.name)
-            if gate.name in stuck_faults:
-                hard.append([-healthy[gate.name], out if stuck_faults[gate.name] else -out])
-            else:
-                ins = [v(name) for name in gate.inputs]
-                hard.extend(guarded_equiv_clauses(gate.op, out, ins, healthy[gate.name]))
+            ins = [v(name) for name in gate.inputs]
+            hard.extend(guarded_equiv_clauses(gate.op, out, ins, healthy[gate.name]))
         for name, value in obs["expected_outputs"].items():
             hard.append([v(name) if value else -v(name)])
     return hard, list(healthy.values()), pool, healthy
@@ -143,12 +137,11 @@ def solve_formula(hard: list[Clause], soft: list[int], top: int, block: list[Cla
 def diagnose(
     circuit: Circuit,
     observations: list[dict],
-    stuck_faults: dict[str, bool] | None = None,
     enumerate_all: bool = True,
     solver: str = "auto",
 ) -> dict:
     start = time.perf_counter()
-    hard, soft, pool, healthy = build_unified_formula(circuit, observations, stuck_faults)
+    hard, soft, pool, healthy = build_unified_formula(circuit, observations)
     inv_healthy = {lit: name for name, lit in healthy.items()}
     solutions: list[list[str]] = []
     optimum = None
@@ -186,8 +179,11 @@ def diagnose(
 
 def load_instance(benchmark_dir: Path, instance_path: str) -> tuple[Circuit, dict]:
     manifest = json.loads((benchmark_dir / "manifest.json").read_text())
-    circuit = circuit_from_json(json.loads((benchmark_dir / manifest["circuit"]).read_text()))
     instance = json.loads((benchmark_dir / instance_path).read_text())
+    if "faulty_circuit" in instance:
+        circuit = circuit_from_json(instance["faulty_circuit"])
+    else:
+        circuit = circuit_from_json(json.loads((benchmark_dir / manifest["circuit"]).read_text()))
     return circuit, instance
 
 
@@ -207,7 +203,6 @@ def main() -> None:
         result = diagnose(
             circuit,
             instance["observations"],
-            stuck_faults=instance["faults"],
             enumerate_all=not args.first_only,
             solver=args.solver,
         )

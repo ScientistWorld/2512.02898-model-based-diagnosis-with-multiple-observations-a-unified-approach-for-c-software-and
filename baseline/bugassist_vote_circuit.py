@@ -17,14 +17,14 @@ from method.cfaults_circuit import diagnose  # noqa: E402
 
 def run_baseline(benchmark: Path, out: Path, limit: int = 0, solver: str = "auto") -> None:
     manifest = json.loads((benchmark / "manifest.json").read_text())
-    circuit = circuit_from_json(json.loads((benchmark / manifest["circuit"]).read_text()))
     results = {"method": "bugassist_vote", "benchmark": manifest["name"], "instances": []}
     for entry in manifest["instances"][: limit or None]:
         instance = json.loads((benchmark / entry["path"]).read_text())
+        circuit = circuit_from_json(instance["faulty_circuit"])
         votes: collections.Counter[tuple[str, ...]] = collections.Counter()
         per_obs = []
         for obs in instance["observations"]:
-            result = diagnose(circuit, [obs], stuck_faults=instance["faults"], enumerate_all=True, solver=solver)
+            result = diagnose(circuit, [obs], enumerate_all=True, solver=solver)
             for diag in result["diagnoses"]:
                 votes[tuple(diag)] += 1
             per_obs.append(result)

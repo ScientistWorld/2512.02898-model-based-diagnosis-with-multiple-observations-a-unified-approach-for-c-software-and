@@ -1,8 +1,8 @@
 # IMPORTANT: Once you set action to 'submit' or 'done', STOP immediately.
 # Do NOT sleep, poll, or wait for jobs. The system reads this file
 # only after your turn ends. Sleeping blocks the entire pipeline.
-action: done
+action: submit
 gpus: 0
-test: false
-milestone: core_claim
-notes: "Core CFaults multi-observation MaxSAT circuit reproduction is implemented and verified on the scaled synthetic benchmark; prior container job 565b7133-b46 completed successfully."
+test: true
+milestone: method_runs
+notes: "CPU test job for repaired CFaults circuit interface: run scripts/reproduce.sh on explicit faulty-circuit benchmark and regenerate scores."

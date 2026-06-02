@@ -1,7 +1,235 @@
 {
   "fault_count": 1,
-  "faults": {
-    "g1_carry_tmp": false
+  "fault_mutations": {
+    "g2_sum": {
+      "from": "XOR",
+      "to": "NAND"
+    }
+  },
+  "faults": [
+    "g2_sum"
+  ],
+  "faulty_circuit": {
+    "gates": [
+      {
+        "inputs": [
+          "a0",
+          "b0"
+        ],
+        "name": "g0_axb",
+        "op": "XOR"
+      },
+      {
+        "inputs": [
+          "g0_axb",
+          "cin"
+        ],
+        "name": "g0_sum",
+        "op": "XOR"
+      },
+      {
+        "inputs": [
+          "a0",
+          "b0"
+        ],
+        "name": "g0_ab",
+        "op": "AND"
+      },
+      {
+        "inputs": [
+          "a0",
+          "cin"
+        ],
+        "name": "g0_ac",
+        "op": "AND"
+      },
+      {
+        "inputs": [
+          "b0",
+          "cin"
+        ],
+        "name": "g0_bc",
+        "op": "AND"
+      },
+      {
+        "inputs": [
+          "g0_ab",
+          "g0_ac"
+        ],
+        "name": "g0_carry_tmp",
+        "op": "OR"
+      },
+      {
+        "inputs": [
+          "g0_carry_tmp",
+          "g0_bc"
+        ],
+        "name": "g0_carry",
+        "op": "OR"
+      },
+      {
+        "inputs": [
+          "a1",
+          "b1"
+        ],
+        "name": "g1_axb",
+        "op": "XOR"
+      },
+      {
+        "inputs": [
+          "g1_axb",
+          "g0_carry"
+        ],
+        "name": "g1_sum",
+        "op": "XOR"
+      },
+      {
+        "inputs": [
+          "a1",
+          "b1"
+        ],
+        "name": "g1_ab",
+        "op": "AND"
+      },
+      {
+        "inputs": [
+          "a1",
+          "g0_carry"
+        ],
+        "name": "g1_ac",
+        "op": "AND"
+      },
+      {
+        "inputs": [
+          "b1",
+          "g0_carry"
+        ],
+        "name": "g1_bc",
+        "op": "AND"
+      },
+      {
+        "inputs": [
+          "g1_ab",
+          "g1_ac"
+        ],
+        "name": "g1_carry_tmp",
+        "op": "OR"
+      },
+      {
+        "inputs": [
+          "g1_carry_tmp",
+          "g1_bc"
+        ],
+        "name": "g1_carry",
+        "op": "OR"
+      },
+      {
+        "inputs": [
+          "a2",
+          "b2"
+        ],
+        "name": "g2_axb",
+        "op": "XOR"
+      },
+      {
+        "inputs": [
+          "g2_axb",
+          "g1_carry"
+        ],
+        "name": "g2_sum",
+        "op": "NAND"
+      },
+      {
+        "inputs": [
+          "a2",
+          "b2"
+        ],
+        "name": "g2_ab",
+        "op": "AND"
+      },
+      {
+        "inputs": [
+          "a2",
+          "g1_carry"
+        ],
+        "name": "g2_ac",
+        "op": "AND"
+      },
+      {
+        "inputs": [
+          "b2",
+          "g1_carry"
+        ],
+        "name": "g2_bc",
+        "op": "AND"
+      },
+      {
+        "inputs": [
+          "g2_ab",
+          "g2_ac"
+        ],
+        "name": "g2_carry_tmp",
+        "op": "OR"
+      },
+      {
+        "inputs": [
+          "g2_carry_tmp",
+          "g2_bc"
+        ],
+        "name": "g2_carry",
+        "op": "OR"
+      },
+      {
+        "inputs": [
+          "g0_sum",
+          "g1_sum"
+        ],
+        "name": "g_parity_01",
+        "op": "XOR"
+      },
+      {
+        "inputs": [
+          "g_parity_01",
+          "g2_sum"
+        ],
+        "name": "g_parity",
+        "op": "XOR"
+      },
+      {
+        "inputs": [
+          "a0",
+          "b0"
+        ],
+        "name": "g_any_ab",
+        "op": "OR"
+      },
+      {
+        "inputs": [
+          "g_any_ab",
+          "g2_carry"
+        ],
+        "name": "g_ctrl",
+        "op": "AND"
+      }
+    ],
+    "inputs": [
+      "a0",
+      "a1",
+      "a2",
+      "b0",
+      "b1",
+      "b2",
+      "cin"
+    ],
+    "name": "three_bit_adder_logic_faulty",
+    "outputs": [
+      "g0_sum",
+      "g1_sum",
+      "g2_sum",
+      "g2_carry",
+      "g_parity",
+      "g_ctrl"
+    ]
   },
   "id": "three_bit_adder_logic_f1_o8_001",
   "observation_count": 8,
@@ -9,13 +237,32 @@
     {
       "expected_outputs": {
         "g0_sum": true,
-        "g1_sum": false,
-        "g2_carry": false,
-        "g2_sum": true,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": false,
         "g_ctrl": false,
         "g_parity": false
       },
       "faulty_outputs": {
+        "g0_sum": true,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": true,
+        "g_ctrl": false,
+        "g_parity": true
+      },
+      "inputs": {
+        "a0": false,
+        "a1": false,
+        "a2": true,
+        "b0": false,
+        "b1": true,
+        "b2": true,
+        "cin": true
+      }
+    },
+    {
+      "expected_outputs": {
         "g0_sum": true,
         "g1_sum": false,
         "g2_carry": false,
@@ -23,12 +270,20 @@
         "g_ctrl": false,
         "g_parity": true
       },
+      "faulty_outputs": {
+        "g0_sum": true,
+        "g1_sum": false,
+        "g2_carry": false,
+        "g2_sum": true,
+        "g_ctrl": false,
+        "g_parity": false
+      },
       "inputs": {
         "a0": false,
-        "a1": true,
+        "a1": false,
         "a2": false,
         "b0": false,
-        "b1": true,
+        "b1": false,
         "b2": false,
         "cin": true
       }
@@ -38,175 +293,67 @@
         "g0_sum": false,
         "g1_sum": false,
         "g2_carry": true,
-        "g2_sum": true,
-        "g_ctrl": true,
-        "g_parity": true
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": false
       },
       "faulty_outputs": {
         "g0_sum": false,
         "g1_sum": false,
         "g2_carry": true,
+        "g2_sum": true,
+        "g_ctrl": false,
+        "g_parity": true
+      },
+      "inputs": {
+        "a0": false,
+        "a1": false,
+        "a2": true,
+        "b0": false,
+        "b1": false,
+        "b2": true,
+        "cin": false
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": true,
+        "g1_sum": true,
+        "g2_carry": true,
         "g2_sum": false,
         "g_ctrl": true,
         "g_parity": false
+      },
+      "faulty_outputs": {
+        "g0_sum": true,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": true,
+        "g_ctrl": true,
+        "g_parity": true
       },
       "inputs": {
         "a0": true,
-        "a1": true,
-        "a2": true,
-        "b0": false,
-        "b1": false,
-        "b2": true,
-        "cin": true
-      }
-    },
-    {
-      "expected_outputs": {
-        "g0_sum": false,
-        "g1_sum": false,
-        "g2_carry": true,
-        "g2_sum": false,
-        "g_ctrl": true,
-        "g_parity": false
-      },
-      "faulty_outputs": {
-        "g0_sum": false,
-        "g1_sum": false,
-        "g2_carry": false,
-        "g2_sum": true,
-        "g_ctrl": false,
-        "g_parity": true
-      },
-      "inputs": {
-        "a0": false,
-        "a1": true,
-        "a2": false,
-        "b0": true,
-        "b1": false,
-        "b2": true,
-        "cin": true
-      }
-    },
-    {
-      "expected_outputs": {
-        "g0_sum": false,
-        "g1_sum": false,
-        "g2_carry": true,
-        "g2_sum": true,
-        "g_ctrl": false,
-        "g_parity": true
-      },
-      "faulty_outputs": {
-        "g0_sum": false,
-        "g1_sum": false,
-        "g2_carry": true,
-        "g2_sum": false,
-        "g_ctrl": false,
-        "g_parity": false
-      },
-      "inputs": {
-        "a0": false,
-        "a1": true,
-        "a2": true,
-        "b0": false,
-        "b1": true,
-        "b2": true,
-        "cin": false
-      }
-    },
-    {
-      "expected_outputs": {
-        "g0_sum": false,
-        "g1_sum": false,
-        "g2_carry": true,
-        "g2_sum": false,
-        "g_ctrl": true,
-        "g_parity": false
-      },
-      "faulty_outputs": {
-        "g0_sum": false,
-        "g1_sum": false,
-        "g2_carry": false,
-        "g2_sum": true,
-        "g_ctrl": false,
-        "g_parity": true
-      },
-      "inputs": {
-        "a0": false,
-        "a1": true,
+        "a1": false,
         "a2": true,
         "b0": true,
         "b1": false,
-        "b2": false,
-        "cin": true
-      }
-    },
-    {
-      "expected_outputs": {
-        "g0_sum": false,
-        "g1_sum": false,
-        "g2_carry": true,
-        "g2_sum": false,
-        "g_ctrl": false,
-        "g_parity": false
-      },
-      "faulty_outputs": {
-        "g0_sum": false,
-        "g1_sum": false,
-        "g2_carry": false,
-        "g2_sum": true,
-        "g_ctrl": false,
-        "g_parity": true
-      },
-      "inputs": {
-        "a0": false,
-        "a1": true,
-        "a2": false,
-        "b0": false,
-        "b1": true,
         "b2": true,
-        "cin": false
+        "cin": true
       }
     },
     {
       "expected_outputs": {
         "g0_sum": true,
-        "g1_sum": false,
-        "g2_carry": true,
+        "g1_sum": true,
+        "g2_carry": false,
         "g2_sum": false,
         "g_ctrl": false,
-        "g_parity": true
+        "g_parity": false
       },
       "faulty_outputs": {
         "g0_sum": true,
-        "g1_sum": false,
-        "g2_carry": false,
-        "g2_sum": true,
-        "g_ctrl": false,
-        "g_parity": false
-      },
-      "inputs": {
-        "a0": false,
-        "a1": true,
-        "a2": true,
-        "b0": false,
-        "b1": true,
-        "b2": false,
-        "cin": true
-      }
-    },
-    {
-      "expected_outputs": {
-        "g0_sum": false,
-        "g1_sum": false,
-        "g2_carry": true,
-        "g2_sum": false,
-        "g_ctrl": true,
-        "g_parity": false
-      },
-      "faulty_outputs": {
-        "g0_sum": false,
-        "g1_sum": false,
+        "g1_sum": true,
         "g2_carry": false,
         "g2_sum": true,
         "g_ctrl": false,
@@ -214,12 +361,93 @@
       },
       "inputs": {
         "a0": true,
+        "a1": false,
+        "a2": false,
+        "b0": false,
+        "b1": true,
+        "b2": false,
+        "cin": false
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": false,
+        "g1_sum": true,
+        "g2_carry": false,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": true
+      },
+      "faulty_outputs": {
+        "g0_sum": false,
+        "g1_sum": true,
+        "g2_carry": false,
+        "g2_sum": true,
+        "g_ctrl": false,
+        "g_parity": false
+      },
+      "inputs": {
+        "a0": false,
         "a1": true,
+        "a2": false,
+        "b0": false,
+        "b1": false,
+        "b2": false,
+        "cin": false
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": true,
+        "g1_sum": true,
+        "g2_carry": false,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": false
+      },
+      "faulty_outputs": {
+        "g0_sum": true,
+        "g1_sum": true,
+        "g2_carry": false,
+        "g2_sum": true,
+        "g_ctrl": false,
+        "g_parity": true
+      },
+      "inputs": {
+        "a0": true,
+        "a1": false,
         "a2": false,
         "b0": true,
         "b1": false,
+        "b2": false,
+        "cin": true
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": false,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": true,
+        "g_parity": true
+      },
+      "faulty_outputs": {
+        "g0_sum": false,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": true,
+        "g_ctrl": true,
+        "g_parity": false
+      },
+      "inputs": {
+        "a0": true,
+        "a1": false,
+        "a2": true,
+        "b0": false,
+        "b1": false,
         "b2": true,
-        "cin": false
+        "cin": true
       }
     }
   ]
