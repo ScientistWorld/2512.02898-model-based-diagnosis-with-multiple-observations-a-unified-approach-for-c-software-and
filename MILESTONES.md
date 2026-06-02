@@ -24,4 +24,4 @@
 - The evaluation pipeline reads output artifacts and validates diagnoses without importing `method/`.
 
 ## Stop Justification
-- Completed at milestone `core_claim` on a scaled synthetic Boolean-circuit benchmark with explicit faulty circuit netlists. Higher milestones would require expanding to augmented ISCAS85 and adding HSD/HSD-CM reproductions.
+- Completed at milestone `core_claim`.
