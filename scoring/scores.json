@@ -4,30 +4,30 @@
     "note": "Scores are from the scaled synthetic circuit benchmark; reference.json contains the paper's ISCAS85 numbers.",
     "unscored": {
       "_bugassist_vote_unscored": {
-        "avg_diagnosis_size": 1.1481481481481481,
-        "avg_elapsed_sec": 0.03912444536884626,
+        "avg_diagnosis_size": 0.7407407407407407,
+        "avg_elapsed_sec": 0.03740274920818155,
         "by_observation_count": {
           "4": {
             "localized": 0,
             "total": 9
           },
           "8": {
-            "localized": 2,
+            "localized": 0,
             "total": 9
           },
           "16": {
-            "localized": 1,
+            "localized": 0,
             "total": 9
           }
         },
-        "exact_fault_set_rate": 0.1111111111111111,
+        "exact_fault_set_rate": 0.0,
         "instances_evaluated": 27,
-        "invalid_count": 24,
-        "localized_count": 3,
+        "invalid_count": 27,
+        "localized_count": 0,
         "nonminimal_count": 0,
-        "optimal_rate": 0.1111111111111111,
-        "subset_minimal_rate": 0.1111111111111111,
-        "success_rate": 0.1111111111111111
+        "optimal_rate": 0.0,
+        "subset_minimal_rate": 0.0,
+        "success_rate": 0.0
       }
     }
   },
