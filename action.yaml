@@ -1,9 +1,9 @@
-# This iteration writes files only — do NOT submit compute jobs.
-# Once you set action to 'done', STOP immediately.
+# This iteration submits compute jobs through scripts/run.sh.
+# Once you set action to 'submit', STOP immediately.
 # Do NOT sleep, poll, or wait. The system reads this file
 # only after your turn ends.
-action: done
+action: submit
 gpus: 0
 test: false
 milestone: core_claim
-notes: "Improvements: added all-reported diagnosis validation, exact-fault and artifact-completeness checks, and machine-independent output-volume efficiency metrics; retained legacy runtime fields at zero coefficient for compatibility. Notes: see DESIGN_NOTES.md."
+notes: "Run evaluate_train.sh and evaluate_test.sh against /home/user/checkpoints to populate scores_train.json and scores_test.json."
