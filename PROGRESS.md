@@ -10,6 +10,7 @@
 - `eval/evaluate_circuit_outputs.py` is method-agnostic: it reads result artifacts and independently checks diagnosis validity and cardinality without importing `method/`.
 - Scheduler job `2147c6a7-240` verified the repaired packaged pipeline inside the compute container with exit code 0.
 - Scheduler job `06041b2e-9e9` regenerated the final score artifact inside the packaged compute container with exit code 0.
+- The top-level reusable evaluator has been aligned with the train/test scoring contract so future agents are scored on selected fault-set overlap, diagnosis validity, completeness, and output volume.
 
 ## Results
 
@@ -24,6 +25,7 @@
 
 ## Remaining
 
+- Run the fresh CPU test submission to regenerate `scoring/scores.json` after the top-level evaluator patch and restore `core_claim` only if validation passes.
 - Expand beyond the scaled synthetic benchmark toward the paper's augmented ISCAS85 instances.
 - Add HSD or HSD-CM as scored baselines if pursuing `majority` or higher.
 - Reproduce more of the paper's runtime-ranking table using machine-independent proxies or controlled solver call counts instead of wall-clock time.
@@ -32,8 +34,9 @@
 
 - The `python-sat[pblib,aiger]` extras attempted to build `pypblib` and failed on the login environment due to missing Python headers. Plain `python-sat` is sufficient for the implemented WCNF/RC2 workflow and installs successfully.
 - A continuation audit found that the previous synthetic interface passed the injected fault map into the method as faulty-circuit semantics. This was repaired by storing an explicit faulty circuit netlist in each instance; `method/` now receives only the faulty circuit and observations, while the true fault list is retained only for evaluation summaries.
-- Local login-node Python now has PySAT available, and `environment/setup.sh` installs `python-sat` for fresh compute containers.
+- `environment/setup.sh` installs `python-sat` for fresh compute containers.
 - Continuation audit reset the working milestone to `method_runs`; job `06041b2e-9e9` refreshed the score artifact, so the milestone is restored to `core_claim`.
+- The login-node Python environment does not currently have PySAT, so full local evaluation falls back to an intentionally tiny exhaustive SAT solver and is too slow for the full benchmark. The packaged container installs `python-sat`; fresh validation is being submitted as a CPU test job.
 
 ## Deviations from Paper
 

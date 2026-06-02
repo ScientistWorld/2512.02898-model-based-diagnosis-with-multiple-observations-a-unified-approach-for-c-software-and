@@ -1,9 +1,6 @@
-# This iteration has completed train/test scoring.
-# Once you set action to 'done', STOP immediately.
-# Do NOT sleep, poll, or wait. The system reads this file
-# only after your turn ends.
-action: done
+# This iteration submits a CPU validation job.
+action: submit
 gpus: 0
-test: false
-milestone: core_claim
-notes: "Packaging audit complete: no external artifacts required; scripts now resolve the repo root dynamically instead of assuming /home/user."
+test: true
+milestone: method_runs
+notes: "Regenerate method, baseline, root/train/test scores, then run validate.py --compare after aligning the top-level evaluator with the selected-fault scoring contract."

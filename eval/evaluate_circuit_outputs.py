@@ -179,6 +179,14 @@ def summarize_method(instances: dict[str, dict], result_path: Path) -> dict:
     total_cost = 0
     total_elapsed = 0.0
     solved = 0
+    total_reported_diagnoses = 0
+    max_reported_diagnoses = 0
+    all_reported_valid_minimal_count = 0
+    total_fault_precision = 0.0
+    total_fault_recall = 0.0
+    total_fault_f1 = 0.0
+    total_extra_gate_count = 0
+    total_missing_fault_count = 0
     for row in rows:
         instance = instances[row["id"]]
         circuit = instance["_faulty_circuit_obj"]
@@ -186,36 +194,70 @@ def summarize_method(instances: dict[str, dict], result_path: Path) -> dict:
         chosen = diagnoses[0] if diagnoses else []
         if not diagnoses:
             continue
+        total_reported_diagnoses += len(diagnoses)
+        max_reported_diagnoses = max(max_reported_diagnoses, len(diagnoses))
         solved += 1
         obs_count = int(row["observation_count"])
-        by_obs.setdefault(obs_count, {"total": 0, "localized": 0})
+        by_obs.setdefault(obs_count, {"total": 0, "localized": 0, "exact": 0, "fault_f1_total": 0.0})
         by_obs[obs_count]["total"] += 1
         valid = diagnosis_valid(circuit, instance["observations"], chosen)
         valid_count += int(valid)
         cost = len(chosen)
         total_cost += cost
         total_elapsed += float(row.get("elapsed_sec", 0.0))
+        predicted_faults = set(chosen)
+        true_faults = set(instance["faults"])
+        true_positive = len(predicted_faults & true_faults)
+        fault_precision = true_positive / len(predicted_faults) if predicted_faults else 0.0
+        fault_recall = true_positive / len(true_faults) if true_faults else 1.0
+        fault_f1 = (
+            2.0 * fault_precision * fault_recall / (fault_precision + fault_recall)
+            if fault_precision + fault_recall
+            else 0.0
+        )
+        total_fault_precision += fault_precision
+        total_fault_recall += fault_recall
+        total_fault_f1 += fault_f1
+        total_extra_gate_count += len(predicted_faults - true_faults)
+        total_missing_fault_count += len(true_faults - predicted_faults)
+        by_obs[obs_count]["fault_f1_total"] += fault_f1
         opt = optimum_cardinality(circuit, instance["observations"])
         optimal = valid and opt == cost
         optimum_count += int(optimal)
         by_obs[obs_count]["localized"] += int(optimal)
-        true_faults = set(instance["faults"])
-        exact_count += int(valid and set(chosen) == true_faults)
+        exact = valid and predicted_faults == true_faults
+        exact_count += int(exact)
+        by_obs[obs_count]["exact"] += int(exact)
+        for diagnosis in diagnoses:
+            reported_valid = diagnosis_valid(circuit, instance["observations"], diagnosis)
+            all_reported_valid_minimal_count += int(reported_valid and opt == len(diagnosis))
         if valid:
             subset_minimal_count += int(opt == cost)
     n = max(1, len(rows))
     solved_n = max(1, solved)
+    reported_n = max(1, total_reported_diagnoses)
     return {
         "success_rate": valid_count / n,
         "optimal_rate": optimum_count / n,
         "exact_fault_set_rate": exact_count / n,
         "subset_minimal_rate": subset_minimal_count / n,
+        "all_reported_valid_minimal_rate": all_reported_valid_minimal_count / reported_n,
+        "complete_output_rate": solved / n,
         "avg_diagnosis_size": total_cost / solved_n,
         "avg_elapsed_sec": total_elapsed / solved_n,
+        "avg_reported_diagnoses_per_instance": total_reported_diagnoses / n,
+        "max_reported_diagnoses_per_instance": max_reported_diagnoses,
+        "selected_fault_precision": total_fault_precision / n,
+        "selected_fault_recall": total_fault_recall / n,
+        "selected_fault_f1": total_fault_f1 / n,
+        "avg_extra_gate_count": total_extra_gate_count / n,
+        "avg_missing_fault_count": total_missing_fault_count / n,
         "instances_evaluated": len(rows),
         "localized_count": optimum_count,
         "invalid_count": solved - valid_count,
         "nonminimal_count": valid_count - optimum_count,
+        "missing_count": 0,
+        "empty_diagnosis_count": len(rows) - solved,
         "by_observation_count": by_obs,
     }
 
@@ -246,6 +288,8 @@ def main() -> None:
         n = summary["instances_evaluated"]
         localized = summary["localized_count"]
         localisation[name] = {
+            "selected_fault_f1": 100.0 * summary["selected_fault_f1"],
+            "exact_fault_set_rate": 100.0 * summary["exact_fault_set_rate"],
             "localized_rate": 100.0 * localized / max(1, n),
             "total_instances": n,
             "localized_count": localized,
@@ -253,10 +297,20 @@ def main() -> None:
             "memout_count": 0,
         }
         quality[name] = {
+            "selected_fault_f1": 100.0 * summary["selected_fault_f1"],
+            "selected_fault_precision": 100.0 * summary["selected_fault_precision"],
+            "selected_fault_recall": 100.0 * summary["selected_fault_recall"],
+            "exact_fault_set_rate": 100.0 * summary["exact_fault_set_rate"],
+            "avg_extra_gate_count": summary["avg_extra_gate_count"],
+            "avg_missing_fault_count": summary["avg_missing_fault_count"],
             "valid_minimal_rate": 100.0 * summary["optimal_rate"],
             "all_observations_consistent_rate": 100.0 * summary["success_rate"],
+            "all_reported_valid_minimal_rate": 100.0 * summary["all_reported_valid_minimal_rate"],
+            "complete_output_rate": 100.0 * summary["complete_output_rate"],
             "invalid_count": summary["invalid_count"],
             "nonminimal_count": summary["nonminimal_count"],
+            "missing_count": summary["missing_count"],
+            "empty_diagnosis_count": summary["empty_diagnosis_count"],
         }
         obs_metrics = {}
         for paper_obs in (10, 20, 30, 40, 50):
@@ -264,13 +318,21 @@ def main() -> None:
             # into the paper's increasing-observation metric names so the
             # same score contract is preserved.
             scaled_obs = {10: 4, 20: 8, 30: 16, 40: 16, 50: 16}[paper_obs]
-            bucket = summary["by_observation_count"].get(scaled_obs, {"total": 0, "localized": 0})
+            bucket = summary["by_observation_count"].get(
+                scaled_obs, {"total": 0, "localized": 0, "exact": 0, "fault_f1_total": 0.0}
+            )
             obs_metrics[f"localized_rate_obs{paper_obs}"] = 100.0 * bucket["localized"] / max(1, bucket["total"])
             obs_metrics[f"localized_count_obs{paper_obs}"] = bucket["localized"]
+            obs_metrics[f"exact_fault_set_rate_obs{paper_obs}"] = 100.0 * bucket["exact"] / max(1, bucket["total"])
+            obs_metrics[f"selected_fault_f1_obs{paper_obs}"] = (
+                100.0 * bucket["fault_f1_total"] / max(1, bucket["total"])
+            )
         scaling[name] = obs_metrics
         runtime[name] = {
             "relative_runtime_rank": 3,
             "timeout_seconds": 1800,
+            "avg_reported_diagnoses_per_instance": summary["avg_reported_diagnoses_per_instance"],
+            "max_reported_diagnoses_per_instance": summary["max_reported_diagnoses_per_instance"],
         }
 
     scores = {

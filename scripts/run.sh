@@ -9,10 +9,12 @@
 # Make sure all data, code, and dependencies are already in the
 # workspace or baked into the container before submitting.
 
-set -e
+set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
+bash scripts/reproduce.sh
 bash scripts/evaluate_train.sh checkpoints
 bash scripts/evaluate_test.sh checkpoints
+python validate.py --compare
