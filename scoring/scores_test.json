@@ -32,12 +32,17 @@
         "cfaults": {
           "all_observations_consistent_rate": 100.0,
           "all_reported_valid_minimal_rate": 100.0,
+          "avg_extra_gate_count": 1.4615384615384615,
+          "avg_missing_fault_count": 0.9230769230769231,
           "complete_output_rate": 100.0,
           "empty_diagnosis_count": 0,
           "exact_fault_set_rate": 7.6923076923076925,
           "invalid_count": 0,
           "missing_count": 0,
           "nonminimal_count": 0,
+          "selected_fault_f1": 42.19780219780219,
+          "selected_fault_precision": 39.743589743589745,
+          "selected_fault_recall": 46.15384615384615,
           "valid_minimal_rate": 100.0
         }
       }
@@ -45,9 +50,11 @@
     "iscas85_localisation": {
       "results": {
         "cfaults": {
+          "exact_fault_set_rate": 7.6923076923076925,
           "localized_count": 13,
           "localized_rate": 100.0,
           "memout_count": 0,
+          "selected_fault_f1": 42.19780219780219,
           "timeout_count": 0,
           "total_instances": 13
         }
@@ -56,6 +63,11 @@
     "observation_scaling": {
       "results": {
         "cfaults": {
+          "exact_fault_set_rate_obs10": 0.0,
+          "exact_fault_set_rate_obs20": 20.0,
+          "exact_fault_set_rate_obs30": 0.0,
+          "exact_fault_set_rate_obs40": 0.0,
+          "exact_fault_set_rate_obs50": 0.0,
           "localized_count_obs10": 4,
           "localized_count_obs20": 5,
           "localized_count_obs30": 4,
@@ -65,7 +77,12 @@
           "localized_rate_obs20": 100.0,
           "localized_rate_obs30": 100.0,
           "localized_rate_obs40": 100.0,
-          "localized_rate_obs50": 100.0
+          "localized_rate_obs50": 100.0,
+          "selected_fault_f1_obs10": 32.5,
+          "selected_fault_f1_obs20": 64.28571428571429,
+          "selected_fault_f1_obs30": 24.28571428571429,
+          "selected_fault_f1_obs40": 24.28571428571429,
+          "selected_fault_f1_obs50": 24.28571428571429
         }
       }
     },
