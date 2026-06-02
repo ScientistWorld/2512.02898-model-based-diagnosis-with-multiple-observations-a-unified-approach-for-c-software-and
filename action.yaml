@@ -27,8 +27,8 @@
 #   milestone: core_claim
 #   notes: "Reproduced the core claim. Environment packaged."
 
-action: submit
+action: done
 gpus: 0
-test: true
+test: false
 milestone: core_claim
-notes: "CPU smoke job: run the packaged synthetic circuit CFaults reproduction and evaluator end-to-end in the container."
+notes: "Reproduced the core CFaults multi-observation MaxSAT claim on a scaled circuit benchmark; scheduler/container smoke job passed with exit code 0."

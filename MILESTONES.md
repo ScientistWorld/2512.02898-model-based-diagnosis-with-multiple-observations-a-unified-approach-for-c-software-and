@@ -29,5 +29,10 @@
 - CFaults produced valid minimum-cardinality diagnoses for all 27 instances; the one-observation voting baseline localized only 3 of 27, showing that unified multi-observation reasoning is necessary on this benchmark.
 - The reproduction uses a scaled synthetic circuit benchmark instead of the paper's full augmented ISCAS85 suite, but preserves the paper's MaxSAT computation and objective.
 
+### [2026-06-02 11:00] - core_claim
+- Scheduler job `565b7133-b46` ran `scripts/run.sh` successfully in the compute container with exit code 0.
+- The packaged reproduction completed in 56 seconds on a CPU test node and wrote the expected `scoring/scores.json` structure.
+- Verified that the container path reproduces the same CFaults result: 27 / 27 valid minimum-cardinality diagnoses on the scaled benchmark.
+
 ## Stop Justification
-- Not stopped; the current submission verifies the packaged environment on a CPU test node.
+- Completed at milestone `core_claim`. Higher milestones would require substantially expanding toward the full augmented ISCAS85 benchmark and implementing HSD/HSD-CM baselines; the current environment already implements and verifies the paper's core CFaults multi-observation MaxSAT algorithm on a non-trivial reusable benchmark.

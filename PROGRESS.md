@@ -7,6 +7,7 @@
 - A reusable benchmark generator in `data/circuit_benchmark.py` creates small tracked circuit-diagnosis instances with injected stuck-at gate faults and failing observations.
 - `scripts/reproduce.sh` runs the full local pipeline: generate benchmark data, run the one-observation voting baseline, run CFaults, and evaluate artifacts through `scripts/evaluate.sh`.
 - `eval/evaluate_circuit_outputs.py` is method-agnostic: it reads result artifacts and independently checks diagnosis validity and cardinality without importing `method/`.
+- Scheduler job `565b7133-b46` verified the packaged pipeline inside the compute container with exit code 0.
 
 ## Results
 
@@ -14,11 +15,11 @@
 - Scaled reproduction, synthetic circuit localisation: CFaults localizes 27 / 27 instances, or 100.0%.
 - Constraint metric, scaled reproduction: CFaults returns valid minimum-cardinality diagnoses for 27 / 27 instances, with 0 invalid and 0 non-minimal outputs.
 - Unscored sanity baseline: the one-observation voting baseline localizes 3 / 27 instances, or 11.11%, which confirms the benchmark is not solved by considering observations independently.
+- Container verification: job `565b7133-b46` completed in 56 seconds on a CPU test node and reproduced the same 27 / 27 CFaults localisation result.
 - `scoring/scores.json` contains the reproduced metrics; `scoring/reference.json` contains the paper's reported comparison targets.
 
 ## Remaining
 
-- Verify the packaged pipeline through the scheduler/container path.
 - Expand beyond the scaled synthetic benchmark toward the paper's augmented ISCAS85 instances.
 - Add HSD or HSD-CM as scored baselines if pursuing `majority` or higher.
 - Reproduce more of the paper's runtime-ranking table using machine-independent proxies or controlled solver call counts instead of wall-clock time.
