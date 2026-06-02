@@ -5,7 +5,7 @@
     "unscored": {
       "_bugassist_vote_unscored": {
         "avg_diagnosis_size": 0.7407407407407407,
-        "avg_elapsed_sec": 0.03740274920818155,
+        "avg_elapsed_sec": 0.07333805468968219,
         "by_observation_count": {
           "4": {
             "localized": 0,
@@ -35,6 +35,7 @@
     "diagnosis_quality": {
       "results": {
         "cfaults": {
+          "all_observations_consistent_rate": 100.0,
           "invalid_count": 0,
           "nonminimal_count": 0,
           "valid_minimal_rate": 100.0
