@@ -14,6 +14,7 @@
 - Scheduler job `06041b2e-9e9` regenerated the final score artifact inside the packaged compute container with exit code 0.
 - The top-level reusable evaluator has been aligned with the train/test scoring contract so future agents are scored on selected fault-set overlap, diagnosis validity, completeness, and solver-oracle-call efficiency.
 - Scheduler job `e9807e81-d04` regenerated root, train, and test scores after the Boolean-gate CNF repair and passed `python validate.py --compare`.
+- Scheduler job `d04c15ff-130` regenerated root, train, and test scores after the HSD baseline and solver-oracle-call scoring update; `python validate.py --compare` passes.
 
 ## Results
 
@@ -30,13 +31,12 @@
 - `python validate.py` also passes after correcting `reference.json` so the gym-only diagnosis-output-volume proxy is not presented as a paper-reported number.
 - HSD baseline expansion is implemented and wired into `scripts/reproduce.sh`, `scripts/baseline.sh`, and the root/train/test evaluators. Fresh packaged scores are pending CPU job verification before claiming a higher milestone.
 - CPU job `f183bdd9-60a` successfully ran CFaults and HSD but failed validation because the runtime-efficiency primary metric tied across methods on the train slice.
-- Local validation passes after replacing the tied diagnosis-output-volume primary metric with `avg_solver_oracle_calls_per_instance`; a packaged CPU rerun is pending to regenerate artifacts from scratch.
+- CPU job `d04c15ff-130` completed successfully after replacing the tied diagnosis-output-volume primary metric with `avg_solver_oracle_calls_per_instance`; the regenerated artifacts pass validation.
 
 ## Remaining
 
 - Expand beyond the scaled synthetic benchmark toward the paper's augmented ISCAS85 instances.
 - Add HSD-CM or a fuller ISCAS85-scale benchmark if pursuing `majority` or higher.
-- Regenerate packaged scores with the new HSD baseline and inspect whether the expanded circuit comparison supports `core_claim_plus` or a secondary-claims milestone.
 - Reproduce more of the paper's runtime-ranking table using machine-independent proxies or controlled solver call counts instead of wall-clock time.
 
 ## Issues

@@ -28,6 +28,11 @@
 - Replaced the runtime-efficiency primary metric with `avg_solver_oracle_calls_per_instance`, added explicit solver-oracle-call fields to CFaults and HSD outputs, and kept diagnosis-output volume as audit-only.
 - Local `python validate.py --compare` now passes; a packaged CPU rerun is pending to regenerate the score artifacts from scratch.
 
+### [2026-06-02 12:14] - core_claim
+- CPU job `d04c15ff-130` completed successfully after the runtime-efficiency scoring repair.
+- Regenerated CFaults/HSD root, train, and test score artifacts with explicit solver-oracle-call metrics.
+- `python validate.py --compare` passes for scoring, train/test consistency, output-reading evaluation, import separation, and shared-path checks.
+
 ### [2026-06-02 11:56] - core_claim
 - Added an HSD-style circuit baseline that follows the paper's multiple-observation hitting-set dualisation comparison path.
 - Wired the HSD artifact into the reusable root, train, and test evaluators while keeping BugAssist voting as an unscored sanity baseline.
@@ -49,4 +54,4 @@
 - Verified the scoring contract with `python validate.py --compare`; all checks passed.
 
 ## Stop Justification
-- Not stopping yet: `core_claim` is already verified, and an HSD baseline expansion is pending packaged CPU verification.
+- Stopping at `core_claim`: the scaled CFaults circuit reproduction, HSD baseline expansion, root evaluator, train/test evaluator, and packaged environment have all been verified by CPU jobs. Higher milestones require expanding to fuller ISCAS85-scale experiments or additional paper baselines.

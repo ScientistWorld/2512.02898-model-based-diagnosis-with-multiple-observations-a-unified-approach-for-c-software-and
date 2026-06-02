@@ -1,6 +1,4 @@
-# Verify the HSD baseline expansion after replacing the tied runtime primary metric.
-action: submit
-gpus: 0
-test: true
+# Final verification complete after packaged CPU rerun d04c15ff-130.
+action: done
 milestone: core_claim
-notes: "CPU test job to regenerate CFaults/HSD artifacts with solver-oracle-call runtime metrics and run validate.py --compare."
+notes: "Verified scaled CFaults circuit reproduction with HSD baseline, solver-oracle-call scoring, and passing train/test validation."

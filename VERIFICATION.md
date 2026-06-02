@@ -2,7 +2,7 @@
 
 ## Initial Assessment
 
-The workspace claimed `core_claim`, and earlier CPU job `e9807e81-d04` had verified the corrected CFaults implementation and regenerated root/train/test score artifacts. A later expansion added the HSD circuit baseline; CPU job `f183bdd9-60a` ran the expanded pipeline but failed validation because the runtime-efficiency primary metric tied across CFaults and HSD on the train slice.
+The workspace claimed `core_claim`, and CPU job `e9807e81-d04` verified the corrected CFaults implementation after the Boolean-gate encoding repair. A later expansion added the HSD circuit baseline; CPU job `f183bdd9-60a` ran the expanded pipeline but failed validation because the runtime-efficiency primary metric tied across CFaults and HSD on the train slice. CPU job `d04c15ff-130` then reran the patched scoring contract successfully.
 
 ## Issues Found
 
@@ -20,13 +20,14 @@ The workspace claimed `core_claim`, and earlier CPU job `e9807e81-d04` had verif
 - Clarified evaluation documentation so wall-clock runtime is audit context only; scored efficiency uses timeout/memory outcomes and solver-oracle-call proxies.
 - Updated `reference.json` so the diagnosis-output-volume proxy is explicitly documented as a corrected scaled-gym reference value from job `e9807e81-d04`.
 - Added explicit `solver_oracle_calls` fields to CFaults and HSD artifacts, changed the runtime-efficiency primary metric to `avg_solver_oracle_calls_per_instance`, and kept diagnosis-output volume as audit-only.
-- Re-ran `python validate.py` and `python validate.py --compare`; all checks passed.
+- Regenerated root, train, and test scores in CPU job `d04c15ff-130`.
+- Re-ran `python validate.py --compare`; all scoring, train/test consistency, output-reading evaluation, import-separation, and shared-path checks passed.
 
 ## Final Judgment
 
-The workspace remains at `core_claim` and local validation now passes after the runtime-efficiency scoring repair. A packaged CPU test job is being submitted to regenerate the score artifacts from scratch and confirm the patched CFaults/HSD scoring contract inside the container. The main limitation is scale: this demonstrates the core multi-observation circuit-diagnosis claim on a synthetic benchmark, not the full ISCAS85 study.
+The workspace is ready to serve as a scaled research gym. Improve-mode agents can build on the packaged CFaults implementation and HSD baseline, and from-scratch agents can use the method-agnostic problem, data, and evaluator without importing the paper method. The main limitation is scale: this demonstrates the core multi-observation circuit-diagnosis claim on a synthetic benchmark, not the full ISCAS85 study.
 
 - Milestone: core_claim
-- Ready for gym use: partial
+- Ready for gym use: yes
 - Confidence: medium
-- Key limitation: packaged rerun pending after runtime-efficiency scoring repair; scaled synthetic circuit benchmark only
+- Key limitation: scaled synthetic circuit benchmark only
