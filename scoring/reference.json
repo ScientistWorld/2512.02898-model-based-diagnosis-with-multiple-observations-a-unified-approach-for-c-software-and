@@ -23,13 +23,14 @@
       "primary_metric": "valid_minimal_rate",
       "metrics": {
         "valid_minimal_rate": {"higher_is_better": true, "coefficient": 1.0},
+        "all_observations_consistent_rate": {"higher_is_better": true, "coefficient": 1.0},
         "invalid_count": {"higher_is_better": false, "coefficient": -1.0},
         "nonminimal_count": {"higher_is_better": false, "coefficient": -1.0}
       },
       "results": {
-        "cfaults": {"type": "proposed", "valid_minimal_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0},
-        "hsd": {"type": "baseline", "valid_minimal_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0},
-        "hsd_cm": {"type": "baseline", "valid_minimal_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0}
+        "cfaults": {"type": "proposed", "valid_minimal_rate": 100.0, "all_observations_consistent_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0},
+        "hsd": {"type": "baseline", "valid_minimal_rate": 100.0, "all_observations_consistent_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0},
+        "hsd_cm": {"type": "baseline", "valid_minimal_rate": 100.0, "all_observations_consistent_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0}
       }
     },
     "observation_scaling": {

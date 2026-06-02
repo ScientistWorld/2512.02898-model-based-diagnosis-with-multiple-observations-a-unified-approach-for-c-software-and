@@ -6,7 +6,7 @@ The main metric is `localized_count`: the number of benchmark instances for whic
 
 Efficiency is measured with CPU time per circuit and aggregate timeout count. Lower CPU time and fewer timeouts are better. Memory exhaustion should be recorded separately; the paper reports no memory-limit hits on the Boolean-circuit benchmark.
 
-Diagnosis quality is a constraint metric. A submitted diagnosis must be consistent with all failing input-output observations for that circuit and must be minimum-cardinality, or at least subset-minimal when the exact optimum is not available for a scaled reproduction. Invalid, non-minimal, or observation-inconsistent diagnoses should not count as successfully localised instances.
+Diagnosis quality is a constraint metric. A submitted diagnosis must be consistent with all failing input-output observations for that circuit and must be minimum-cardinality under the reproduced benchmark oracle. Invalid, non-minimal, or observation-inconsistent diagnoses should not count as successfully localised instances.
 
 ## Baselines and Targets
 

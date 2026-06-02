@@ -77,17 +77,53 @@ def diagnosis_valid(circuit: Circuit, observations: list[dict], diagnosis: list[
         with Solver(name="g3", bootstrap_with=clauses) as solver:
             return bool(solver.solve())
     except ModuleNotFoundError:
-        # Tiny fallback: enumerate only for generated smoke-test formulas.
-        variables = sorted({abs(lit) for clause in clauses for lit in clause})
-        if len(variables) > 24:
-            raise
-        import itertools
+        return dpll_sat([list(clause) for clause in clauses])
 
-        for bits in itertools.product([False, True], repeat=len(variables)):
-            assignment = dict(zip(variables, bits))
-            if all(any(assignment[abs(lit)] == (lit > 0) for lit in clause) for clause in clauses):
-                return True
-        return False
+
+def simplify_clauses(clauses: list[list[int]], lit: int) -> list[list[int]] | None:
+    simplified = []
+    neg = -lit
+    for clause in clauses:
+        if lit in clause:
+            continue
+        if neg in clause:
+            reduced = [x for x in clause if x != neg]
+            if not reduced:
+                return None
+            simplified.append(reduced)
+        else:
+            simplified.append(clause)
+    return simplified
+
+
+def dpll_sat(clauses: list[list[int]]) -> bool:
+    while True:
+        if not clauses:
+            return True
+        if any(not clause for clause in clauses):
+            return False
+        unit = next((clause[0] for clause in clauses if len(clause) == 1), None)
+        if unit is None:
+            break
+        clauses = simplify_clauses(clauses, unit)
+        if clauses is None:
+            return False
+
+    literal_counts: dict[int, int] = {}
+    for clause in clauses:
+        for lit in clause:
+            literal_counts[lit] = literal_counts.get(lit, 0) + 1
+    for lit in list(literal_counts):
+        if -lit not in literal_counts:
+            simplified = simplify_clauses(clauses, lit)
+            return simplified is not None and dpll_sat(simplified)
+
+    variable = max({abs(lit) for clause in clauses for lit in clause}, key=lambda v: literal_counts.get(v, 0) + literal_counts.get(-v, 0))
+    for lit in (variable, -variable):
+        simplified = simplify_clauses(clauses, lit)
+        if simplified is not None and dpll_sat(simplified):
+            return True
+    return False
 
 
 def optimum_cardinality(circuit: Circuit, observations: list[dict]) -> int | None:
@@ -218,6 +254,7 @@ def main() -> None:
         }
         quality[name] = {
             "valid_minimal_rate": 100.0 * summary["optimal_rate"],
+            "all_observations_consistent_rate": 100.0 * summary["success_rate"],
             "invalid_count": summary["invalid_count"],
             "nonminimal_count": summary["nonminimal_count"],
         }

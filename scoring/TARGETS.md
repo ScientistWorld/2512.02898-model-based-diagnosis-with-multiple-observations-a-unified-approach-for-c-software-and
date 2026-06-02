@@ -10,11 +10,11 @@ Tests whether a method can successfully localise faults on the augmented ISCAS85
 
 ## Constraint: diagnosis_quality
 
-Tests whether reported fault sets are valid explanations of all failing observations and satisfy the benchmark's minimality requirement.
+Tests whether reported fault sets are valid explanations of all failing observations and satisfy the benchmark's minimum-cardinality requirement.
 
 - **Metric:** `valid_minimal_rate` (higher is better)
-- **Supporting metrics:** `invalid_count` (lower is better), `nonminimal_count` (lower is better)
-- **How to run:** Independently validate each returned diagnosis against every failing observation for the instance, and check minimum-cardinality or subset-minimality according to the reproduced benchmark oracle.
+- **Supporting metrics:** `all_observations_consistent_rate` (higher is better), `invalid_count` (lower is better), `nonminimal_count` (lower is better)
+- **How to run:** Independently validate each returned diagnosis against every failing observation for the instance, and check minimum-cardinality against the reproduced benchmark oracle.
 
 ## Constraint: observation_scaling
 
