@@ -5,7 +5,7 @@
     "unscored": {
       "_bugassist_vote_unscored": {
         "avg_diagnosis_size": 1.1481481481481481,
-        "avg_elapsed_sec": 0.02092651067370618,
+        "avg_elapsed_sec": 0.03912444536884626,
         "by_observation_count": {
           "4": {
             "localized": 0,
