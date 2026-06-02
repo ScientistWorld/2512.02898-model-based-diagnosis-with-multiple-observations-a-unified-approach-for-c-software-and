@@ -29,17 +29,12 @@
       "_bugassist_vote_unscored": {
         "all_reported_valid_minimal_rate": 0.5714285714285714,
         "avg_diagnosis_size": 1.0714285714285714,
-        "avg_elapsed_sec": 0.03392974352131465,
+        "avg_elapsed_sec": 0.044555430699672015,
         "avg_extra_gate_count": 0.14285714285714285,
         "avg_missing_fault_count": 1.0714285714285714,
         "avg_reported_diagnoses_per_instance": 1.0,
+        "avg_solver_oracle_calls_per_instance": 2.0,
         "by_observation_count": {
-          "16": {
-            "exact": 2,
-            "fault_f1_total": 3.5666666666666664,
-            "localized": 3,
-            "total": 5
-          },
           "4": {
             "exact": 2,
             "fault_f1_total": 3.0,
@@ -51,6 +46,12 @@
             "fault_f1_total": 2.833333333333333,
             "localized": 1,
             "total": 4
+          },
+          "16": {
+            "exact": 2,
+            "fault_f1_total": 3.5666666666666664,
+            "localized": 3,
+            "total": 5
           }
         },
         "complete_output_rate": 1.0,
@@ -60,6 +61,7 @@
         "invalid_count": 6,
         "localized_count": 8,
         "max_reported_diagnoses_per_instance": 1,
+        "max_solver_oracle_calls_per_instance": 2,
         "missing_count": 0,
         "nonminimal_count": 0,
         "optimal_rate": 0.5714285714285714,
