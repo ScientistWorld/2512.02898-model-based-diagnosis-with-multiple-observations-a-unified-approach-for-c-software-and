@@ -65,7 +65,7 @@ The broader claim is that jointly reasoning over observations avoids redundant o
 
 The main metric is `localized_count`: the number of benchmark instances for which a method returns a valid minimum diagnosis before the timeout. `localized_rate` is the same count divided by the number of instances in the evaluated split. Higher is better for both.
 
-Efficiency is measured with CPU time per circuit and aggregate timeout count. Lower CPU time and fewer timeouts are better. Memory exhaustion should be recorded separately; the paper reports no memory-limit hits on the Boolean-circuit benchmark.
+The paper reports CPU time per circuit and aggregate timeout count. In this packaged gym, wall-clock time is recorded only as audit context because hardware varies across runs. Scored efficiency uses machine-independent proxies: whether the method completed within the fixed timeout/memory limits and the volume of reported diagnoses that must be checked.
 
 Diagnosis quality is a constraint metric. A submitted diagnosis must be consistent with all failing input-output observations for that circuit and must be minimum-cardinality under the reproduced benchmark oracle. Invalid, non-minimal, or observation-inconsistent diagnoses should not count as successfully localised instances.
 
@@ -77,7 +77,7 @@ The paper compares the proposed circuit diagnosis system against HSD and HSD wit
 
 ## Evaluation Protocol
 
-Run each method on the same augmented ISCAS85 instances, grouped by the number of failing observations. Use the same input-output observations and injected-fault configurations for all methods. Use an 1800 second timeout per buggy circuit and record success, timeout, memory failure, and CPU time.
+Run each method on the same augmented ISCAS85 instances, grouped by the number of failing observations. Use the same input-output observations and injected-fault configurations for all methods. Use an 1800 second timeout per buggy circuit and record success, timeout, memory failure, and wall-clock time as non-scored audit fields.
 
 For each returned diagnosis, independently validate that deactivating or repairing the reported components can satisfy all failing observations for that instance. Compute success counts and rates for each observation-count group and for the full benchmark. If the reproduction must scale down, keep the same procedure and include multiple observation-count groups plus multi-fault cases so the task remains non-trivial.
 
@@ -250,6 +250,46 @@ For each returned diagnosis, independently validate that deactivating or repairi
 
 <details>
 <summary>Progress Log</summary>
+
+### [2026-06-02 11:10] - core_claim
+- Implemented the paper's Boolean-circuit multi-observation MBD algorithm as a unified partial MaxSAT encoding with shared gate health variables.
+- Verified the scaled synthetic circuit benchmark result: CFaults produced valid minimum-cardinality diagnoses for all 27 tracked instances.
+- Kept diagnosis quality as a constraint metric: invalid and non-minimal diagnoses are counted as failures.
+
+### [2026-06-02 11:25] - method_runs
+- Continuation audit reset the current milestone to `method_runs` pending fresh verification.
+- Confirmed the method code is a real scaled implementation of the paper's circuit-side unified multi-observation MaxSAT diagnosis algorithm.
+- Found that `scoring/scores.json` is stale after adding the explicit all-observations consistency metric, so a CPU test job is required to regenerate scores before restoring `core_claim`.
+
+### [2026-06-02 11:42] - core_claim
+- CPU job `06041b2e-9e9` completed successfully inside the packaged container and regenerated `scoring/scores.json`.
+- Restored `core_claim`: CFaults localized 27 / 27 scaled synthetic circuit instances and every counted diagnosis was valid, minimum-cardinality, and consistent with all observations.
+- Verified the scoring contract with `python validate.py --compare`; all checks passed.
+
+</details>
+
+### Iteration 8: gpt-5.5 (verifier)
+- **Milestone**: `core_claim` | **Status**: done
+- **Working time**: 7m | **GPU**: 0.0h
+- **Jobs**: 6 total (6 completed, 0 failed)
+
+<details>
+<summary>Progress Log</summary>
+
+### [2026-06-02 12:05] - method_runs
+- Patched the top-level reusable evaluator to emit the selected-fault overlap, output-completeness, and diagnosis-volume metrics already expected by `reference.json`.
+- Reset the active milestone to `method_runs` pending a fresh packaged CPU validation job, because `scoring/scores.json` must be regenerated after the evaluator change.
+- Updated `scripts/run.sh` to run the full reproduce/evaluate/validate pipeline in the compute container.
+
+### [2026-06-02 12:28] - method_runs
+- Final verification found a critical Boolean-gate encoding bug: the CNF clauses for binary gates did not match the data generator's circuit semantics.
+- Corrected `AND`, `OR`, `NAND`, and `NOR` encodings in method, baseline, and evaluator code.
+- Verified the corrected encodings by truth table locally; fresh packaged scoring is pending a CPU test job before `core_claim` can be restored.
+
+### [2026-06-02 12:49] - core_claim
+- CPU job `e9807e81-d04` completed successfully after the Boolean-gate repair and regenerated root, train, and test score artifacts.
+- Restored `core_claim`: the corrected CFaults implementation localizes all 27 scaled synthetic circuit instances, and every counted diagnosis is valid, minimum-cardinality, and consistent with all observations.
+- Verified the final scoring contract with `python validate.py --compare`; all checks passed.
 
 ### [2026-06-02 11:10] - core_claim
 - Implemented the paper's Boolean-circuit multi-observation MBD algorithm as a unified partial MaxSAT encoding with shared gate health variables.
