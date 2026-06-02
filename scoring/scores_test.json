@@ -1,0 +1,83 @@
+{
+  "_evaluation_slice": {
+    "instance_count": 13,
+    "instance_ids": [
+      "three_bit_adder_logic_f1_o16_002",
+      "three_bit_adder_logic_f1_o4_002",
+      "three_bit_adder_logic_f1_o8_001",
+      "three_bit_adder_logic_f1_o8_002",
+      "three_bit_adder_logic_f2_o16_001",
+      "three_bit_adder_logic_f2_o16_002",
+      "three_bit_adder_logic_f2_o4_001",
+      "three_bit_adder_logic_f2_o4_002",
+      "three_bit_adder_logic_f2_o8_002",
+      "three_bit_adder_logic_f3_o16_002",
+      "three_bit_adder_logic_f3_o4_002",
+      "three_bit_adder_logic_f3_o8_001",
+      "three_bit_adder_logic_f3_o8_002"
+    ],
+    "slice": "test",
+    "split_style": "deterministic stratified split by fault_count and observation_count"
+  },
+  "_scaled_reproduction_context": {
+    "benchmark": "data/synthetic_circuits",
+    "note": "Scores are from the held-out test slice of the scaled synthetic circuit benchmark.",
+    "result_root": "/home/user/checkpoints",
+    "slice": "test",
+    "unscored": {}
+  },
+  "experiments": {
+    "diagnosis_quality": {
+      "results": {
+        "cfaults": {
+          "all_observations_consistent_rate": 100.0,
+          "all_reported_valid_minimal_rate": 100.0,
+          "complete_output_rate": 100.0,
+          "empty_diagnosis_count": 0,
+          "exact_fault_set_rate": 7.6923076923076925,
+          "invalid_count": 0,
+          "missing_count": 0,
+          "nonminimal_count": 0,
+          "valid_minimal_rate": 100.0
+        }
+      }
+    },
+    "iscas85_localisation": {
+      "results": {
+        "cfaults": {
+          "localized_count": 13,
+          "localized_rate": 100.0,
+          "memout_count": 0,
+          "timeout_count": 0,
+          "total_instances": 13
+        }
+      }
+    },
+    "observation_scaling": {
+      "results": {
+        "cfaults": {
+          "localized_count_obs10": 4,
+          "localized_count_obs20": 5,
+          "localized_count_obs30": 4,
+          "localized_count_obs40": 4,
+          "localized_count_obs50": 4,
+          "localized_rate_obs10": 100.0,
+          "localized_rate_obs20": 100.0,
+          "localized_rate_obs30": 100.0,
+          "localized_rate_obs40": 100.0,
+          "localized_rate_obs50": 100.0
+        }
+      }
+    },
+    "runtime_efficiency": {
+      "results": {
+        "cfaults": {
+          "avg_reported_diagnoses_per_instance": 14.461538461538462,
+          "max_reported_diagnoses_per_instance": 132,
+          "relative_runtime_rank": 3,
+          "timeout_seconds": 1800
+        }
+      }
+    }
+  }
+}

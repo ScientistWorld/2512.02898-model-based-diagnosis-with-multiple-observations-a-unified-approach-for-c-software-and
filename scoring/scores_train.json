@@ -1,0 +1,117 @@
+{
+  "_evaluation_slice": {
+    "instance_count": 14,
+    "instance_ids": [
+      "three_bit_adder_logic_f1_o16_000",
+      "three_bit_adder_logic_f1_o16_001",
+      "three_bit_adder_logic_f1_o4_000",
+      "three_bit_adder_logic_f1_o4_001",
+      "three_bit_adder_logic_f1_o8_000",
+      "three_bit_adder_logic_f2_o16_000",
+      "three_bit_adder_logic_f2_o4_000",
+      "three_bit_adder_logic_f2_o8_000",
+      "three_bit_adder_logic_f2_o8_001",
+      "three_bit_adder_logic_f3_o16_000",
+      "three_bit_adder_logic_f3_o16_001",
+      "three_bit_adder_logic_f3_o4_000",
+      "three_bit_adder_logic_f3_o4_001",
+      "three_bit_adder_logic_f3_o8_000"
+    ],
+    "slice": "train",
+    "split_style": "deterministic stratified split by fault_count and observation_count"
+  },
+  "_scaled_reproduction_context": {
+    "benchmark": "data/synthetic_circuits",
+    "note": "Scores are from the visible train slice of the scaled synthetic circuit benchmark.",
+    "result_root": "/home/user/checkpoints",
+    "slice": "train",
+    "unscored": {
+      "_bugassist_vote_unscored": {
+        "all_reported_valid_minimal_rate": 0.0,
+        "avg_diagnosis_size": 0.7142857142857143,
+        "avg_elapsed_sec": 0.11843065719585866,
+        "avg_reported_diagnoses_per_instance": 1.0,
+        "by_observation_count": {
+          "4": {
+            "localized": 0,
+            "total": 5
+          },
+          "8": {
+            "localized": 0,
+            "total": 4
+          },
+          "16": {
+            "localized": 0,
+            "total": 5
+          }
+        },
+        "complete_output_rate": 1.0,
+        "empty_diagnosis_count": 0,
+        "exact_fault_set_rate": 0.0,
+        "instances_evaluated": 14,
+        "invalid_count": 14,
+        "localized_count": 0,
+        "max_reported_diagnoses_per_instance": 1,
+        "missing_count": 0,
+        "nonminimal_count": 0,
+        "optimal_rate": 0.0,
+        "subset_minimal_rate": 0.0,
+        "success_rate": 0.0
+      }
+    }
+  },
+  "experiments": {
+    "diagnosis_quality": {
+      "results": {
+        "cfaults": {
+          "all_observations_consistent_rate": 100.0,
+          "all_reported_valid_minimal_rate": 100.0,
+          "complete_output_rate": 100.0,
+          "empty_diagnosis_count": 0,
+          "exact_fault_set_rate": 0.0,
+          "invalid_count": 0,
+          "missing_count": 0,
+          "nonminimal_count": 0,
+          "valid_minimal_rate": 100.0
+        }
+      }
+    },
+    "iscas85_localisation": {
+      "results": {
+        "cfaults": {
+          "localized_count": 14,
+          "localized_rate": 100.0,
+          "memout_count": 0,
+          "timeout_count": 0,
+          "total_instances": 14
+        }
+      }
+    },
+    "observation_scaling": {
+      "results": {
+        "cfaults": {
+          "localized_count_obs10": 5,
+          "localized_count_obs20": 4,
+          "localized_count_obs30": 5,
+          "localized_count_obs40": 5,
+          "localized_count_obs50": 5,
+          "localized_rate_obs10": 100.0,
+          "localized_rate_obs20": 100.0,
+          "localized_rate_obs30": 100.0,
+          "localized_rate_obs40": 100.0,
+          "localized_rate_obs50": 100.0
+        }
+      }
+    },
+    "runtime_efficiency": {
+      "results": {
+        "cfaults": {
+          "avg_reported_diagnoses_per_instance": 15.5,
+          "max_reported_diagnoses_per_instance": 166,
+          "relative_runtime_rank": 3,
+          "timeout_seconds": 1800
+        }
+      }
+    }
+  }
+}
