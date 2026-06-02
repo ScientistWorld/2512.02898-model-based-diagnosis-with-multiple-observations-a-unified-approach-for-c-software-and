@@ -23,6 +23,11 @@
 - Fixed `reference.json` for the gym-only runtime-efficiency proxy: the paper does not report diagnosis-output volume, so the reference now labels the value as a corrected scaled-gym reference from job `e9807e81-d04`.
 - Re-ran both `python validate.py` and `python validate.py --compare`; all checks passed.
 
+### [2026-06-02 11:56] - core_claim
+- Added an HSD-style circuit baseline that follows the paper's multiple-observation hitting-set dualisation comparison path.
+- Wired the HSD artifact into the reusable root, train, and test evaluators while keeping BugAssist voting as an unscored sanity baseline.
+- Kept the milestone at `core_claim` because the expanded scored comparison still needs a packaged CPU verification job.
+
 ### [2026-06-02 11:10] - core_claim
 - Implemented the paper's Boolean-circuit multi-observation MBD algorithm as a unified partial MaxSAT encoding with shared gate health variables.
 - Verified the scaled synthetic circuit benchmark result: CFaults produced valid minimum-cardinality diagnoses for all 27 tracked instances.
@@ -39,4 +44,4 @@
 - Verified the scoring contract with `python validate.py --compare`; all checks passed.
 
 ## Stop Justification
-- Completed at milestone `core_claim`.
+- Not stopping yet: `core_claim` is already verified, and an HSD baseline expansion is pending packaged CPU verification.

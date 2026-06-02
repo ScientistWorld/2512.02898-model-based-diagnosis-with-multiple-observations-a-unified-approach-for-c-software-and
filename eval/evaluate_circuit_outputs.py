@@ -298,12 +298,15 @@ def main() -> None:
     parser.add_argument("--benchmark", type=Path, default=Path("data/synthetic_circuits"))
     parser.add_argument("--method-result", type=Path, default=Path("checkpoints/cfaults_circuit/results.json"))
     parser.add_argument("--baseline-result", type=Path, default=Path("checkpoints/bugassist_vote/results.json"))
+    parser.add_argument("--hsd-result", type=Path, default=Path("checkpoints/hsd_circuit/results.json"))
     parser.add_argument("--out", type=Path, default=Path("scoring/scores.json"))
     args = parser.parse_args()
     instances = load_instances(args.benchmark)
     summaries = {}
     if args.method_result.exists():
         summaries["cfaults"] = summarize_method(instances, args.method_result)
+    if args.hsd_result.exists():
+        summaries["hsd"] = summarize_method(instances, args.hsd_result)
     if args.baseline_result.exists():
         # The baseline is reported as an extra artifact, but not scored against
         # the paper's circuit reference because BugAssist was not a circuit

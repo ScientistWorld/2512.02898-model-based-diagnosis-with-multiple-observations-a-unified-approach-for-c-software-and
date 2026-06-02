@@ -197,6 +197,8 @@ def method_name_for_result(path: Path) -> str:
     name = path.parent.name
     if name == "cfaults_circuit":
         return "cfaults"
+    if name == "hsd_circuit":
+        return "hsd"
     return name
 
 

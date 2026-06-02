@@ -23,4 +23,8 @@ python baseline/bugassist_vote_circuit.py \
   --benchmark data/synthetic_circuits \
   --out checkpoints/bugassist_vote/results.json \
   --solver auto
+python baseline/hsd_circuit.py \
+  --benchmark data/synthetic_circuits \
+  --out checkpoints/hsd_circuit/results.json \
+  --solver auto
 bash scripts/evaluate.sh

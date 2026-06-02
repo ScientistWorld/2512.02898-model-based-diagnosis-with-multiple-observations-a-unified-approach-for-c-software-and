@@ -7,6 +7,7 @@
 - A reusable benchmark generator in `data/circuit_benchmark.py` creates small tracked circuit-diagnosis instances with explicit faulty circuit netlists, injected gate-operator mutations, and failing observations.
 - `scripts/reproduce.sh` runs the full local pipeline: generate benchmark data, run the one-observation voting baseline, run CFaults, and evaluate artifacts through `scripts/evaluate.sh`.
 - `baseline/bugassist_vote_circuit.py` now implements its one-observation MaxSAT voting baseline independently of `method/`, so future method changes do not alter the baseline.
+- `baseline/hsd_circuit.py` now implements an HSD-style multiple-observation circuit baseline from the paper using separate per-observation formulas, unsat cores over healthy-gate assumptions, and minimum hitting sets.
 - `eval/evaluate_circuit_outputs.py` is method-agnostic: it reads result artifacts and independently checks diagnosis validity and cardinality without importing `method/`.
 - Scheduler job `2147c6a7-240` verified the repaired packaged pipeline inside the compute container with exit code 0.
 - Scheduler job `06041b2e-9e9` regenerated the final score artifact inside the packaged compute container with exit code 0.
@@ -26,11 +27,13 @@
 - Final verification job `e9807e81-d04` completed in 14.81 seconds on a CPU node and wrote corrected `scores.json`, `scores_train.json`, and `scores_test.json`.
 - `python validate.py --compare` passes for `reference.json`, `scores.json`, train/test artifacts, import separation, output-reading evaluation, and shared-path checks.
 - `python validate.py` also passes after correcting `reference.json` so the gym-only diagnosis-output-volume proxy is not presented as a paper-reported number.
+- HSD baseline expansion is implemented and wired into `scripts/reproduce.sh`, `scripts/baseline.sh`, and the root/train/test evaluators. Fresh packaged scores are pending CPU job verification before claiming a higher milestone.
 
 ## Remaining
 
 - Expand beyond the scaled synthetic benchmark toward the paper's augmented ISCAS85 instances.
-- Add HSD or HSD-CM as scored baselines if pursuing `majority` or higher.
+- Add HSD-CM or a fuller ISCAS85-scale benchmark if pursuing `majority` or higher.
+- Regenerate packaged scores with the new HSD baseline and inspect whether the expanded circuit comparison supports `core_claim_plus` or a secondary-claims milestone.
 - Reproduce more of the paper's runtime-ranking table using machine-independent proxies or controlled solver call counts instead of wall-clock time.
 
 ## Issues

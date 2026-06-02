@@ -1,6 +1,6 @@
-# Final verification completed after the corrected CPU validation job.
-action: done
+# Verify the newly added HSD circuit baseline and regenerated score artifacts.
+action: submit
 gpus: 0
-test: false
+test: true
 milestone: core_claim
-notes: "Final verification passed after correcting Boolean gate encodings; scaled circuit gym is packaged at core_claim."
+notes: "CPU test job to run reproduce/train/test evaluation with the new HSD circuit baseline and validate the regenerated score artifacts."

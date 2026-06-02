@@ -20,7 +20,7 @@ Check off items as you complete them. Order doesn't matter — work however make
 ## Code
 - [x] Evaluation code in `eval/`
 - [x] Method implementation in `method/`
-- [x] Baseline implementation in `baseline/` (if applicable)
+- [x] Baseline implementation in `baseline/` (BugAssist-style sanity baseline and HSD circuit baseline)
 
 ## Scripts
 - [x] `scripts/evaluate.sh`
