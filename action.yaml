@@ -6,4 +6,4 @@ action: submit
 gpus: 0
 test: false
 milestone: core_claim
-notes: "Run evaluate_train.sh and evaluate_test.sh against /home/user/checkpoints to populate scores_train.json and scores_test.json."
+notes: "Rerun train/test scoring after replacing saturated ranking metrics with selected fault-set F1/exact recovery metrics."
