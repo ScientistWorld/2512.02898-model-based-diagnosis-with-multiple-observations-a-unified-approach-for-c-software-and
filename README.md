@@ -243,6 +243,31 @@ For each returned diagnosis, independently validate that deactivating or repairi
 
 </details>
 
+### Iteration 7: gpt-5.5 (packager)
+- **Milestone**: `core_claim` | **Status**: done
+- **Working time**: 2m | **GPU**: 0.0h
+- **Jobs**: 5 total (5 completed, 0 failed)
+
+<details>
+<summary>Progress Log</summary>
+
+### [2026-06-02 11:10] - core_claim
+- Implemented the paper's Boolean-circuit multi-observation MBD algorithm as a unified partial MaxSAT encoding with shared gate health variables.
+- Verified the scaled synthetic circuit benchmark result: CFaults produced valid minimum-cardinality diagnoses for all 27 tracked instances.
+- Kept diagnosis quality as a constraint metric: invalid and non-minimal diagnoses are counted as failures.
+
+### [2026-06-02 11:25] - method_runs
+- Continuation audit reset the current milestone to `method_runs` pending fresh verification.
+- Confirmed the method code is a real scaled implementation of the paper's circuit-side unified multi-observation MaxSAT diagnosis algorithm.
+- Found that `scoring/scores.json` is stale after adding the explicit all-observations consistency metric, so a CPU test job is required to regenerate scores before restoring `core_claim`.
+
+### [2026-06-02 11:42] - core_claim
+- CPU job `06041b2e-9e9` completed successfully inside the packaged container and regenerated `scoring/scores.json`.
+- Restored `core_claim`: CFaults localized 27 / 27 scaled synthetic circuit instances and every counted diagnosis was valid, minimum-cardinality, and consistent with all observations.
+- Verified the scoring contract with `python validate.py --compare`; all checks passed.
+
+</details>
+
 
 ---
 
