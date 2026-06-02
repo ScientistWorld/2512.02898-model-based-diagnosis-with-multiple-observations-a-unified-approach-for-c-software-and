@@ -1,8 +1,8 @@
 # IMPORTANT: Once you set action to 'submit' or 'done', STOP immediately.
 # Do NOT sleep, poll, or wait for jobs. The system reads this file
 # only after your turn ends. Sleeping blocks the entire pipeline.
-action: done
-gpus: 0
+action: pending
+gpus: 1
 test: false
-milestone: core_claim
-notes: "Repaired explicit faulty-circuit benchmark interface verified by CPU job 2147c6a7-240; CFaults localized 27/27 scaled instances with valid minimum-cardinality diagnoses."
+milestone: method_runs
+notes: ""
