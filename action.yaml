@@ -27,8 +27,8 @@
 #   milestone: core_claim
 #   notes: "Reproduced the core claim. Environment packaged."
 
-action: pending
-gpus: 1
-test: false
-milestone: none
-notes: ""
+action: submit
+gpus: 0
+test: true
+milestone: core_claim
+notes: "CPU smoke job: run the packaged synthetic circuit CFaults reproduction and evaluator end-to-end in the container."
