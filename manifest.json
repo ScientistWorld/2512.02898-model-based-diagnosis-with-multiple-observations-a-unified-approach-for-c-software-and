@@ -1,0 +1,127 @@
+{
+  "paper": {
+    "arxiv_id": "2512.02898",
+    "title": "Model-Based Diagnosis with Multiple Observations: A Unified Approach for C Software and Boolean Circuits",
+    "date": "",
+    "topics": [
+      "paper-type-metric-method",
+      "domain-ai-ml",
+      "area-debugging",
+      "category-fault-localization",
+      "method-maxsat-encoding",
+      "secondary-domain-systems",
+      "secondary-area-software-engineering",
+      "secondary-category-automated-debugging",
+      "secondary-method-model-based-diagnosis",
+      "selection-category-detection"
+    ]
+  },
+  "reproduction": {
+    "milestone": "core_claim",
+    "status": "done",
+    "error": null,
+    "scaffold": "codex",
+    "model": "gpt-5.5",
+    "profile": "gpt-5.5-medium",
+    "effort": "medium",
+    "gpu_hours_used": 0.0,
+    "current_iteration_gpu_budget": 30,
+    "current_iteration_gpu_hours_used": 0.0,
+    "total_gpu_hours_used": 0.0,
+    "current_iteration_cpu_hours_used": 0.016,
+    "total_cpu_hours_used": 0.016,
+    "gpu_budget": 30,
+    "duration_sec": 971.4,
+    "cost_usd": null,
+    "input_tokens": 5253230,
+    "output_tokens": 28306,
+    "cached_input_tokens": 4918272,
+    "cache_creation_tokens": null,
+    "reasoning_tokens": 0,
+    "total_input_tokens": 5253230,
+    "num_turns": 84,
+    "duration_api_ms": null,
+    "num_runs": 1,
+    "iteration_count": 0,
+    "workflow": "standard",
+    "workflow_step": 0,
+    "total_gpu_jobs": 1,
+    "time_breakdown": {
+      "working": 706.1343388557434,
+      "building": 0.07470083236694336,
+      "installing": 120.22630953788757,
+      "waiting": 61.27902102470398
+    }
+  },
+  "agents": [
+    {
+      "scaffold": "codex",
+      "model": "gpt-5.5",
+      "profile": "gpt-5.5-medium",
+      "effort": "medium",
+      "role": "reproducer",
+      "is_iteration": false,
+      "iteration": 1,
+      "workflow": "standard",
+      "workflow_step": 0,
+      "started_at": 1780397094.506774,
+      "finished_at": 1780398065.8618944,
+      "duration_sec": 971.4,
+      "blocked_sec": 0.0,
+      "status": "done",
+      "error": null,
+      "milestone": "core_claim",
+      "gpu_budget": 30,
+      "gpu_hours_used": 0.0,
+      "total_gpu_hours_used": 0.0,
+      "cpu_hours_used": 0.016,
+      "time_breakdown": {
+        "working": 706.1343388557434,
+        "building": 0.07470083236694336,
+        "installing": 120.22630953788757,
+        "waiting": 61.27902102470398
+      },
+      "cost_usd": null,
+      "input_tokens": 5253230,
+      "output_tokens": 28306,
+      "cached_input_tokens": 4918272,
+      "cache_creation_tokens": null,
+      "reasoning_tokens": 0,
+      "total_input_tokens": 5253230,
+      "num_turns": 84,
+      "duration_api_ms": null,
+      "tool_uses": {
+        "shell": 65,
+        "file_edit": 19
+      },
+      "gpu_jobs": [
+        {
+          "run_id": "565b7133-b46",
+          "command": "bash /home/user/scripts/run.sh",
+          "num_gpus": 0,
+          "num_cpus": 1,
+          "resource": "gpu-cpu",
+          "hive_job_id": "1bd47cca",
+          "status": "completed",
+          "returncode": 0,
+          "duration_sec": 56.4,
+          "submitted_at": 1780397926.9545062,
+          "started_at": 1780397929.971744,
+          "completed_at": 1780397986.3223624
+        }
+      ],
+      "progress_log": "### [2026-06-02 10:55] - none\n- Read the paper and identified the Boolean-circuit CFaults result as the most direct reusable reproduction target.\n- Extracted the core algorithm: replicate the faulty circuit per observation, share one health variable per gate, encode guarded gate semantics as hard clauses, and solve an unweighted partial MaxSAT objective over healthy-gate soft clauses.\n\n### [2026-06-02 10:55] - method_runs\n- Implemented the paper's actual multiple-observation diagnosis algorithm for Boolean circuits in `method/cfaults_circuit.py`.\n- Built a reusable synthetic circuit benchmark in `data/circuit_benchmark.py` and a BugAssist-style one-observation voting baseline in `baseline/bugassist_vote_circuit.py`.\n- Ran `scripts/reproduce.sh` locally: data generation, baseline, method, and evaluator all execute end-to-end.\n\n### [2026-06-02 10:55] - core_claim\n- Evaluated 27 scaled circuit-diagnosis instances across three observation counts and three injected fault counts.\n- CFaults produced valid minimum-cardinality diagnoses for all 27 instances; the one-observation voting baseline localized only 3 of 27, showing that unified multi-observation reasoning is necessary on this benchmark.\n- The reproduction uses a scaled synthetic circuit benchmark instead of the paper's full augmented ISCAS85 suite, but preserves the paper's MaxSAT computation and objective.\n\n### [2026-06-02 11:00] - core_claim\n- Scheduler job `565b7133-b46` ran `scripts/run.sh` successfully in the compute container with exit code 0.\n- The packaged reproduction completed in 56 seconds on a CPU test node and wrote the expected `scoring/scores.json` structure.\n- Verified that the container path reproduces the same CFaults result: 27 / 27 valid minimum-cardinality diagnoses on the scaled benchmark."
+    }
+  ],
+  "components": {
+    "has_container": true,
+    "has_method_code": true,
+    "has_evaluation": true,
+    "has_download_script": true,
+    "has_reproduce_script": true,
+    "has_method_script": true,
+    "has_baseline": true,
+    "has_reference": true,
+    "has_data": true
+  }
+}

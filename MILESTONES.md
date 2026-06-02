@@ -35,4 +35,4 @@
 - Verified that the container path reproduces the same CFaults result: 27 / 27 valid minimum-cardinality diagnoses on the scaled benchmark.
 
 ## Stop Justification
-- Completed at milestone `core_claim`. Higher milestones would require substantially expanding toward the full augmented ISCAS85 benchmark and implementing HSD/HSD-CM baselines; the current environment already implements and verifies the paper's core CFaults multi-observation MaxSAT algorithm on a non-trivial reusable benchmark.
+- Completed at milestone `core_claim`.
