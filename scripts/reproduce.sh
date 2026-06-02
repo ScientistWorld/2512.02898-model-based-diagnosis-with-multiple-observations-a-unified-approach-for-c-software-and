@@ -18,7 +18,13 @@ set -e
 
 cd /home/user
 
-# TODO: implement full reproduction pipeline
-# e.g.:
-#   bash scripts/baseline.sh
-#   bash scripts/method.sh
+python data/circuit_benchmark.py --out data/synthetic_circuits --instances-per-setting 3
+python baseline/bugassist_vote_circuit.py \
+  --benchmark data/synthetic_circuits \
+  --out checkpoints/bugassist_vote/results.json \
+  --solver auto
+python method/cfaults_circuit.py \
+  --benchmark data/synthetic_circuits \
+  --out checkpoints/cfaults_circuit/results.json \
+  --solver auto
+bash scripts/evaluate.sh

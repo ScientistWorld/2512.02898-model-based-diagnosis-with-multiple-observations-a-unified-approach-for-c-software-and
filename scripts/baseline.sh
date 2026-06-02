@@ -17,4 +17,9 @@ set -e
 
 cd /home/user
 
-# TODO: run baseline
+python data/circuit_benchmark.py --out data/synthetic_circuits --instances-per-setting 3
+python baseline/bugassist_vote_circuit.py \
+  --benchmark data/synthetic_circuits \
+  --out checkpoints/bugassist_vote/results.json \
+  --solver auto
+bash scripts/evaluate.sh

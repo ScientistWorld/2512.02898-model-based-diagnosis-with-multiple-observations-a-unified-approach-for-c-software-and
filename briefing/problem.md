@@ -1,17 +1,15 @@
 # Problem Definition
 
-What problem does this paper address? Write this so that someone with no knowledge of the paper can understand what needs to be solved and how success is measured.
-
-Do NOT describe the paper's method or solution here — only the problem itself. Think about if a future scientist agent try to solve this problem from scratch without knowing what approach the paper took. If you leak the solution, you compromise the benchmark.
-
 ## Research Question
 
-<!-- What problem or challenge does this paper tackle? What gap in existing work does it address? -->
+Given a faulty combinational Boolean circuit and a set of failing input-output observations, identify a smallest set of circuit components whose behaviour can explain all observed failures. The target setting is multi-fault circuit diagnosis: each benchmark instance may contain one or many injected faults, and the observations must be explained jointly rather than one at a time.
+
+The reproduction should focus on the Boolean-circuit side of the paper. C-program fault localisation is useful context but is outside the primary benchmark scope here.
 
 ## Why It Matters
 
-<!-- Why is this problem important? What would a good solution enable? Make it short -->
+Circuit debugging is expensive when failures arise from multiple interacting faults. A useful diagnostic system should narrow the search to a small, valid set of gates/components while scaling to standard circuit benchmarks and many failing observations.
 
 ## Success Criteria
 
-<!-- What would a successful solution look like? What properties should it have? This is about the goal, not the paper's specific approach. Make it short -->
+A successful system returns valid minimum diagnoses for many faulty ISCAS85-derived circuit instances within the evaluation timeout. Its diagnoses must be consistent with every failing observation for the instance and must be minimum-cardinality or otherwise demonstrably subset-minimal under the benchmark fault model. Runtime and timeout behaviour matter because exact circuit diagnosis can become impractical even when the returned diagnoses are correct.

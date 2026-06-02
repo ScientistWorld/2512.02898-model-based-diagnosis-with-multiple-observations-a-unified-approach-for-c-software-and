@@ -1,0 +1,443 @@
+{
+  "fault_count": 2,
+  "faults": {
+    "g2_ab": false,
+    "g_ctrl": false
+  },
+  "id": "three_bit_adder_logic_f2_o16_001",
+  "observation_count": 16,
+  "observations": [
+    {
+      "expected_outputs": {
+        "g0_sum": false,
+        "g1_sum": false,
+        "g2_carry": true,
+        "g2_sum": true,
+        "g_ctrl": true,
+        "g_parity": true
+      },
+      "faulty_outputs": {
+        "g0_sum": false,
+        "g1_sum": false,
+        "g2_carry": true,
+        "g2_sum": true,
+        "g_ctrl": false,
+        "g_parity": true
+      },
+      "inputs": {
+        "a0": true,
+        "a1": true,
+        "a2": true,
+        "b0": true,
+        "b1": false,
+        "b2": true,
+        "cin": false
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": false,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": true,
+        "g_parity": true
+      },
+      "faulty_outputs": {
+        "g0_sum": false,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": true
+      },
+      "inputs": {
+        "a0": false,
+        "a1": true,
+        "a2": false,
+        "b0": true,
+        "b1": true,
+        "b2": true,
+        "cin": true
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": false,
+        "g1_sum": false,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": true,
+        "g_parity": false
+      },
+      "faulty_outputs": {
+        "g0_sum": false,
+        "g1_sum": false,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": false
+      },
+      "inputs": {
+        "a0": true,
+        "a1": true,
+        "a2": false,
+        "b0": true,
+        "b1": false,
+        "b2": true,
+        "cin": false
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": false,
+        "g1_sum": false,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": true,
+        "g_parity": false
+      },
+      "faulty_outputs": {
+        "g0_sum": false,
+        "g1_sum": false,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": false
+      },
+      "inputs": {
+        "a0": true,
+        "a1": false,
+        "a2": false,
+        "b0": true,
+        "b1": true,
+        "b2": true,
+        "cin": false
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": true,
+        "g1_sum": false,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": true,
+        "g_parity": true
+      },
+      "faulty_outputs": {
+        "g0_sum": true,
+        "g1_sum": false,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": true
+      },
+      "inputs": {
+        "a0": true,
+        "a1": true,
+        "a2": false,
+        "b0": false,
+        "b1": true,
+        "b2": true,
+        "cin": false
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": true,
+        "g1_sum": false,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": true,
+        "g_parity": true
+      },
+      "faulty_outputs": {
+        "g0_sum": true,
+        "g1_sum": false,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": true
+      },
+      "inputs": {
+        "a0": true,
+        "a1": true,
+        "a2": true,
+        "b0": true,
+        "b1": false,
+        "b2": false,
+        "cin": true
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": false,
+        "g1_sum": false,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": true,
+        "g_parity": false
+      },
+      "faulty_outputs": {
+        "g0_sum": false,
+        "g1_sum": false,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": false
+      },
+      "inputs": {
+        "a0": true,
+        "a1": false,
+        "a2": true,
+        "b0": false,
+        "b1": true,
+        "b2": false,
+        "cin": true
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": true,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": false
+      },
+      "faulty_outputs": {
+        "g0_sum": true,
+        "g1_sum": true,
+        "g2_carry": false,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": false
+      },
+      "inputs": {
+        "a0": false,
+        "a1": false,
+        "a2": true,
+        "b0": false,
+        "b1": true,
+        "b2": true,
+        "cin": true
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": false,
+        "g1_sum": false,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": true,
+        "g_parity": false
+      },
+      "faulty_outputs": {
+        "g0_sum": false,
+        "g1_sum": false,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": false
+      },
+      "inputs": {
+        "a0": true,
+        "a1": false,
+        "a2": false,
+        "b0": false,
+        "b1": true,
+        "b2": true,
+        "cin": true
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": true,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": true,
+        "g_parity": false
+      },
+      "faulty_outputs": {
+        "g0_sum": true,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": false
+      },
+      "inputs": {
+        "a0": true,
+        "a1": true,
+        "a2": true,
+        "b0": true,
+        "b1": true,
+        "b2": false,
+        "cin": true
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": false,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": true,
+        "g_parity": true
+      },
+      "faulty_outputs": {
+        "g0_sum": false,
+        "g1_sum": true,
+        "g2_carry": false,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": true
+      },
+      "inputs": {
+        "a0": true,
+        "a1": false,
+        "a2": true,
+        "b0": true,
+        "b1": false,
+        "b2": true,
+        "cin": false
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": true,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": true,
+        "g_ctrl": true,
+        "g_parity": true
+      },
+      "faulty_outputs": {
+        "g0_sum": true,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": true,
+        "g_ctrl": false,
+        "g_parity": true
+      },
+      "inputs": {
+        "a0": true,
+        "a1": true,
+        "a2": true,
+        "b0": true,
+        "b1": true,
+        "b2": true,
+        "cin": true
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": false,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": true,
+        "g_parity": true
+      },
+      "faulty_outputs": {
+        "g0_sum": false,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": true
+      },
+      "inputs": {
+        "a0": true,
+        "a1": true,
+        "a2": false,
+        "b0": true,
+        "b1": true,
+        "b2": true,
+        "cin": false
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": false,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": true,
+        "g_ctrl": true,
+        "g_parity": false
+      },
+      "faulty_outputs": {
+        "g0_sum": false,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": true,
+        "g_ctrl": false,
+        "g_parity": false
+      },
+      "inputs": {
+        "a0": true,
+        "a1": true,
+        "a2": true,
+        "b0": true,
+        "b1": true,
+        "b2": true,
+        "cin": false
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": false,
+        "g1_sum": true,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": true,
+        "g_parity": true
+      },
+      "faulty_outputs": {
+        "g0_sum": false,
+        "g1_sum": true,
+        "g2_carry": false,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": true
+      },
+      "inputs": {
+        "a0": true,
+        "a1": false,
+        "a2": true,
+        "b0": false,
+        "b1": false,
+        "b2": true,
+        "cin": true
+      }
+    },
+    {
+      "expected_outputs": {
+        "g0_sum": true,
+        "g1_sum": false,
+        "g2_carry": true,
+        "g2_sum": false,
+        "g_ctrl": true,
+        "g_parity": true
+      },
+      "faulty_outputs": {
+        "g0_sum": true,
+        "g1_sum": false,
+        "g2_carry": false,
+        "g2_sum": false,
+        "g_ctrl": false,
+        "g_parity": true
+      },
+      "inputs": {
+        "a0": false,
+        "a1": false,
+        "a2": true,
+        "b0": true,
+        "b1": false,
+        "b2": true,
+        "cin": false
+      }
+    }
+  ]
+}

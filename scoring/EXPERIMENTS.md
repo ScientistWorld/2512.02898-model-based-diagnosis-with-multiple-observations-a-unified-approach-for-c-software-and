@@ -1,59 +1,17 @@
 # Experiment Overview
 
-<!-- Do not edit this unless you decide to stop -->
+## iscas85_localisation
 
-<!--
-Describe, at a high level, what each experiment in `scores.json` is trying to
-establish.
+Tests the central benchmark question: how many faulty Boolean-circuit instances can be diagnosed successfully under the paper's main augmented ISCAS85 setting. This experiment establishes overall task coverage across the full set of generated circuit faults and failing observations.
 
-This file is for future scientist agents. They should be able to read it and
-understand what each experiment is about WITHOUT learning the paper's method.
+## diagnosis_quality
 
-Rules:
-- This must correspond EXACTLY to the experiments in `scores.json`
-- The section heading for each experiment must be the exact experiment name from the keys in `scores.json`
-- Describe the experiment's scientific purpose, not the implementation
-- Do NOT describe the method, architecture, algorithm, loss, or training recipe
-- Do NOT include numerical results from the paper or your reproduction
-- If an experiment is not in `scores.json`, do not list it here
+Tests whether counted successes are real diagnoses rather than merely plausible fault hints. The purpose is to ensure that a method's reported components explain every failing observation for the circuit and meet the required minimality standard.
 
-Good examples (these should be fuller and more specific than a one-line label,
-but still stay method-agnostic):
+## observation_scaling
 
-## main_benchmark
-Tests whether the reproduced system succeeds on the paper's central evaluation
-task under the main benchmark setting used to support the headline claim. This
-should make clear that the experiment exists to measure overall task success in
-the paper's standard evaluation setup, not to describe the internal mechanism
-used to obtain that result.
+Tests whether performance remains robust as the number of failing observations increases. This separates methods that work only on small observation sets from methods that can handle the multi-observation setting emphasized by the paper.
 
-## robustness_shift
-Tests whether the main claimed effect still holds when the evaluation setting is
-made harder or shifted away from the paper's primary benchmark condition. This
-should explain what kind of robustness question is being asked at a high level:
-whether the paper's conclusion remains valid outside the narrow default
-evaluation case.
+## runtime_efficiency
 
-## wrong_key_security
-Tests whether the protected or hidden signal remains inaccessible under the
-incorrect-access condition used in the paper's evaluation. This should explain
-that the purpose is to validate the paper's security or privacy claim at a high
-level, without describing the concrete mechanism used to protect the signal.
-
-## component_ablation
-Tests whether the paper's reported improvement is actually attributable to the
-claimed source of benefit, rather than to unrelated aspects of the overall
-system or evaluation setup. This should explain that the experiment exists to
-separate the claimed causal contribution from generic confounders, without
-describing the implementation details of the component being varied.
-
-Bad examples:
-- "Runs the 8-layer transformer with contrastive loss and cosine scheduler"
-- "Uses the paper's memory module to improve retrieval"
-
-Delete this comment block and fill in your actual experiments below.
--->
-
-<!-- This is high-level only. Explain WHAT the experiment is trying to show, NOT HOW the method works. -->
-
-<!-- The experiment headings here should EXACTLY match the experiment-name keys in your scores.json. -->
+Tests the computational cost of obtaining diagnoses within the benchmark timeout. This experiment is needed because exact circuit diagnosis can be correct but impractically slow, and the paper's circuit-side comparison hinges on both coverage and runtime.

@@ -1,50 +1,33 @@
 # Evaluation Targets
 
-<!-- Do not edit this unless you decide to stop -->
+## Primary: iscas85_localisation
 
-<!--
-Describe what a scientist could optimize and how to measure it.
+Tests whether a method can successfully localise faults on the augmented ISCAS85 Boolean-circuit benchmark across all observation-count settings.
 
-If a paper claims "we get X without sacrificing Y." Your targets must
-capture BOTH sides. Without constraint targets, a scientist can trivially
-"improve" by breaking the property the paper was designed to satisfy.
+- **Metric:** `localized_rate` (higher is better)
+- **Supporting metrics:** `localized_count` (higher is better), `timeout_count` (lower is better), `memout_count` (lower is better)
+- **How to run:** Evaluate every method on the same generated faulty ISCAS85 circuit instances with the same failing input-output observations and an 1800 second timeout per circuit.
 
-Three kinds of targets:
+## Constraint: diagnosis_quality
 
-  PRIMARY    — the main thing the paper optimizes (accuracy, PSNR, etc.)
-  CONSTRAINT — what the paper must maintain (security, fairness, param count,
-               baseline comparison). Constraint metrics guard against cheating:
-               a scientist who ignores the constraint should score WORSE.
-  ABLATION   — what breaks when the key idea is removed (wrong-key test,
-               no-module test). Proves the method actually does something. 
-               This can be ignored if truly not important.
+Tests whether reported fault sets are valid explanations of all failing observations and satisfy the benchmark's minimality requirement.
 
-For each target, write:
-- What the experiment tests (one sentence)
-- The primary metric and direction (higher/lower is better)
-- How to run evaluation
+- **Metric:** `valid_minimal_rate` (higher is better)
+- **Supporting metrics:** `invalid_count` (lower is better), `nonminimal_count` (lower is better)
+- **How to run:** Independently validate each returned diagnosis against every failing observation for the instance, and check minimum-cardinality or subset-minimality according to the reproduced benchmark oracle.
 
-Every target here MUST appear in both reference.json and scores.json.
-Do not list targets you cannot measure — phantom targets are worse than
-missing targets.
+## Constraint: observation_scaling
 
-Example for a steganography paper:
+Tests whether localisation remains effective as the number of failing observations increases.
 
-## Primary: reconstruction_quality
-Cover and hidden scene PSNR on Blender Synthetic.
-- **Metric**: psnr (higher is better)
+- **Metric:** per-group localisation rates `localized_rate_obs10`, `localized_rate_obs20`, `localized_rate_obs30`, `localized_rate_obs40`, and `localized_rate_obs50` (higher is better)
+- **Supporting metrics:** per-group localised counts (higher is better)
+- **How to run:** Report separate results for the 10, 20, 30, 40, and 50 failing-observation groups, using the same timeout and validation rules as the main benchmark.
 
-## Constraint: key_security
-Wrong-key rendering must produce incoherent output.
-- **Metric**: wrong_key_psnr (lower is better — high means security is broken)
+## Constraint: runtime_efficiency
 
-## Ablation: vs_standalone_baseline
-Cover quality should match standalone model (no hidden scene embedded).
-- **Metric**: psnr_gap (lower is better — large gap means hiding costs quality)
+Tests whether successful diagnosis is obtained within practical compute limits.
 
-Delete this comment block and fill in your actual targets below.
--->
-
-<!-- This is high-level. IT IS ABOUT CONCEPT, NOT NUMBERS. DO NOT INCLUDE ANY ACTUAL VALUES FROM THE PAPER OR YOUR EXPERIMENTS HERE. -->
-
-<!-- This should EXACTLY corresponds to the structure in your scores.json. -->
+- **Metric:** `relative_runtime_rank` (lower is better)
+- **Supporting metrics:** `timeout_seconds` (lower is better when benchmark policy changes)
+- **How to run:** Record CPU time for each circuit run under the benchmark timeout and compare runtime only on common successfully localised instances when making pairwise method comparisons.

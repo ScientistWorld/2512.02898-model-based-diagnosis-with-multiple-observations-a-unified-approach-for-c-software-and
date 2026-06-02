@@ -26,5 +26,8 @@ cd /home/user
 
 mkdir -p scoring
 
-# TODO: implement evaluation using code in eval/
-# Must write scoring/scores.json at the end
+python eval/evaluate_circuit_outputs.py \
+  --benchmark data/synthetic_circuits \
+  --method-result checkpoints/cfaults_circuit/results.json \
+  --baseline-result checkpoints/bugassist_vote/results.json \
+  --out scoring/scores.json

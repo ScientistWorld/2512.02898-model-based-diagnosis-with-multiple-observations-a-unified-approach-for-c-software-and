@@ -1,15 +1,21 @@
 # Evaluation
 
-How success is measured. Describe only the metrics, targets, and evaluation procedure — do NOT describe the paper's method or how they achieved these results. Think of this as a general evaluation protocal for other scientists trying to solve the same problem, where they should not see this paper's solution.
-
 ## Metrics
 
-<!-- What metrics are used? How are they computed? What does higher/lower mean? -->
+The main metric is `localized_count`: the number of benchmark instances for which a method returns a valid minimum diagnosis before the timeout. `localized_rate` is the same count divided by the number of instances in the evaluated split. Higher is better for both.
+
+Efficiency is measured with CPU time per circuit and aggregate timeout count. Lower CPU time and fewer timeouts are better. Memory exhaustion should be recorded separately; the paper reports no memory-limit hits on the Boolean-circuit benchmark.
+
+Diagnosis quality is a constraint metric. A submitted diagnosis must be consistent with all failing input-output observations for that circuit and must be minimum-cardinality, or at least subset-minimal when the exact optimum is not available for a scaled reproduction. Invalid, non-minimal, or observation-inconsistent diagnoses should not count as successfully localised instances.
 
 ## Baselines and Targets
 
-<!-- What performance levels exist as reference points? Include the paper's reported numbers as targets, and any standard baselines. A scientist agent should know what "good" looks like. -->
+The primary benchmark is the augmented ISCAS85 Boolean-circuit benchmark used in the paper: 12,147 faulty circuit instances, generated with 10, 20, 30, 40, or 50 failing observations and 1, 2, 3, 4, 5, 10, 20, 30, 40, or 50 injected faults.
+
+The paper compares the proposed circuit diagnosis system against HSD and HSD with core minimisation. Reported all-instance localisation rates are 73.84% for the paper method, 80.14% for HSD, and 79.67% for HSD-CM under an 1800 second timeout per circuit. A strong reproduction should recover the same qualitative result: competitive localisation coverage against HSD while preserving diagnosis validity/minimality, with HSD generally faster on circuits.
 
 ## Evaluation Protocol
 
-<!-- How should evaluation be run? What data split, what conditions? Any important details about how to compare fairly (e.g., fixed seeds, specific test sets, averaging over runs). -->
+Run each method on the same augmented ISCAS85 instances, grouped by the number of failing observations. Use the same input-output observations and injected-fault configurations for all methods. Use an 1800 second timeout per buggy circuit and record success, timeout, memory failure, and CPU time.
+
+For each returned diagnosis, independently validate that deactivating or repairing the reported components can satisfy all failing observations for that instance. Compute success counts and rates for each observation-count group and for the full benchmark. If the reproduction must scale down, keep the same procedure and include multiple observation-count groups plus multi-fault cases so the task remains non-trivial.

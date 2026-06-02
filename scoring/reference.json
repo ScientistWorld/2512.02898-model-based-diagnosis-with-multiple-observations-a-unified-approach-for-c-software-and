@@ -1,0 +1,116 @@
+{
+  "experiments": {
+    "iscas85_localisation": {
+      "description": "Augmented ISCAS85 Boolean-circuit fault localisation, paper Table 5. Main score is the number/rate of circuits with successfully localised minimum diagnoses within 1800 seconds.",
+      "weight": 0.45,
+      "primary_metric": "localized_rate",
+      "metrics": {
+        "localized_rate": {"higher_is_better": true, "coefficient": 1.0},
+        "total_instances": {"higher_is_better": true, "coefficient": 0.0},
+        "localized_count": {"higher_is_better": true, "coefficient": 0.001},
+        "timeout_count": {"higher_is_better": false, "coefficient": -0.001},
+        "memout_count": {"higher_is_better": false, "coefficient": -0.001}
+      },
+      "results": {
+        "cfaults": {"type": "proposed", "localized_rate": 73.84, "total_instances": 12147, "localized_count": 8969, "timeout_count": 3178, "memout_count": 0},
+        "hsd": {"type": "baseline", "localized_rate": 80.14, "total_instances": 12147, "localized_count": 9735, "timeout_count": 2412, "memout_count": 0},
+        "hsd_cm": {"type": "baseline", "localized_rate": 79.67, "total_instances": 12147, "localized_count": 9678, "timeout_count": 2469, "memout_count": 0}
+      }
+    },
+    "diagnosis_quality": {
+      "description": "Validity and minimality constraints for counted circuit diagnoses. The paper reports successful localisations as minimum diagnoses.",
+      "weight": 0.25,
+      "primary_metric": "valid_minimal_rate",
+      "metrics": {
+        "valid_minimal_rate": {"higher_is_better": true, "coefficient": 1.0},
+        "invalid_count": {"higher_is_better": false, "coefficient": -1.0},
+        "nonminimal_count": {"higher_is_better": false, "coefficient": -1.0}
+      },
+      "results": {
+        "cfaults": {"type": "proposed", "valid_minimal_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0},
+        "hsd": {"type": "baseline", "valid_minimal_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0},
+        "hsd_cm": {"type": "baseline", "valid_minimal_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0}
+      }
+    },
+    "observation_scaling": {
+      "description": "Augmented ISCAS85 localisation rates by number of failing observations, paper Table 5.",
+      "weight": 0.2,
+      "primary_metric": "localized_rate_obs50",
+      "metrics": {
+        "localized_rate_obs10": {"higher_is_better": true, "coefficient": 0.2},
+        "localized_rate_obs20": {"higher_is_better": true, "coefficient": 0.2},
+        "localized_rate_obs30": {"higher_is_better": true, "coefficient": 0.2},
+        "localized_rate_obs40": {"higher_is_better": true, "coefficient": 0.2},
+        "localized_rate_obs50": {"higher_is_better": true, "coefficient": 0.2},
+        "localized_count_obs10": {"higher_is_better": true, "coefficient": 0.0002},
+        "localized_count_obs20": {"higher_is_better": true, "coefficient": 0.0002},
+        "localized_count_obs30": {"higher_is_better": true, "coefficient": 0.0002},
+        "localized_count_obs40": {"higher_is_better": true, "coefficient": 0.0002},
+        "localized_count_obs50": {"higher_is_better": true, "coefficient": 0.0002}
+      },
+      "results": {
+        "cfaults": {
+          "type": "proposed",
+          "localized_rate_obs10": 81.62,
+          "localized_rate_obs20": 76.12,
+          "localized_rate_obs30": 71.70,
+          "localized_rate_obs40": 70.82,
+          "localized_rate_obs50": 68.73,
+          "localized_count_obs10": 2011,
+          "localized_count_obs20": 1865,
+          "localized_count_obs30": 1720,
+          "localized_count_obs40": 1709,
+          "localized_count_obs50": 1664
+        },
+        "hsd": {
+          "type": "baseline",
+          "localized_rate_obs10": 86.65,
+          "localized_rate_obs20": 81.80,
+          "localized_rate_obs30": 78.28,
+          "localized_rate_obs40": 78.16,
+          "localized_rate_obs50": 75.67,
+          "localized_count_obs10": 2135,
+          "localized_count_obs20": 2004,
+          "localized_count_obs30": 1878,
+          "localized_count_obs40": 1886,
+          "localized_count_obs50": 1832
+        },
+        "hsd_cm": {
+          "type": "baseline",
+          "localized_rate_obs10": 85.63,
+          "localized_rate_obs20": 80.94,
+          "localized_rate_obs30": 77.53,
+          "localized_rate_obs40": 77.95,
+          "localized_rate_obs50": 76.17,
+          "localized_count_obs10": 2110,
+          "localized_count_obs20": 1983,
+          "localized_count_obs30": 1860,
+          "localized_count_obs40": 1881,
+          "localized_count_obs50": 1844
+        }
+      }
+    },
+    "runtime_efficiency": {
+      "description": "Circuit runtime comparison from Figure 6 and Section 6.2. Exact median/total CPU times are not available in the extracted markdown, but the paper reports HSD faster overall than CFaults on ISCAS85.",
+      "weight": 0.1,
+      "primary_metric": "relative_runtime_rank",
+      "metrics": {
+        "relative_runtime_rank": {"higher_is_better": false, "coefficient": -1.0},
+        "timeout_seconds": {"higher_is_better": false, "coefficient": -0.001}
+      },
+      "results": {
+        "hsd": {"type": "baseline", "relative_runtime_rank": 1, "timeout_seconds": 1800},
+        "hsd_cm": {"type": "baseline", "relative_runtime_rank": 2, "timeout_seconds": 1800},
+        "cfaults": {"type": "proposed", "relative_runtime_rank": 3, "timeout_seconds": 1800}
+      }
+    }
+  },
+  "context": {
+    "motivating_example": {
+      "description": "C-program motivating example from Tables 1-2, included only as context for multi-observation aggregation failure modes; not part of the circuit benchmark score.",
+      "bugassist": {"unique_diagnoses": 32, "final_diagnosis": "{4,13}", "diagnoses_per_test": {"t0": 8, "t1": 21, "t2": 9}},
+      "sniper": {"unique_diagnoses": 1297, "final_diagnosis": "{5,8,11}", "diagnoses_per_test": {"t0": 8, "t1": 21, "t2": 9}},
+      "known_minimal_faulty_lines": "{5,8,11}"
+    }
+  }
+}
