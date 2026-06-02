@@ -18,7 +18,7 @@
 - All-observation consistency is now an explicit diagnosis-quality metric in `reference.json` and the evaluator output contract.
 - Unscored sanity baseline: the one-observation voting baseline localizes 0 / 27 instances, which confirms the benchmark is not solved by considering observations independently.
 - Container verification: job `2147c6a7-240` completed in 19.25 seconds on a CPU test node and reproduced the same 27 / 27 CFaults localisation result after the explicit faulty-circuit interface repair.
-- `scoring/scores.json` contains the reproduced metrics; `scoring/reference.json` contains the paper's reported comparison targets.
+- `scoring/reference.json` contains the paper's reported comparison targets. `scoring/scores.json` is being regenerated after the continuation audit because the diagnosis-quality contract now includes an explicit all-observations consistency metric.
 
 ## Remaining
 
@@ -31,6 +31,7 @@
 - The `python-sat[pblib,aiger]` extras attempted to build `pypblib` and failed on the login environment due to missing Python headers. Plain `python-sat` is sufficient for the implemented WCNF/RC2 workflow and installs successfully.
 - A continuation audit found that the previous synthetic interface passed the injected fault map into the method as faulty-circuit semantics. This was repaired by storing an explicit faulty circuit netlist in each instance; `method/` now receives only the faulty circuit and observations, while the true fault list is retained only for evaluation summaries.
 - Local login-node Python does not currently have PySAT installed. `environment/setup.sh` installs `python-sat` for compute jobs; local `python validate.py` and syntax checks pass, while full score regeneration is being submitted as a CPU test job.
+- Continuation audit reset the working milestone to `method_runs` until the refreshed score artifact is produced by the CPU test job.
 
 ## Deviations from Paper
 
