@@ -3,4 +3,4 @@ action: submit
 gpus: 0
 test: true
 milestone: method_runs
-notes: "Regenerate method, baseline, root/train/test scores, then run validate.py --compare after aligning the top-level evaluator with the selected-fault scoring contract."
+notes: "Regenerate method, baseline, root/train/test scores, then run validate.py --compare after correcting Boolean gate CNF encodings."

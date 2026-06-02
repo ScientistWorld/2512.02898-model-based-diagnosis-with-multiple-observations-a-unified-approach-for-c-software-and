@@ -25,6 +25,7 @@
 
 ## Remaining
 
+- Regenerate method, baseline, root, train, and test scores after the Boolean-gate CNF encoding repair. Restore `core_claim` only if the corrected pipeline validates and still supports the claim.
 - Run the fresh CPU test submission to regenerate `scoring/scores.json` after the top-level evaluator patch and restore `core_claim` only if validation passes.
 - Expand beyond the scaled synthetic benchmark toward the paper's augmented ISCAS85 instances.
 - Add HSD or HSD-CM as scored baselines if pursuing `majority` or higher.
@@ -37,6 +38,7 @@
 - `environment/setup.sh` installs `python-sat` for fresh compute containers.
 - Continuation audit reset the working milestone to `method_runs`; job `06041b2e-9e9` refreshed the score artifact, so the milestone is restored to `core_claim`.
 - The login-node Python environment does not currently have PySAT, so full local evaluation falls back to an intentionally tiny exhaustive SAT solver and is too slow for the full benchmark. The packaged container installs `python-sat`; fresh validation is being submitted as a CPU test job.
+- Final verification found that the CNF encoders for binary gates were dualized relative to `data.circuit_benchmark.eval_op`. This affected method, baseline, and evaluator code. The encoders have been corrected and checked against truth tables; score artifacts must be regenerated in the packaged container.
 
 ## Deviations from Paper
 

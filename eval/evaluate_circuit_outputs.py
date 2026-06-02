@@ -10,7 +10,7 @@ from pathlib import Path
 import sys
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from data.circuit_benchmark import Circuit, circuit_from_json  # noqa: E402
+from data.circuit_benchmark import Circuit, circuit_from_json, eval_op  # noqa: E402
 
 
 def guarded_equiv_clauses(op: str, out: int, ins: list[int], guard: int) -> list[list[int]]:
@@ -20,13 +20,13 @@ def guarded_equiv_clauses(op: str, out: int, ins: list[int], guard: int) -> list
     if op == "NOT":
         return [[gneg, -out, -ins[0]], [gneg, out, ins[0]]]
     if op == "AND":
-        return [[gneg, -out, *ins], *[[gneg, out, -x] for x in ins]]
-    if op == "NAND":
-        return [[gneg, out, *ins], *[[gneg, -out, -x] for x in ins]]
-    if op == "OR":
         return [[gneg, out, *[-x for x in ins]], *[[gneg, -out, x] for x in ins]]
-    if op == "NOR":
+    if op == "NAND":
         return [[gneg, -out, *[-x for x in ins]], *[[gneg, out, x] for x in ins]]
+    if op == "OR":
+        return [[gneg, -out, *ins], *[[gneg, out, -x] for x in ins]]
+    if op == "NOR":
+        return [[gneg, out, *ins], *[[gneg, -out, -x] for x in ins]]
     if op == "XOR":
         a, b = ins
         return [[gneg, -a, -b, -out], [gneg, -a, b, out], [gneg, a, -b, out], [gneg, a, b, -out]]
@@ -77,7 +77,38 @@ def diagnosis_valid(circuit: Circuit, observations: list[dict], diagnosis: list[
         with Solver(name="g3", bootstrap_with=clauses) as solver:
             return bool(solver.solve())
     except ModuleNotFoundError:
-        return dpll_sat([list(clause) for clause in clauses])
+        return semantic_diagnosis_valid(circuit, observations, diagnosis)
+
+
+def semantic_diagnosis_valid(circuit: Circuit, observations: list[dict], diagnosis: list[str]) -> bool:
+    """Exact fallback for tracked acyclic combinational circuits.
+
+    Disabled gate outputs are unconstrained, so checking a diagnosis only needs
+    enumeration over those gates per observation, not over every CNF variable.
+    """
+    disabled = list(dict.fromkeys(diagnosis))
+    gate_names = {gate.name for gate in circuit.gates}
+    if any(name not in gate_names for name in disabled):
+        return False
+
+    import itertools
+
+    for obs in observations:
+        obs_satisfied = False
+        for bits in itertools.product([False, True], repeat=len(disabled)):
+            free_values = dict(zip(disabled, bits))
+            values = dict(obs["inputs"])
+            for gate in circuit.gates:
+                if gate.name in free_values:
+                    values[gate.name] = free_values[gate.name]
+                else:
+                    values[gate.name] = eval_op(gate.op, [values[name] for name in gate.inputs])
+            if all(values[name] == expected for name, expected in obs["expected_outputs"].items()):
+                obs_satisfied = True
+                break
+        if not obs_satisfied:
+            return False
+    return True
 
 
 def simplify_clauses(clauses: list[list[int]], lit: int) -> list[list[int]] | None:
@@ -150,7 +181,7 @@ def optimum_cardinality(circuit: Circuit, observations: list[dict]) -> int | Non
 
         for size in range(len(gate_names) + 1):
             for subset in itertools.combinations(gate_names, size):
-                if diagnosis_valid(circuit, observations, list(subset)):
+                if semantic_diagnosis_valid(circuit, observations, list(subset)):
                     return size
     return None
 

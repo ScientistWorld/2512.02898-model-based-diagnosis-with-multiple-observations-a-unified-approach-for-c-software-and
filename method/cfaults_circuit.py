@@ -40,13 +40,13 @@ def guarded_equiv_clauses(op: str, out: int, ins: list[int], guard: int) -> list
     if op == "NOT":
         return [[gneg, -out, -ins[0]], [gneg, out, ins[0]]]
     if op == "AND":
-        return [[gneg, -out, *ins], *[[gneg, out, -x] for x in ins]]
-    if op == "NAND":
-        return [[gneg, out, *ins], *[[gneg, -out, -x] for x in ins]]
-    if op == "OR":
         return [[gneg, out, *[-x for x in ins]], *[[gneg, -out, x] for x in ins]]
-    if op == "NOR":
+    if op == "NAND":
         return [[gneg, -out, *[-x for x in ins]], *[[gneg, out, x] for x in ins]]
+    if op == "OR":
+        return [[gneg, -out, *ins], *[[gneg, out, -x] for x in ins]]
+    if op == "NOR":
+        return [[gneg, out, *ins], *[[gneg, -out, -x] for x in ins]]
     if op == "XOR":
         if len(ins) != 2:
             raise ValueError("XOR encoder expects two inputs")
