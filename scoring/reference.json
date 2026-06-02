@@ -5,11 +5,11 @@
       "weight": 0.45,
       "primary_metric": "localized_rate",
       "metrics": {
-        "localized_rate": {"higher_is_better": true, "coefficient": 1.0},
-        "total_instances": {"higher_is_better": true, "coefficient": 0.0},
-        "localized_count": {"higher_is_better": true, "coefficient": 0.001},
-        "timeout_count": {"higher_is_better": false, "coefficient": -0.001},
-        "memout_count": {"higher_is_better": false, "coefficient": -0.001}
+        "localized_rate": {"higher_is_better": true, "coefficient": 1.0, "description": "Fraction of slice instances whose first reported diagnosis is valid and minimum-cardinality."},
+        "total_instances": {"higher_is_better": true, "coefficient": 0.0, "description": "Number of instances scored in this slice; included for auditability, not ranking."},
+        "localized_count": {"higher_is_better": true, "coefficient": 0.001, "description": "Raw count of successfully localised instances, used only as a weak tie-breaker."},
+        "timeout_count": {"higher_is_better": false, "coefficient": 0.0, "description": "Timeout count retained for compatibility with the original score schema; not ranked in train/test because wall-clock timing is hardware-dependent."},
+        "memout_count": {"higher_is_better": false, "coefficient": 0.0, "description": "Memory-failure count retained for compatibility with the original score schema; not ranked in train/test because resource limits vary by runner."}
       },
       "results": {
         "cfaults": {"type": "proposed", "localized_rate": 73.84, "total_instances": 12147, "localized_count": 8969, "timeout_count": 3178, "memout_count": 0},
@@ -22,10 +22,15 @@
       "weight": 0.25,
       "primary_metric": "valid_minimal_rate",
       "metrics": {
-        "valid_minimal_rate": {"higher_is_better": true, "coefficient": 1.0},
-        "all_observations_consistent_rate": {"higher_is_better": true, "coefficient": 1.0},
-        "invalid_count": {"higher_is_better": false, "coefficient": -1.0},
-        "nonminimal_count": {"higher_is_better": false, "coefficient": -1.0}
+        "valid_minimal_rate": {"higher_is_better": true, "coefficient": 1.0, "description": "Rate at which the first reported diagnosis is both observation-consistent and minimum-cardinality."},
+        "all_observations_consistent_rate": {"higher_is_better": true, "coefficient": 0.6, "description": "Rate at which the first reported diagnosis explains all failing observations, independent of cardinality."},
+        "all_reported_valid_minimal_rate": {"higher_is_better": true, "coefficient": 0.5, "description": "Fraction of every reported diagnosis, not just the first, that is valid and minimum-cardinality."},
+        "exact_fault_set_rate": {"higher_is_better": true, "coefficient": 0.4, "description": "Rate at which the selected diagnosis exactly matches the injected faulty gates in the generated benchmark."},
+        "complete_output_rate": {"higher_is_better": true, "coefficient": 0.3, "description": "Rate at which a method provides a non-empty diagnosis artifact for scored instances."},
+        "invalid_count": {"higher_is_better": false, "coefficient": -1.0, "description": "Number of first diagnoses that do not explain all failing observations."},
+        "nonminimal_count": {"higher_is_better": false, "coefficient": -1.0, "description": "Number of valid first diagnoses that are not minimum-cardinality."},
+        "missing_count": {"higher_is_better": false, "coefficient": -0.5, "description": "Number of scored instances missing from the method artifact."},
+        "empty_diagnosis_count": {"higher_is_better": false, "coefficient": -0.5, "description": "Number of scored instances present in the artifact but carrying no diagnosis."}
       },
       "results": {
         "cfaults": {"type": "proposed", "valid_minimal_rate": 100.0, "all_observations_consistent_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0},
@@ -38,16 +43,16 @@
       "weight": 0.2,
       "primary_metric": "localized_rate_obs50",
       "metrics": {
-        "localized_rate_obs10": {"higher_is_better": true, "coefficient": 0.2},
-        "localized_rate_obs20": {"higher_is_better": true, "coefficient": 0.2},
-        "localized_rate_obs30": {"higher_is_better": true, "coefficient": 0.2},
-        "localized_rate_obs40": {"higher_is_better": true, "coefficient": 0.2},
-        "localized_rate_obs50": {"higher_is_better": true, "coefficient": 0.2},
-        "localized_count_obs10": {"higher_is_better": true, "coefficient": 0.0002},
-        "localized_count_obs20": {"higher_is_better": true, "coefficient": 0.0002},
-        "localized_count_obs30": {"higher_is_better": true, "coefficient": 0.0002},
-        "localized_count_obs40": {"higher_is_better": true, "coefficient": 0.0002},
-        "localized_count_obs50": {"higher_is_better": true, "coefficient": 0.0002}
+        "localized_rate_obs10": {"higher_is_better": true, "coefficient": 0.2, "description": "Localisation rate on the lowest-observation bucket of the scaled benchmark."},
+        "localized_rate_obs20": {"higher_is_better": true, "coefficient": 0.2, "description": "Localisation rate on the next-lowest observation bucket of the scaled benchmark."},
+        "localized_rate_obs30": {"higher_is_better": true, "coefficient": 0.2, "description": "Localisation rate on the highest-observation bucket of the scaled benchmark."},
+        "localized_rate_obs40": {"higher_is_better": true, "coefficient": 0.2, "description": "Replicated high-observation localisation rate to preserve the paper's increasing-observation score shape."},
+        "localized_rate_obs50": {"higher_is_better": true, "coefficient": 0.2, "description": "Replicated high-observation localisation rate used as the primary scaling stress metric."},
+        "localized_count_obs10": {"higher_is_better": true, "coefficient": 0.0002, "description": "Raw successful-localisation count for the lowest-observation bucket."},
+        "localized_count_obs20": {"higher_is_better": true, "coefficient": 0.0002, "description": "Raw successful-localisation count for the next-lowest observation bucket."},
+        "localized_count_obs30": {"higher_is_better": true, "coefficient": 0.0002, "description": "Raw successful-localisation count for the highest-observation bucket."},
+        "localized_count_obs40": {"higher_is_better": true, "coefficient": 0.0002, "description": "Raw successful-localisation count for the replicated high-observation bucket."},
+        "localized_count_obs50": {"higher_is_better": true, "coefficient": 0.0002, "description": "Raw successful-localisation count for the primary high-observation stress metric."}
       },
       "results": {
         "cfaults": {
@@ -92,17 +97,19 @@
       }
     },
     "runtime_efficiency": {
-      "description": "Circuit runtime comparison from Figure 6 and Section 6.2. Exact median/total CPU times are not available in the extracted markdown, but the paper reports HSD faster overall than CFaults on ISCAS85.",
+      "description": "Machine-independent output efficiency for circuit diagnosis artifacts. This replaces wall-clock ranking in train/test because hardware timing is not stable across benchmark runners.",
       "weight": 0.1,
-      "primary_metric": "relative_runtime_rank",
+      "primary_metric": "avg_reported_diagnoses_per_instance",
       "metrics": {
-        "relative_runtime_rank": {"higher_is_better": false, "coefficient": -1.0},
-        "timeout_seconds": {"higher_is_better": false, "coefficient": -0.001}
+        "relative_runtime_rank": {"higher_is_better": false, "coefficient": 0.0, "description": "Legacy paper runtime-rank field retained for reference compatibility only; not used for train/test ranking."},
+        "timeout_seconds": {"higher_is_better": false, "coefficient": 0.0, "description": "Legacy timeout-policy field retained for reference compatibility only; not used for train/test ranking."},
+        "avg_reported_diagnoses_per_instance": {"higher_is_better": false, "coefficient": -0.8, "description": "Average number of diagnoses emitted per scored instance; penalizes artifact spam that hides behind a correct first answer."},
+        "max_reported_diagnoses_per_instance": {"higher_is_better": false, "coefficient": -0.2, "description": "Maximum number of diagnoses emitted for any scored instance; catches concentrated output-volume shortcuts."}
       },
       "results": {
         "hsd": {"type": "baseline", "relative_runtime_rank": 1, "timeout_seconds": 1800},
         "hsd_cm": {"type": "baseline", "relative_runtime_rank": 2, "timeout_seconds": 1800},
-        "cfaults": {"type": "proposed", "relative_runtime_rank": 3, "timeout_seconds": 1800}
+        "cfaults": {"type": "proposed", "relative_runtime_rank": 3, "timeout_seconds": 1800, "avg_reported_diagnoses_per_instance": 1, "max_reported_diagnoses_per_instance": 1}
       }
     }
   },

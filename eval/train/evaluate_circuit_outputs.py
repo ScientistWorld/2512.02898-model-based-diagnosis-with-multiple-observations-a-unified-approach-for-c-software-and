@@ -221,6 +221,9 @@ def summarize_method(instances: dict[str, dict], result_path: Path, slice_ids: l
     solved = 0
     missing_count = 0
     empty_diagnosis_count = 0
+    total_reported_diagnoses = 0
+    max_reported_diagnoses = 0
+    all_reported_valid_minimal_count = 0
 
     for instance_id in slice_ids:
         instance = instances[instance_id]
@@ -233,6 +236,8 @@ def summarize_method(instances: dict[str, dict], result_path: Path, slice_ids: l
             continue
 
         diagnoses = row.get("diagnoses") or []
+        total_reported_diagnoses += len(diagnoses)
+        max_reported_diagnoses = max(max_reported_diagnoses, len(diagnoses))
         if not diagnoses:
             empty_diagnosis_count += 1
             continue
@@ -250,18 +255,26 @@ def summarize_method(instances: dict[str, dict], result_path: Path, slice_ids: l
         optimum_count += int(optimal)
         by_obs[obs_count]["localized"] += int(optimal)
         exact_count += int(valid and set(chosen) == set(instance["faults"]))
+        for diagnosis in diagnoses:
+            reported_valid = diagnosis_valid(circuit, instance["observations"], diagnosis)
+            all_reported_valid_minimal_count += int(reported_valid and opt == len(diagnosis))
         if valid:
             subset_minimal_count += int(opt == cost)
 
     n = max(1, len(slice_ids))
     solved_n = max(1, solved)
+    reported_n = max(1, total_reported_diagnoses)
     return {
         "success_rate": valid_count / n,
         "optimal_rate": optimum_count / n,
         "exact_fault_set_rate": exact_count / n,
         "subset_minimal_rate": subset_minimal_count / n,
+        "all_reported_valid_minimal_rate": all_reported_valid_minimal_count / reported_n,
+        "complete_output_rate": (len(slice_ids) - missing_count - empty_diagnosis_count) / n,
         "avg_diagnosis_size": total_cost / solved_n,
         "avg_elapsed_sec": total_elapsed / solved_n,
+        "avg_reported_diagnoses_per_instance": total_reported_diagnoses / n,
+        "max_reported_diagnoses_per_instance": max_reported_diagnoses,
         "instances_evaluated": len(slice_ids),
         "localized_count": optimum_count,
         "invalid_count": solved - valid_count,
@@ -291,8 +304,13 @@ def format_scores(summaries: dict[str, dict], benchmark: Path, result_root: Path
         quality[name] = {
             "valid_minimal_rate": 100.0 * summary["optimal_rate"],
             "all_observations_consistent_rate": 100.0 * summary["success_rate"],
+            "all_reported_valid_minimal_rate": 100.0 * summary["all_reported_valid_minimal_rate"],
+            "exact_fault_set_rate": 100.0 * summary["exact_fault_set_rate"],
+            "complete_output_rate": 100.0 * summary["complete_output_rate"],
             "invalid_count": summary["invalid_count"],
             "nonminimal_count": summary["nonminimal_count"],
+            "missing_count": summary["missing_count"],
+            "empty_diagnosis_count": summary["empty_diagnosis_count"],
         }
         obs_metrics = {}
         for paper_obs in (10, 20, 30, 40, 50):
@@ -304,6 +322,8 @@ def format_scores(summaries: dict[str, dict], benchmark: Path, result_root: Path
         runtime[name] = {
             "relative_runtime_rank": 3,
             "timeout_seconds": 1800,
+            "avg_reported_diagnoses_per_instance": summary["avg_reported_diagnoses_per_instance"],
+            "max_reported_diagnoses_per_instance": summary["max_reported_diagnoses_per_instance"],
         }
 
     return {
