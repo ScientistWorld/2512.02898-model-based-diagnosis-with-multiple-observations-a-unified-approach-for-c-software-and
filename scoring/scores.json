@@ -6,7 +6,7 @@
       "_bugassist_vote_unscored": {
         "all_reported_valid_minimal_rate": 0.5555555555555556,
         "avg_diagnosis_size": 1.1481481481481481,
-        "avg_elapsed_sec": 0.027615344367438444,
+        "avg_elapsed_sec": 0.028347627665088686,
         "avg_extra_gate_count": 0.1111111111111111,
         "avg_missing_fault_count": 0.9629629629629629,
         "avg_reported_diagnoses_per_instance": 1.0,
@@ -66,6 +66,22 @@
           "selected_fault_precision": 50.000000000000014,
           "selected_fault_recall": 43.82716049382717,
           "valid_minimal_rate": 100.0
+        },
+        "hsd": {
+          "all_observations_consistent_rate": 100.0,
+          "all_reported_valid_minimal_rate": 100.0,
+          "avg_extra_gate_count": 0.48148148148148145,
+          "avg_missing_fault_count": 0.7407407407407407,
+          "complete_output_rate": 100.0,
+          "empty_diagnosis_count": 0,
+          "exact_fault_set_rate": 44.44444444444444,
+          "invalid_count": 0,
+          "missing_count": 0,
+          "nonminimal_count": 0,
+          "selected_fault_f1": 72.09876543209876,
+          "selected_fault_precision": 78.39506172839506,
+          "selected_fault_recall": 69.13580246913581,
+          "valid_minimal_rate": 100.0
         }
       }
     },
@@ -77,6 +93,15 @@
           "localized_rate": 100.0,
           "memout_count": 0,
           "selected_fault_f1": 45.92592592592593,
+          "timeout_count": 0,
+          "total_instances": 27
+        },
+        "hsd": {
+          "exact_fault_set_rate": 44.44444444444444,
+          "localized_count": 27,
+          "localized_rate": 100.0,
+          "memout_count": 0,
+          "selected_fault_f1": 72.09876543209876,
           "timeout_count": 0,
           "total_instances": 27
         }
@@ -105,12 +130,40 @@
           "selected_fault_f1_obs30": 37.03703703703704,
           "selected_fault_f1_obs40": 37.03703703703704,
           "selected_fault_f1_obs50": 37.03703703703704
+        },
+        "hsd": {
+          "exact_fault_set_rate_obs10": 44.44444444444444,
+          "exact_fault_set_rate_obs20": 44.44444444444444,
+          "exact_fault_set_rate_obs30": 44.44444444444444,
+          "exact_fault_set_rate_obs40": 44.44444444444444,
+          "exact_fault_set_rate_obs50": 44.44444444444444,
+          "localized_count_obs10": 9,
+          "localized_count_obs20": 9,
+          "localized_count_obs30": 9,
+          "localized_count_obs40": 9,
+          "localized_count_obs50": 9,
+          "localized_rate_obs10": 100.0,
+          "localized_rate_obs20": 100.0,
+          "localized_rate_obs30": 100.0,
+          "localized_rate_obs40": 100.0,
+          "localized_rate_obs50": 100.0,
+          "selected_fault_f1_obs10": 71.85185185185185,
+          "selected_fault_f1_obs20": 75.92592592592592,
+          "selected_fault_f1_obs30": 68.51851851851852,
+          "selected_fault_f1_obs40": 68.51851851851852,
+          "selected_fault_f1_obs50": 68.51851851851852
         }
       }
     },
     "runtime_efficiency": {
       "results": {
         "cfaults": {
+          "avg_reported_diagnoses_per_instance": 8.444444444444445,
+          "max_reported_diagnoses_per_instance": 81,
+          "relative_runtime_rank": 3,
+          "timeout_seconds": 1800
+        },
+        "hsd": {
           "avg_reported_diagnoses_per_instance": 8.444444444444445,
           "max_reported_diagnoses_per_instance": 81,
           "relative_runtime_rank": 3,
