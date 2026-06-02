@@ -1,6 +1,6 @@
 # Reproduction Milestones
 
-**Current: method_runs**
+**Current: core_claim**
 
 ## Progress Log
 
@@ -13,6 +13,11 @@
 - Final verification found a critical Boolean-gate encoding bug: the CNF clauses for binary gates did not match the data generator's circuit semantics.
 - Corrected `AND`, `OR`, `NAND`, and `NOR` encodings in method, baseline, and evaluator code.
 - Verified the corrected encodings by truth table locally; fresh packaged scoring is pending a CPU test job before `core_claim` can be restored.
+
+### [2026-06-02 12:49] - core_claim
+- CPU job `e9807e81-d04` completed successfully after the Boolean-gate repair and regenerated root, train, and test score artifacts.
+- Restored `core_claim`: the corrected CFaults implementation localizes all 27 scaled synthetic circuit instances, and every counted diagnosis is valid, minimum-cardinality, and consistent with all observations.
+- Verified the final scoring contract with `python validate.py --compare`; all checks passed.
 
 ### [2026-06-02 11:10] - core_claim
 - Implemented the paper's Boolean-circuit multi-observation MBD algorithm as a unified partial MaxSAT encoding with shared gate health variables.

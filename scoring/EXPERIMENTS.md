@@ -14,4 +14,4 @@ Tests whether performance remains robust as the number of failing observations i
 
 ## runtime_efficiency
 
-Tests the computational cost of obtaining diagnoses within the benchmark timeout. This experiment is needed because exact circuit diagnosis can be correct but impractically slow, and the paper's circuit-side comparison hinges on both coverage and runtime.
+Tests whether diagnoses are obtained within the benchmark timeout without producing an impractically large set of candidate diagnoses. Wall-clock runtime is not a scored gym metric because hardware varies across agents; scored metrics use timeout/memory outcomes and output-volume proxies.

@@ -11,22 +11,23 @@
 - Scheduler job `2147c6a7-240` verified the repaired packaged pipeline inside the compute container with exit code 0.
 - Scheduler job `06041b2e-9e9` regenerated the final score artifact inside the packaged compute container with exit code 0.
 - The top-level reusable evaluator has been aligned with the train/test scoring contract so future agents are scored on selected fault-set overlap, diagnosis validity, completeness, and output volume.
+- Scheduler job `e9807e81-d04` regenerated root, train, and test scores after the Boolean-gate CNF repair and passed `python validate.py --compare`.
 
 ## Results
 
 - Paper reference, augmented ISCAS85 localisation (Table 5): CFaults localizes 8,969 / 12,147 instances, or 73.84%.
 - Scaled reproduction, synthetic circuit localisation: CFaults localizes 27 / 27 instances, or 100.0%.
-- Constraint metric, scaled reproduction: CFaults returns valid minimum-cardinality diagnoses for 27 / 27 instances, with 0 invalid and 0 non-minimal outputs.
+- Scaled reproduction, selected-fault overlap: CFaults reaches 45.93 F1 on the selected minimum-cardinality diagnosis.
+- Constraint metric, scaled reproduction: CFaults returns valid minimum-cardinality diagnoses for 27 / 27 instances, with 0 invalid, 0 non-minimal, and 0 observation-inconsistent outputs.
 - All-observation consistency is now an explicit diagnosis-quality metric in `reference.json`, the evaluator output contract, and the regenerated `scores.json`.
-- Unscored sanity baseline: the one-observation voting baseline localizes 0 / 27 instances, which confirms the benchmark is not solved by considering observations independently.
+- Unscored sanity baseline after the gate repair: the one-observation voting baseline localizes 15 / 27 instances and returns 12 invalid selected diagnoses, which confirms the benchmark is not solved reliably by considering observations independently.
 - Container verification: job `2147c6a7-240` completed in 19.25 seconds on a CPU test node and reproduced the same 27 / 27 CFaults localisation result after the explicit faulty-circuit interface repair.
 - Final score regeneration: job `06041b2e-9e9` completed in 60.03 seconds on a CPU node and wrote `scores.json` with `all_observations_consistent_rate: 100.0`.
-- `python validate.py --compare` passes for `reference.json`, `scores.json`, import separation, output-reading evaluation, and shared-path checks.
+- Final verification job `e9807e81-d04` completed in 14.81 seconds on a CPU node and wrote corrected `scores.json`, `scores_train.json`, and `scores_test.json`.
+- `python validate.py --compare` passes for `reference.json`, `scores.json`, train/test artifacts, import separation, output-reading evaluation, and shared-path checks.
 
 ## Remaining
 
-- Regenerate method, baseline, root, train, and test scores after the Boolean-gate CNF encoding repair. Restore `core_claim` only if the corrected pipeline validates and still supports the claim.
-- Run the fresh CPU test submission to regenerate `scoring/scores.json` after the top-level evaluator patch and restore `core_claim` only if validation passes.
 - Expand beyond the scaled synthetic benchmark toward the paper's augmented ISCAS85 instances.
 - Add HSD or HSD-CM as scored baselines if pursuing `majority` or higher.
 - Reproduce more of the paper's runtime-ranking table using machine-independent proxies or controlled solver call counts instead of wall-clock time.
@@ -37,8 +38,8 @@
 - A continuation audit found that the previous synthetic interface passed the injected fault map into the method as faulty-circuit semantics. This was repaired by storing an explicit faulty circuit netlist in each instance; `method/` now receives only the faulty circuit and observations, while the true fault list is retained only for evaluation summaries.
 - `environment/setup.sh` installs `python-sat` for fresh compute containers.
 - Continuation audit reset the working milestone to `method_runs`; job `06041b2e-9e9` refreshed the score artifact, so the milestone is restored to `core_claim`.
-- The login-node Python environment does not currently have PySAT, so full local evaluation falls back to an intentionally tiny exhaustive SAT solver and is too slow for the full benchmark. The packaged container installs `python-sat`; fresh validation is being submitted as a CPU test job.
-- Final verification found that the CNF encoders for binary gates were dualized relative to `data.circuit_benchmark.eval_op`. This affected method, baseline, and evaluator code. The encoders have been corrected and checked against truth tables; score artifacts must be regenerated in the packaged container.
+- The login-node Python environment does not currently have PySAT, so full local evaluation falls back to an intentionally tiny exhaustive SAT solver and is too slow for the full benchmark. The packaged container installs `python-sat`; job `e9807e81-d04` verified the corrected pipeline there.
+- Final verification found that the CNF encoders for binary gates were dualized relative to `data.circuit_benchmark.eval_op`. This affected method, baseline, and evaluator code. The encoders were corrected, checked against truth tables, and validated by job `e9807e81-d04`.
 
 ## Deviations from Paper
 
