@@ -1,13 +1,18 @@
 # Reproduction Milestones
 
-**Current: method_runs**
+**Current: core_claim**
 
 ## Progress Log
+
+### [2026-06-02 11:06] - core_claim
+- Scheduler job `2147c6a7-240` completed successfully after the faulty-circuit interface repair.
+- The repaired pipeline ran through `scripts/reproduce.sh` inside the container with PySAT RC2 and regenerated `scoring/scores.json`.
+- CFaults localised 27 / 27 scaled synthetic circuit instances with 0 invalid and 0 non-minimal diagnoses; the one-observation voting baseline localised 0 / 27.
 
 ### [2026-06-02 00:00] - method_runs
 - Audit found that the previous synthetic circuit interface passed the injected fault map into the method as faulty-circuit semantics, which was too close to exposing diagnosis labels.
 - Reworked the benchmark to store an explicit faulty circuit netlist per instance and updated the method, baseline, and evaluator to consume the faulty netlist without using the ground-truth fault list.
-- Fresh container verification is pending for the repaired interface.
+- Submitted CPU test job `2147c6a7-240` for fresh container verification.
 
 ### [2026-06-02 00:00] - core_claim
 - Implemented CFaults' Boolean-circuit multiple-observation diagnosis as a unified partial MaxSAT problem with one replicated circuit per failing observation and shared health variables per original gate.
@@ -19,4 +24,4 @@
 - The evaluation pipeline reads output artifacts and validates diagnoses without importing `method/`.
 
 ## Stop Justification
-- Not stopped: a repaired benchmark/method interface has been prepared and needs a fresh job before restoring `core_claim`.
+- Completed at milestone `core_claim` on a scaled synthetic Boolean-circuit benchmark with explicit faulty circuit netlists. Higher milestones would require expanding to augmented ISCAS85 and adding HSD/HSD-CM reproductions.

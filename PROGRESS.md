@@ -7,15 +7,15 @@
 - A reusable benchmark generator in `data/circuit_benchmark.py` creates small tracked circuit-diagnosis instances with explicit faulty circuit netlists, injected gate-operator mutations, and failing observations.
 - `scripts/reproduce.sh` runs the full local pipeline: generate benchmark data, run the one-observation voting baseline, run CFaults, and evaluate artifacts through `scripts/evaluate.sh`.
 - `eval/evaluate_circuit_outputs.py` is method-agnostic: it reads result artifacts and independently checks diagnosis validity and cardinality without importing `method/`.
-- Scheduler job `565b7133-b46` verified the packaged pipeline inside the compute container with exit code 0.
+- Scheduler job `2147c6a7-240` verified the repaired packaged pipeline inside the compute container with exit code 0.
 
 ## Results
 
 - Paper reference, augmented ISCAS85 localisation (Table 5): CFaults localizes 8,969 / 12,147 instances, or 73.84%.
 - Scaled reproduction, synthetic circuit localisation: CFaults localizes 27 / 27 instances, or 100.0%.
 - Constraint metric, scaled reproduction: CFaults returns valid minimum-cardinality diagnoses for 27 / 27 instances, with 0 invalid and 0 non-minimal outputs.
-- Unscored sanity baseline: the one-observation voting baseline localizes 3 / 27 instances, or 11.11%, which confirms the benchmark is not solved by considering observations independently.
-- Container verification: job `565b7133-b46` completed in 56 seconds on a CPU test node and reproduced the same 27 / 27 CFaults localisation result.
+- Unscored sanity baseline: the one-observation voting baseline localizes 0 / 27 instances, which confirms the benchmark is not solved by considering observations independently.
+- Container verification: job `2147c6a7-240` completed in 19.25 seconds on a CPU test node and reproduced the same 27 / 27 CFaults localisation result after the explicit faulty-circuit interface repair.
 - `scoring/scores.json` contains the reproduced metrics; `scoring/reference.json` contains the paper's reported comparison targets.
 
 ## Remaining
