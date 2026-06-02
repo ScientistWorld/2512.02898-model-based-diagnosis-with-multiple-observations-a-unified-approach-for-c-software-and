@@ -23,6 +23,11 @@
 - Fixed `reference.json` for the gym-only runtime-efficiency proxy: the paper does not report diagnosis-output volume, so the reference now labels the value as a corrected scaled-gym reference from job `e9807e81-d04`.
 - Re-ran both `python validate.py` and `python validate.py --compare`; all checks passed.
 
+### [2026-06-02 12:07] - core_claim
+- CPU job `f183bdd9-60a` ran the expanded CFaults/HSD pipeline but failed validation because `avg_reported_diagnoses_per_instance` tied across methods on the train slice.
+- Replaced the runtime-efficiency primary metric with `avg_solver_oracle_calls_per_instance`, added explicit solver-oracle-call fields to CFaults and HSD outputs, and kept diagnosis-output volume as audit-only.
+- Local `python validate.py --compare` now passes; a packaged CPU rerun is pending to regenerate the score artifacts from scratch.
+
 ### [2026-06-02 11:56] - core_claim
 - Added an HSD-style circuit baseline that follows the paper's multiple-observation hitting-set dualisation comparison path.
 - Wired the HSD artifact into the reusable root, train, and test evaluators while keeping BugAssist voting as an unscored sanity baseline.

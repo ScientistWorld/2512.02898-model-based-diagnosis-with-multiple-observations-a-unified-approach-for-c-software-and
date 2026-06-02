@@ -4,7 +4,7 @@
 
 The main metric is `localized_count`: the number of benchmark instances for which a method returns a valid minimum diagnosis before the timeout. `localized_rate` is the same count divided by the number of instances in the evaluated split. Higher is better for both.
 
-The paper reports CPU time per circuit and aggregate timeout count. In this packaged gym, wall-clock time is recorded only as audit context because hardware varies across runs. Scored efficiency uses machine-independent proxies: whether the method completed within the fixed timeout/memory limits and the volume of reported diagnoses that must be checked.
+The paper reports CPU time per circuit and aggregate timeout count. In this packaged gym, wall-clock time is recorded only as audit context because hardware varies across runs. Scored efficiency uses machine-independent proxies: whether the method completed within the fixed timeout/memory limits, reported solver-oracle-call counts, and audit-only diagnosis-output volume.
 
 Diagnosis quality is a constraint metric. A submitted diagnosis must be consistent with all failing input-output observations for that circuit and must be minimum-cardinality under the reproduced benchmark oracle. Invalid, non-minimal, or observation-inconsistent diagnoses should not count as successfully localised instances.
 

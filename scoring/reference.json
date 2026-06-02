@@ -115,20 +115,22 @@
       }
     },
     "runtime_efficiency": {
-      "description": "Machine-independent output efficiency for circuit diagnosis artifacts. This replaces wall-clock ranking in train/test because hardware timing is not stable across benchmark runners.",
-      "notes": "The paper reports wall-clock runtime ranks and a fixed timeout policy, but does not report diagnosis-output volume. The avg/max diagnosis-count values for CFaults are corrected scaled-gym reference values from CPU job e9807e81-d04, included only because wall-clock runtime was replaced by machine-independent output-volume proxies.",
+      "description": "Machine-independent solver-work and artifact-size audit for circuit diagnosis. This replaces wall-clock ranking in train/test because hardware timing is not stable across benchmark runners.",
+      "notes": "The paper reports wall-clock runtime ranks and a fixed timeout policy, but not solver-oracle-call counts. The solver-call and diagnosis-count values here are scaled-gym reference values; they are included because wall-clock runtime must not be a scored gym metric.",
       "weight": 0.1,
-      "primary_metric": "avg_reported_diagnoses_per_instance",
+      "primary_metric": "avg_solver_oracle_calls_per_instance",
       "metrics": {
         "relative_runtime_rank": {"higher_is_better": false, "coefficient": 0.0, "description": "Legacy paper runtime-rank field retained for reference compatibility only; not used for train/test ranking."},
         "timeout_seconds": {"higher_is_better": false, "coefficient": 0.0, "description": "Legacy timeout-policy field retained for reference compatibility only; not used for train/test ranking."},
-        "avg_reported_diagnoses_per_instance": {"higher_is_better": false, "coefficient": -0.8, "description": "Average number of diagnoses emitted per scored instance; penalizes artifact spam that hides behind a correct first answer."},
-        "max_reported_diagnoses_per_instance": {"higher_is_better": false, "coefficient": -0.2, "description": "Maximum number of diagnoses emitted for any scored instance; catches concentrated output-volume shortcuts."}
+        "avg_solver_oracle_calls_per_instance": {"higher_is_better": false, "coefficient": -0.8, "description": "Average number of solver-oracle calls reported per scored instance; a machine-independent proxy for search effort."},
+        "max_solver_oracle_calls_per_instance": {"higher_is_better": false, "coefficient": -0.2, "description": "Maximum solver-oracle calls reported for any scored instance; catches concentrated hard cases."},
+        "avg_reported_diagnoses_per_instance": {"higher_is_better": false, "coefficient": 0.0, "description": "Average number of diagnoses emitted per scored instance; audit-only because exact enumerators may legitimately tie on this value."},
+        "max_reported_diagnoses_per_instance": {"higher_is_better": false, "coefficient": 0.0, "description": "Maximum number of diagnoses emitted for any scored instance; audit-only because exact enumerators may legitimately tie on this value."}
       },
       "results": {
-        "hsd": {"type": "baseline", "relative_runtime_rank": 1, "timeout_seconds": 1800},
+        "hsd": {"type": "baseline", "relative_runtime_rank": 1, "timeout_seconds": 1800, "avg_solver_oracle_calls_per_instance": 112.66666666666667, "max_solver_oracle_calls_per_instance": 1321, "avg_reported_diagnoses_per_instance": 8.444444444444445, "max_reported_diagnoses_per_instance": 81},
         "hsd_cm": {"type": "baseline", "relative_runtime_rank": 2, "timeout_seconds": 1800},
-        "cfaults": {"type": "proposed", "relative_runtime_rank": 3, "timeout_seconds": 1800, "avg_reported_diagnoses_per_instance": 8.444444444444445, "max_reported_diagnoses_per_instance": 81}
+        "cfaults": {"type": "proposed", "relative_runtime_rank": 3, "timeout_seconds": 1800, "avg_solver_oracle_calls_per_instance": 9.444444444444445, "max_solver_oracle_calls_per_instance": 82, "avg_reported_diagnoses_per_instance": 8.444444444444445, "max_reported_diagnoses_per_instance": 81}
       }
     }
   },

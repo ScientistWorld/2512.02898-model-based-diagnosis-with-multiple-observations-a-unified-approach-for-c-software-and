@@ -137,13 +137,17 @@
       "results": {
         "cfaults": {
           "avg_reported_diagnoses_per_instance": 9.76923076923077,
+          "avg_solver_oracle_calls_per_instance": 10.76923076923077,
           "max_reported_diagnoses_per_instance": 81,
+          "max_solver_oracle_calls_per_instance": 82,
           "relative_runtime_rank": 3,
           "timeout_seconds": 1800
         },
         "hsd": {
           "avg_reported_diagnoses_per_instance": 9.76923076923077,
+          "avg_solver_oracle_calls_per_instance": 140.3846153846154,
           "max_reported_diagnoses_per_instance": 81,
+          "max_solver_oracle_calls_per_instance": 1321,
           "relative_runtime_rank": 3,
           "timeout_seconds": 1800
         }

@@ -16,7 +16,7 @@ A result counts as localised only if the returned diagnosis is consistent with a
 
 ## Evaluation Resources
 
-Use the same timeout policy for all methods in the main comparison: 1800 seconds per buggy Boolean circuit. Record timeout and memory failures explicitly. Do not improve the headline score by giving one method more time, more memory, additional preprocessing data, or a different benchmark subset. Wall-clock runtime may be logged for context, but cross-agent scoring must use machine-independent quantities such as timeout/memout counts, solver-output volume, or controlled solver-call counts.
+Use the same timeout policy for all methods in the main comparison: 1800 seconds per buggy Boolean circuit. Record timeout and memory failures explicitly. Do not improve the headline score by giving one method more time, more memory, additional preprocessing data, or a different benchmark subset. Wall-clock runtime may be logged for context, but cross-agent scoring must use machine-independent quantities such as timeout/memout counts, solver-oracle-call counts, or audit-only solver-output volume.
 
 ## Baseline Comparability
 

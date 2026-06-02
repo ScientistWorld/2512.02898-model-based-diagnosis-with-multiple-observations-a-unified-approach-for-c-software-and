@@ -8,10 +8,11 @@
 - `scripts/reproduce.sh` runs the full local pipeline: generate benchmark data, run the one-observation voting baseline, run CFaults, and evaluate artifacts through `scripts/evaluate.sh`.
 - `baseline/bugassist_vote_circuit.py` now implements its one-observation MaxSAT voting baseline independently of `method/`, so future method changes do not alter the baseline.
 - `baseline/hsd_circuit.py` now implements an HSD-style multiple-observation circuit baseline from the paper using separate per-observation formulas, unsat cores over healthy-gate assumptions, and minimum hitting sets.
+- Method and baseline artifacts now report `solver_oracle_calls`, and all evaluators score this machine-independent solver-work proxy for `runtime_efficiency`.
 - `eval/evaluate_circuit_outputs.py` is method-agnostic: it reads result artifacts and independently checks diagnosis validity and cardinality without importing `method/`.
 - Scheduler job `2147c6a7-240` verified the repaired packaged pipeline inside the compute container with exit code 0.
 - Scheduler job `06041b2e-9e9` regenerated the final score artifact inside the packaged compute container with exit code 0.
-- The top-level reusable evaluator has been aligned with the train/test scoring contract so future agents are scored on selected fault-set overlap, diagnosis validity, completeness, and output volume.
+- The top-level reusable evaluator has been aligned with the train/test scoring contract so future agents are scored on selected fault-set overlap, diagnosis validity, completeness, and solver-oracle-call efficiency.
 - Scheduler job `e9807e81-d04` regenerated root, train, and test scores after the Boolean-gate CNF repair and passed `python validate.py --compare`.
 
 ## Results
@@ -28,6 +29,8 @@
 - `python validate.py --compare` passes for `reference.json`, `scores.json`, train/test artifacts, import separation, output-reading evaluation, and shared-path checks.
 - `python validate.py` also passes after correcting `reference.json` so the gym-only diagnosis-output-volume proxy is not presented as a paper-reported number.
 - HSD baseline expansion is implemented and wired into `scripts/reproduce.sh`, `scripts/baseline.sh`, and the root/train/test evaluators. Fresh packaged scores are pending CPU job verification before claiming a higher milestone.
+- CPU job `f183bdd9-60a` successfully ran CFaults and HSD but failed validation because the runtime-efficiency primary metric tied across methods on the train slice.
+- Local validation passes after replacing the tied diagnosis-output-volume primary metric with `avg_solver_oracle_calls_per_instance`; a packaged CPU rerun is pending to regenerate artifacts from scratch.
 
 ## Remaining
 
@@ -45,6 +48,7 @@
 - The login-node Python environment does not currently have PySAT, so full local evaluation falls back to an intentionally tiny exhaustive SAT solver and is too slow for the full benchmark. The packaged container installs `python-sat`; job `e9807e81-d04` verified the corrected pipeline there.
 - Final verification found that the CNF encoders for binary gates were dualized relative to `data.circuit_benchmark.eval_op`. This affected method, baseline, and evaluator code. The encoders were corrected, checked against truth tables, and validated by job `e9807e81-d04`.
 - A validation audit rejected the earlier `runtime_efficiency` reference because `avg_reported_diagnoses_per_instance` was treated like a paper-reported value. The paper reports wall-clock runtime ranks, not diagnosis-output volume; `reference.json` now documents the proxy value as a corrected scaled-gym reference from job `e9807e81-d04`.
+- Job `f183bdd9-60a` exposed a scoring-rubric issue: `avg_reported_diagnoses_per_instance` tied for CFaults and HSD on the train split, so it could not serve as a primary metric. The runtime-efficiency primary metric is now solver-oracle-call count, while output volume remains audit-only.
 
 ## Deviations from Paper
 

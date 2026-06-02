@@ -209,6 +209,7 @@ def diagnose_hsd(
         "num_gates": len(circuit.gates),
         "hsd_iterations": iterations,
         "oracle_calls": oracle_calls,
+        "solver_oracle_calls": oracle_calls,
         "core_count": len(cores),
         "elapsed_sec": time.perf_counter() - start,
     }

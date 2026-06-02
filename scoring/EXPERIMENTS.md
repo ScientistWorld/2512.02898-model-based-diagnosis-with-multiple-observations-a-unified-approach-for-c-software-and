@@ -14,4 +14,4 @@ Tests whether performance remains robust as the number of failing observations i
 
 ## runtime_efficiency
 
-Tests whether diagnoses are obtained within the benchmark timeout without producing an impractically large set of candidate diagnoses. Wall-clock runtime is not a scored gym metric because hardware varies across agents; scored metrics use timeout/memory outcomes and output-volume proxies.
+Tests whether diagnoses are obtained within the benchmark timeout without excessive solver search work. Wall-clock runtime is not a scored gym metric because hardware varies across agents; scored metrics use timeout/memory outcomes, solver-oracle-call counts, and audit-only output-volume fields.

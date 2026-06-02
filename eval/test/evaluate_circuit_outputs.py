@@ -242,6 +242,8 @@ def summarize_method(instances: dict[str, dict], result_path: Path, slice_ids: l
     empty_diagnosis_count = 0
     total_reported_diagnoses = 0
     max_reported_diagnoses = 0
+    total_solver_oracle_calls = 0
+    max_solver_oracle_calls = 0
     all_reported_valid_minimal_count = 0
     total_fault_precision = 0.0
     total_fault_recall = 0.0
@@ -260,6 +262,11 @@ def summarize_method(instances: dict[str, dict], result_path: Path, slice_ids: l
             continue
 
         diagnoses = row.get("diagnoses") or []
+        solver_oracle_calls = int(
+            row.get("solver_oracle_calls", row.get("oracle_calls", len(diagnoses) + (1 if diagnoses else 0)))
+        )
+        total_solver_oracle_calls += solver_oracle_calls
+        max_solver_oracle_calls = max(max_solver_oracle_calls, solver_oracle_calls)
         total_reported_diagnoses += len(diagnoses)
         max_reported_diagnoses = max(max_reported_diagnoses, len(diagnoses))
         if not diagnoses:
@@ -317,6 +324,8 @@ def summarize_method(instances: dict[str, dict], result_path: Path, slice_ids: l
         "avg_elapsed_sec": total_elapsed / solved_n,
         "avg_reported_diagnoses_per_instance": total_reported_diagnoses / n,
         "max_reported_diagnoses_per_instance": max_reported_diagnoses,
+        "avg_solver_oracle_calls_per_instance": total_solver_oracle_calls / n,
+        "max_solver_oracle_calls_per_instance": max_solver_oracle_calls,
         "selected_fault_precision": total_fault_precision / n,
         "selected_fault_recall": total_fault_recall / n,
         "selected_fault_f1": total_fault_f1 / n,
@@ -382,6 +391,8 @@ def format_scores(summaries: dict[str, dict], benchmark: Path, result_root: Path
         runtime[name] = {
             "relative_runtime_rank": 3,
             "timeout_seconds": 1800,
+            "avg_solver_oracle_calls_per_instance": summary["avg_solver_oracle_calls_per_instance"],
+            "max_solver_oracle_calls_per_instance": summary["max_solver_oracle_calls_per_instance"],
             "avg_reported_diagnoses_per_instance": summary["avg_reported_diagnoses_per_instance"],
             "max_reported_diagnoses_per_instance": summary["max_reported_diagnoses_per_instance"],
         }

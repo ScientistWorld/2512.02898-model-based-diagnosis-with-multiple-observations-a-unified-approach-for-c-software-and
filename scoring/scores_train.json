@@ -34,6 +34,12 @@
         "avg_missing_fault_count": 1.0714285714285714,
         "avg_reported_diagnoses_per_instance": 1.0,
         "by_observation_count": {
+          "16": {
+            "exact": 2,
+            "fault_f1_total": 3.5666666666666664,
+            "localized": 3,
+            "total": 5
+          },
           "4": {
             "exact": 2,
             "fault_f1_total": 3.0,
@@ -45,12 +51,6 @@
             "fault_f1_total": 2.833333333333333,
             "localized": 1,
             "total": 4
-          },
-          "16": {
-            "exact": 2,
-            "fault_f1_total": 3.5666666666666664,
-            "localized": 3,
-            "total": 5
           }
         },
         "complete_output_rate": 1.0,
@@ -182,13 +182,17 @@
       "results": {
         "cfaults": {
           "avg_reported_diagnoses_per_instance": 7.214285714285714,
+          "avg_solver_oracle_calls_per_instance": 8.214285714285714,
           "max_reported_diagnoses_per_instance": 45,
+          "max_solver_oracle_calls_per_instance": 46,
           "relative_runtime_rank": 3,
           "timeout_seconds": 1800
         },
         "hsd": {
           "avg_reported_diagnoses_per_instance": 7.214285714285714,
+          "avg_solver_oracle_calls_per_instance": 86.92857142857143,
           "max_reported_diagnoses_per_instance": 45,
+          "max_solver_oracle_calls_per_instance": 447,
           "relative_runtime_rank": 3,
           "timeout_seconds": 1800
         }

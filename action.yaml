@@ -1,6 +1,6 @@
-# Verify the newly added HSD circuit baseline and regenerated score artifacts.
+# Verify the HSD baseline expansion after replacing the tied runtime primary metric.
 action: submit
 gpus: 0
 test: true
 milestone: core_claim
-notes: "CPU test job to run reproduce/train/test evaluation with the new HSD circuit baseline and validate the regenerated score artifacts."
+notes: "CPU test job to regenerate CFaults/HSD artifacts with solver-oracle-call runtime metrics and run validate.py --compare."

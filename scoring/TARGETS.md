@@ -26,8 +26,8 @@ Tests whether localisation remains effective as the number of failing observatio
 
 ## Constraint: runtime_efficiency
 
-Tests whether successful diagnosis is obtained without hiding behind excessive output volume.
+Tests whether successful diagnosis is obtained without excessive solver search work.
 
-- **Metric:** `avg_reported_diagnoses_per_instance` (lower is better)
-- **Supporting metrics:** `max_reported_diagnoses_per_instance`, plus legacy `relative_runtime_rank` and `timeout_seconds` fields for paper-context compatibility
-- **How to run:** Count the number of diagnoses emitted in each method artifact. Wall-clock timing is excluded from the train/test score because hardware varies across runners.
+- **Metric:** `avg_solver_oracle_calls_per_instance` (lower is better)
+- **Supporting metrics:** `max_solver_oracle_calls_per_instance`, audit-only output-volume metrics, plus legacy `relative_runtime_rank` and `timeout_seconds` fields for paper-context compatibility
+- **How to run:** Read solver-oracle-call counts and diagnosis counts from each method artifact. Wall-clock timing is excluded from the train/test score because hardware varies across runners.

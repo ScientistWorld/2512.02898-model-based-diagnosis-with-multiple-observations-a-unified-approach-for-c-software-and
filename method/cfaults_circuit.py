@@ -147,7 +147,9 @@ def diagnose(
     optimum = None
     block: list[Clause] = []
     solver_used = "unknown"
+    solver_oracle_calls = 0
     while True:
+        solver_oracle_calls += 1
         disabled, cost, solver_used = solve_formula(hard, soft, pool.top, block, solver)
         if disabled is None or cost is None:
             break
@@ -173,6 +175,7 @@ def diagnose(
         "num_gates": len(circuit.gates),
         "num_hard_clauses": len(hard),
         "num_soft_clauses": len(soft),
+        "solver_oracle_calls": solver_oracle_calls,
         "elapsed_sec": elapsed,
     }
 
