@@ -14,7 +14,7 @@
         "memout_count": {"higher_is_better": false, "coefficient": 0.0, "description": "Memory-failure count retained for compatibility with the original score schema; not ranked in train/test because resource limits vary by runner."}
       },
       "results": {
-        "cfaults": {"type": "proposed", "localized_rate": 73.84, "total_instances": 12147, "localized_count": 8969, "timeout_count": 3178, "memout_count": 0},
+        "cfaults": {"type": "proposed", "selected_fault_f1": 37.3015873015873, "localized_rate": 73.84, "total_instances": 12147, "localized_count": 8969, "timeout_count": 3178, "memout_count": 0},
         "hsd": {"type": "baseline", "localized_rate": 80.14, "total_instances": 12147, "localized_count": 9735, "timeout_count": 2412, "memout_count": 0},
         "hsd_cm": {"type": "baseline", "localized_rate": 79.67, "total_instances": 12147, "localized_count": 9678, "timeout_count": 2469, "memout_count": 0}
       }
@@ -40,7 +40,7 @@
         "empty_diagnosis_count": {"higher_is_better": false, "coefficient": 0.0, "description": "Number of scored instances present in the artifact but carrying no diagnosis; audit-only after saturation on the scaled split."}
       },
       "results": {
-        "cfaults": {"type": "proposed", "valid_minimal_rate": 100.0, "all_observations_consistent_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0},
+        "cfaults": {"type": "proposed", "selected_fault_f1": 37.3015873015873, "valid_minimal_rate": 100.0, "all_observations_consistent_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0},
         "hsd": {"type": "baseline", "valid_minimal_rate": 100.0, "all_observations_consistent_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0},
         "hsd_cm": {"type": "baseline", "valid_minimal_rate": 100.0, "all_observations_consistent_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0}
       }
@@ -74,6 +74,7 @@
       "results": {
         "cfaults": {
           "type": "proposed",
+          "selected_fault_f1_obs50": 28.977072310405642,
           "localized_rate_obs10": 81.62,
           "localized_rate_obs20": 76.12,
           "localized_rate_obs30": 71.70,
@@ -126,7 +127,7 @@
       "results": {
         "hsd": {"type": "baseline", "relative_runtime_rank": 1, "timeout_seconds": 1800},
         "hsd_cm": {"type": "baseline", "relative_runtime_rank": 2, "timeout_seconds": 1800},
-        "cfaults": {"type": "proposed", "relative_runtime_rank": 3, "timeout_seconds": 1800, "avg_reported_diagnoses_per_instance": 1, "max_reported_diagnoses_per_instance": 1}
+        "cfaults": {"type": "proposed", "relative_runtime_rank": 3, "timeout_seconds": 1800, "avg_reported_diagnoses_per_instance": 15.0, "max_reported_diagnoses_per_instance": 166}
       }
     }
   },
