@@ -17,6 +17,7 @@
 
 set -e
 
-cd /home/user
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
 
 python data/circuit_benchmark.py --out data/synthetic_circuits --instances-per-setting 3
