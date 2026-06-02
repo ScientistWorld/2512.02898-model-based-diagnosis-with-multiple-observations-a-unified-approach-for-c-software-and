@@ -8,6 +8,7 @@ The workspace claimed `core_claim`, but final verification found one critical co
 
 - Critical: `AND`, `OR`, `NAND`, and `NOR` encodings in the method, baseline, and evaluator were dualized relative to the data generator's gate semantics.
 - Minor: evaluation documentation still described wall-clock CPU time as an efficiency metric. The gym should not score wall-clock speed across variable hardware.
+- Minor: `runtime_efficiency.avg_reported_diagnoses_per_instance` was initially stored in `reference.json` without making clear that it is a scaled-gym proxy rather than a paper-reported value.
 - Minor limitation: the current benchmark is a scaled tracked synthetic circuit set rather than the full augmented ISCAS85 benchmark from the paper.
 - Cosmetic/workspace: unrelated pre-existing root changes remain in `README.md`, `manifest.json`, and `trajectory/`; they were left untouched.
 
@@ -16,7 +17,8 @@ The workspace claimed `core_claim`, but final verification found one critical co
 - Corrected binary gate encodings in `method/`, `baseline/`, and `eval/`.
 - Regenerated method outputs, baseline outputs, `scores.json`, `scores_train.json`, and `scores_test.json` in CPU job `e9807e81-d04`.
 - Clarified evaluation documentation so wall-clock runtime is audit context only; scored efficiency uses timeout/memory outcomes and machine-independent output-volume proxies.
-- Re-ran `python validate.py --compare`; all checks passed.
+- Updated `reference.json` so the diagnosis-output-volume proxy is explicitly documented as a corrected scaled-gym reference value from job `e9807e81-d04`.
+- Re-ran `python validate.py` and `python validate.py --compare`; all checks passed.
 
 ## Final Judgment
 

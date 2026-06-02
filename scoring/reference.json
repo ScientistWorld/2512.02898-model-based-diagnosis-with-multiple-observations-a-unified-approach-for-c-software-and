@@ -116,6 +116,7 @@
     },
     "runtime_efficiency": {
       "description": "Machine-independent output efficiency for circuit diagnosis artifacts. This replaces wall-clock ranking in train/test because hardware timing is not stable across benchmark runners.",
+      "notes": "The paper reports wall-clock runtime ranks and a fixed timeout policy, but does not report diagnosis-output volume. The avg/max diagnosis-count values for CFaults are corrected scaled-gym reference values from CPU job e9807e81-d04, included only because wall-clock runtime was replaced by machine-independent output-volume proxies.",
       "weight": 0.1,
       "primary_metric": "avg_reported_diagnoses_per_instance",
       "metrics": {
@@ -127,7 +128,7 @@
       "results": {
         "hsd": {"type": "baseline", "relative_runtime_rank": 1, "timeout_seconds": 1800},
         "hsd_cm": {"type": "baseline", "relative_runtime_rank": 2, "timeout_seconds": 1800},
-        "cfaults": {"type": "proposed", "relative_runtime_rank": 3, "timeout_seconds": 1800, "avg_reported_diagnoses_per_instance": 15.0, "max_reported_diagnoses_per_instance": 166}
+        "cfaults": {"type": "proposed", "relative_runtime_rank": 3, "timeout_seconds": 1800, "avg_reported_diagnoses_per_instance": 8.444444444444445, "max_reported_diagnoses_per_instance": 81}
       }
     }
   },

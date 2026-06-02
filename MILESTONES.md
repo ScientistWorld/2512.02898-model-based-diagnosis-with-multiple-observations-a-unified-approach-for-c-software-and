@@ -19,6 +19,10 @@
 - Restored `core_claim`: the corrected CFaults implementation localizes all 27 scaled synthetic circuit instances, and every counted diagnosis is valid, minimum-cardinality, and consistent with all observations.
 - Verified the final scoring contract with `python validate.py --compare`; all checks passed.
 
+### [2026-06-02 12:52] - core_claim
+- Fixed `reference.json` for the gym-only runtime-efficiency proxy: the paper does not report diagnosis-output volume, so the reference now labels the value as a corrected scaled-gym reference from job `e9807e81-d04`.
+- Re-ran both `python validate.py` and `python validate.py --compare`; all checks passed.
+
 ### [2026-06-02 11:10] - core_claim
 - Implemented the paper's Boolean-circuit multi-observation MBD algorithm as a unified partial MaxSAT encoding with shared gate health variables.
 - Verified the scaled synthetic circuit benchmark result: CFaults produced valid minimum-cardinality diagnoses for all 27 tracked instances.

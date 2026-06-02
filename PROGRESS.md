@@ -25,6 +25,7 @@
 - Final score regeneration: job `06041b2e-9e9` completed in 60.03 seconds on a CPU node and wrote `scores.json` with `all_observations_consistent_rate: 100.0`.
 - Final verification job `e9807e81-d04` completed in 14.81 seconds on a CPU node and wrote corrected `scores.json`, `scores_train.json`, and `scores_test.json`.
 - `python validate.py --compare` passes for `reference.json`, `scores.json`, train/test artifacts, import separation, output-reading evaluation, and shared-path checks.
+- `python validate.py` also passes after correcting `reference.json` so the gym-only diagnosis-output-volume proxy is not presented as a paper-reported number.
 
 ## Remaining
 
@@ -40,6 +41,7 @@
 - Continuation audit reset the working milestone to `method_runs`; job `06041b2e-9e9` refreshed the score artifact, so the milestone is restored to `core_claim`.
 - The login-node Python environment does not currently have PySAT, so full local evaluation falls back to an intentionally tiny exhaustive SAT solver and is too slow for the full benchmark. The packaged container installs `python-sat`; job `e9807e81-d04` verified the corrected pipeline there.
 - Final verification found that the CNF encoders for binary gates were dualized relative to `data.circuit_benchmark.eval_op`. This affected method, baseline, and evaluator code. The encoders were corrected, checked against truth tables, and validated by job `e9807e81-d04`.
+- A validation audit rejected the earlier `runtime_efficiency` reference because `avg_reported_diagnoses_per_instance` was treated like a paper-reported value. The paper reports wall-clock runtime ranks, not diagnosis-output volume; `reference.json` now documents the proxy value as a corrected scaled-gym reference from job `e9807e81-d04`.
 
 ## Deviations from Paper
 
