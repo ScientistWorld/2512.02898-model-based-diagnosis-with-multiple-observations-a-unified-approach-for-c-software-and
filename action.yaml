@@ -1,9 +1,9 @@
-# This iteration submits compute jobs through scripts/run.sh.
-# Once you set action to 'submit', STOP immediately.
+# This iteration has completed train/test scoring.
+# Once you set action to 'done', STOP immediately.
 # Do NOT sleep, poll, or wait. The system reads this file
 # only after your turn ends.
-action: submit
+action: done
 gpus: 0
 test: false
 milestone: core_claim
-notes: "Rerun train/test scoring after replacing saturated ranking metrics with selected fault-set F1/exact recovery metrics."
+notes: "Deterministic stratified train/test split; 45 train metrics, 45 test metrics; selected_fault_f1 train 32.76 vs test 42.20, avg_reported_diagnoses 15.50 vs 14.46; exact/localized saturated fields retained as audit-only."
