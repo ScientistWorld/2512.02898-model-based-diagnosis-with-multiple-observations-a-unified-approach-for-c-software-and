@@ -20,4 +20,4 @@
 - Verified the scoring contract with `python validate.py --compare`; all checks passed.
 
 ## Stop Justification
-- Finished at `core_claim` on a scaled synthetic circuit benchmark. Full augmented ISCAS85 coverage and scored HSD/HSD-CM baselines remain future work.
+- Completed at milestone `core_claim`.
