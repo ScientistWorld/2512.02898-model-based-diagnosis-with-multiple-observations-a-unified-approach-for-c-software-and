@@ -54,4 +54,4 @@
 - Verified the scoring contract with `python validate.py --compare`; all checks passed.
 
 ## Stop Justification
-- Stopping at `core_claim`: the scaled CFaults circuit reproduction, HSD baseline expansion, root evaluator, train/test evaluator, and packaged environment have all been verified by CPU jobs. Higher milestones require expanding to fuller ISCAS85-scale experiments or additional paper baselines.
+- Completed at milestone `core_claim`.
