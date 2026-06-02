@@ -23,51 +23,51 @@
   "_scaled_reproduction_context": {
     "benchmark": "data/synthetic_circuits",
     "note": "Scores are from the visible train slice of the scaled synthetic circuit benchmark.",
-    "result_root": "/home/user/checkpoints",
+    "result_root": "checkpoints",
     "slice": "train",
     "unscored": {
       "_bugassist_vote_unscored": {
-        "all_reported_valid_minimal_rate": 0.0,
-        "avg_diagnosis_size": 0.7142857142857143,
-        "avg_elapsed_sec": 0.11843065719585866,
-        "avg_extra_gate_count": 0.21428571428571427,
-        "avg_missing_fault_count": 1.5,
+        "all_reported_valid_minimal_rate": 0.5714285714285714,
+        "avg_diagnosis_size": 1.0714285714285714,
+        "avg_elapsed_sec": 0.03356753080151975,
+        "avg_extra_gate_count": 0.14285714285714285,
+        "avg_missing_fault_count": 1.0714285714285714,
         "avg_reported_diagnoses_per_instance": 1.0,
         "by_observation_count": {
           "4": {
-            "exact": 0,
-            "fault_f1_total": 1.6666666666666665,
-            "localized": 0,
+            "exact": 2,
+            "fault_f1_total": 3.0,
+            "localized": 4,
             "total": 5
           },
           "8": {
-            "exact": 0,
-            "fault_f1_total": 1.5,
-            "localized": 0,
+            "exact": 1,
+            "fault_f1_total": 2.833333333333333,
+            "localized": 1,
             "total": 4
           },
           "16": {
-            "exact": 0,
-            "fault_f1_total": 0.9,
-            "localized": 0,
+            "exact": 2,
+            "fault_f1_total": 3.5666666666666664,
+            "localized": 3,
             "total": 5
           }
         },
         "complete_output_rate": 1.0,
         "empty_diagnosis_count": 0,
-        "exact_fault_set_rate": 0.0,
+        "exact_fault_set_rate": 0.35714285714285715,
         "instances_evaluated": 14,
-        "invalid_count": 14,
-        "localized_count": 0,
+        "invalid_count": 6,
+        "localized_count": 8,
         "max_reported_diagnoses_per_instance": 1,
         "missing_count": 0,
         "nonminimal_count": 0,
-        "optimal_rate": 0.0,
-        "selected_fault_f1": 0.29047619047619044,
-        "selected_fault_precision": 0.39285714285714285,
-        "selected_fault_recall": 0.25000000000000006,
-        "subset_minimal_rate": 0.0,
-        "success_rate": 0.0
+        "optimal_rate": 0.5714285714285714,
+        "selected_fault_f1": 0.6714285714285716,
+        "selected_fault_precision": 0.8928571428571429,
+        "selected_fault_recall": 0.5833333333333333,
+        "subset_minimal_rate": 0.5714285714285714,
+        "success_rate": 0.5714285714285714
       }
     }
   },
@@ -77,17 +77,17 @@
         "cfaults": {
           "all_observations_consistent_rate": 100.0,
           "all_reported_valid_minimal_rate": 100.0,
-          "avg_extra_gate_count": 1.4285714285714286,
-          "avg_missing_fault_count": 1.2857142857142858,
+          "avg_extra_gate_count": 0.9285714285714286,
+          "avg_missing_fault_count": 1.2142857142857142,
           "complete_output_rate": 100.0,
           "empty_diagnosis_count": 0,
-          "exact_fault_set_rate": 0.0,
+          "exact_fault_set_rate": 21.428571428571427,
           "invalid_count": 0,
           "missing_count": 0,
           "nonminimal_count": 0,
-          "selected_fault_f1": 32.755102040816325,
-          "selected_fault_precision": 29.166666666666668,
-          "selected_fault_recall": 40.476190476190474,
+          "selected_fault_f1": 47.61904761904761,
+          "selected_fault_precision": 52.38095238095237,
+          "selected_fault_recall": 45.23809523809523,
           "valid_minimal_rate": 100.0
         }
       }
@@ -95,11 +95,11 @@
     "iscas85_localisation": {
       "results": {
         "cfaults": {
-          "exact_fault_set_rate": 0.0,
+          "exact_fault_set_rate": 21.428571428571427,
           "localized_count": 14,
           "localized_rate": 100.0,
           "memout_count": 0,
-          "selected_fault_f1": 32.755102040816325,
+          "selected_fault_f1": 47.61904761904761,
           "timeout_count": 0,
           "total_instances": 14
         }
@@ -108,11 +108,11 @@
     "observation_scaling": {
       "results": {
         "cfaults": {
-          "exact_fault_set_rate_obs10": 0.0,
-          "exact_fault_set_rate_obs20": 0.0,
-          "exact_fault_set_rate_obs30": 0.0,
-          "exact_fault_set_rate_obs40": 0.0,
-          "exact_fault_set_rate_obs50": 0.0,
+          "exact_fault_set_rate_obs10": 20.0,
+          "exact_fault_set_rate_obs20": 25.0,
+          "exact_fault_set_rate_obs30": 20.0,
+          "exact_fault_set_rate_obs40": 20.0,
+          "exact_fault_set_rate_obs50": 20.0,
           "localized_count_obs10": 5,
           "localized_count_obs20": 4,
           "localized_count_obs30": 5,
@@ -123,19 +123,19 @@
           "localized_rate_obs30": 100.0,
           "localized_rate_obs40": 100.0,
           "localized_rate_obs50": 100.0,
-          "selected_fault_f1_obs10": 31.333333333333325,
-          "selected_fault_f1_obs20": 33.80952380952381,
-          "selected_fault_f1_obs30": 33.33333333333333,
-          "selected_fault_f1_obs40": 33.33333333333333,
-          "selected_fault_f1_obs50": 33.33333333333333
+          "selected_fault_f1_obs10": 39.99999999999999,
+          "selected_fault_f1_obs20": 58.333333333333336,
+          "selected_fault_f1_obs30": 46.666666666666664,
+          "selected_fault_f1_obs40": 46.666666666666664,
+          "selected_fault_f1_obs50": 46.666666666666664
         }
       }
     },
     "runtime_efficiency": {
       "results": {
         "cfaults": {
-          "avg_reported_diagnoses_per_instance": 15.5,
-          "max_reported_diagnoses_per_instance": 166,
+          "avg_reported_diagnoses_per_instance": 7.214285714285714,
+          "max_reported_diagnoses_per_instance": 45,
           "relative_runtime_rank": 3,
           "timeout_seconds": 1800
         }

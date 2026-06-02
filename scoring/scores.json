@@ -4,30 +4,47 @@
     "note": "Scores are from the scaled synthetic circuit benchmark; reference.json contains the paper's ISCAS85 numbers.",
     "unscored": {
       "_bugassist_vote_unscored": {
-        "avg_diagnosis_size": 0.7407407407407407,
-        "avg_elapsed_sec": 0.07333805468968219,
+        "all_reported_valid_minimal_rate": 0.5555555555555556,
+        "avg_diagnosis_size": 1.1481481481481481,
+        "avg_elapsed_sec": 0.027615344367438444,
+        "avg_extra_gate_count": 0.1111111111111111,
+        "avg_missing_fault_count": 0.9629629629629629,
+        "avg_reported_diagnoses_per_instance": 1.0,
         "by_observation_count": {
           "4": {
-            "localized": 0,
+            "exact": 3,
+            "fault_f1_total": 6.133333333333333,
+            "localized": 7,
             "total": 9
           },
           "8": {
-            "localized": 0,
+            "exact": 3,
+            "fault_f1_total": 6.7,
+            "localized": 4,
             "total": 9
           },
           "16": {
-            "localized": 0,
+            "exact": 3,
+            "fault_f1_total": 6.4,
+            "localized": 4,
             "total": 9
           }
         },
-        "exact_fault_set_rate": 0.0,
+        "complete_output_rate": 1.0,
+        "empty_diagnosis_count": 0,
+        "exact_fault_set_rate": 0.3333333333333333,
         "instances_evaluated": 27,
-        "invalid_count": 27,
-        "localized_count": 0,
+        "invalid_count": 12,
+        "localized_count": 15,
+        "max_reported_diagnoses_per_instance": 1,
+        "missing_count": 0,
         "nonminimal_count": 0,
-        "optimal_rate": 0.0,
-        "subset_minimal_rate": 0.0,
-        "success_rate": 0.0
+        "optimal_rate": 0.5555555555555556,
+        "selected_fault_f1": 0.7123456790123455,
+        "selected_fault_precision": 0.9259259259259259,
+        "selected_fault_recall": 0.6172839506172839,
+        "subset_minimal_rate": 0.5555555555555556,
+        "success_rate": 0.5555555555555556
       }
     }
   },
@@ -36,8 +53,18 @@
       "results": {
         "cfaults": {
           "all_observations_consistent_rate": 100.0,
+          "all_reported_valid_minimal_rate": 100.0,
+          "avg_extra_gate_count": 0.9259259259259259,
+          "avg_missing_fault_count": 1.1851851851851851,
+          "complete_output_rate": 100.0,
+          "empty_diagnosis_count": 0,
+          "exact_fault_set_rate": 22.22222222222222,
           "invalid_count": 0,
+          "missing_count": 0,
           "nonminimal_count": 0,
+          "selected_fault_f1": 45.92592592592593,
+          "selected_fault_precision": 50.000000000000014,
+          "selected_fault_recall": 43.82716049382717,
           "valid_minimal_rate": 100.0
         }
       }
@@ -45,9 +72,11 @@
     "iscas85_localisation": {
       "results": {
         "cfaults": {
+          "exact_fault_set_rate": 22.22222222222222,
           "localized_count": 27,
           "localized_rate": 100.0,
           "memout_count": 0,
+          "selected_fault_f1": 45.92592592592593,
           "timeout_count": 0,
           "total_instances": 27
         }
@@ -56,6 +85,11 @@
     "observation_scaling": {
       "results": {
         "cfaults": {
+          "exact_fault_set_rate_obs10": 11.11111111111111,
+          "exact_fault_set_rate_obs20": 44.44444444444444,
+          "exact_fault_set_rate_obs30": 11.11111111111111,
+          "exact_fault_set_rate_obs40": 11.11111111111111,
+          "exact_fault_set_rate_obs50": 11.11111111111111,
           "localized_count_obs10": 9,
           "localized_count_obs20": 9,
           "localized_count_obs30": 9,
@@ -65,13 +99,20 @@
           "localized_rate_obs20": 100.0,
           "localized_rate_obs30": 100.0,
           "localized_rate_obs40": 100.0,
-          "localized_rate_obs50": 100.0
+          "localized_rate_obs50": 100.0,
+          "selected_fault_f1_obs10": 26.666666666666668,
+          "selected_fault_f1_obs20": 74.07407407407408,
+          "selected_fault_f1_obs30": 37.03703703703704,
+          "selected_fault_f1_obs40": 37.03703703703704,
+          "selected_fault_f1_obs50": 37.03703703703704
         }
       }
     },
     "runtime_efficiency": {
       "results": {
         "cfaults": {
+          "avg_reported_diagnoses_per_instance": 8.444444444444445,
+          "max_reported_diagnoses_per_instance": 81,
           "relative_runtime_rank": 3,
           "timeout_seconds": 1800
         }
