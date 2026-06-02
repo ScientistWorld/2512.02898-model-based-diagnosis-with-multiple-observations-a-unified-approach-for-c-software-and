@@ -1,6 +1,6 @@
 # Reproduction Milestones
 
-**Current: method_runs**
+**Current: core_claim**
 
 ## Progress Log
 
@@ -14,5 +14,10 @@
 - Confirmed the method code is a real scaled implementation of the paper's circuit-side unified multi-observation MaxSAT diagnosis algorithm.
 - Found that `scoring/scores.json` is stale after adding the explicit all-observations consistency metric, so a CPU test job is required to regenerate scores before restoring `core_claim`.
 
+### [2026-06-02 11:42] - core_claim
+- CPU job `06041b2e-9e9` completed successfully inside the packaged container and regenerated `scoring/scores.json`.
+- Restored `core_claim`: CFaults localized 27 / 27 scaled synthetic circuit instances and every counted diagnosis was valid, minimum-cardinality, and consistent with all observations.
+- Verified the scoring contract with `python validate.py --compare`; all checks passed.
+
 ## Stop Justification
-- Not stopped. Submitting a CPU test job to regenerate scores after continuation audit.
+- Finished at `core_claim` on a scaled synthetic circuit benchmark. Full augmented ISCAS85 coverage and scored HSD/HSD-CM baselines remain future work.
