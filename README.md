@@ -1,378 +1,44 @@
-# Overview
+# Model-Based Diagnosis with Multiple Observations: A Unified Approach for C Software and Boolean Circuits
 
-- **Paper ID:** 2512.02898
-- **Title:** Model-Based Diagnosis with Multiple Observations: A Unified Approach for C Software and Boolean Circuits
-- **Domain:** Formal methods / Boolean circuit fault localisation
-- **TL;DR:** The paper introduces CFaults, a MaxSAT-based model-diagnosis tool that localises faults from multiple observations, with the reproduction focused on its Boolean-circuit benchmark.
+| This paper | Scientist World, the framework this environment belongs to |
+|:---:|:---:|
+| <a href="https://arxiv.org/abs/2512.02898"><img alt="This paper on arXiv" src="https://img.shields.io/badge/arXiv-2512.02898-b31b1b?logo=arxiv&logoColor=white"></a> | <a href="https://arxiv.org/abs/2611.08478"><img alt="Scientist World on arXiv" src="https://img.shields.io/badge/arXiv-2611.08478-b31b1b?logo=arxiv&logoColor=white"></a> <a href="https://github.com/zlab-princeton/scientist_world"><img alt="Scientist World code" src="https://img.shields.io/badge/Code-Scientist_World-181717?logo=github&logoColor=white"></a> <a href="https://github.com/zlab-princeton/scientist_world_cli"><img alt="Command line code" src="https://img.shields.io/badge/Code-Command_line-181717?logo=github&logoColor=white"></a> |
 
-## Short Summary
+| | |
+|---|---|
+| **Paper ID** | [2512.02898](https://arxiv.org/abs/2512.02898) |
+| **Domain** | Formal methods / Boolean circuit fault localisation |
+| **TL;DR** | The paper introduces CFaults, a MaxSAT-based model-diagnosis tool that localises faults from multiple observations, with the reproduction focused on its Boolean-circuit benchmark. |
+
+## Summary
 
 The paper studies exact fault localisation for systems with multiple failing observations. On Boolean circuits, the task is to diagnose injected faults in augmented ISCAS85 circuits from failing input-output examples. CFaults encodes all observations together and searches for minimum diagnoses, then compares against HSD and HSD-CM. The reported circuit result is competitive coverage but slower runtime than HSD.
 
-## Key Results
-
-- Augmented ISCAS85 contains 12,147 faulty circuit instances with 10-50 failing observations and 1-50 injected faults.
-- CFaults localises 8,969 circuits (73.84%) within 1800 seconds.
-- HSD localises 9,735 circuits (80.14%), so CFaults is about 6 percentage points lower while preserving minimum-diagnosis quality.
-
----
-
-# Problem Definition
-
-## Research Question
+## Problem
 
 Given a faulty combinational Boolean circuit and a set of failing input-output observations, identify a smallest set of circuit components whose behaviour can explain all observed failures. The target setting is multi-fault circuit diagnosis: each benchmark instance may contain one or many injected faults, and the observations must be explained jointly rather than one at a time.
 
 The reproduction should focus on the Boolean-circuit side of the paper. C-program fault localisation is useful context but is outside the primary benchmark scope here.
 
-## Why It Matters
-
-Circuit debugging is expensive when failures arise from multiple interacting faults. A useful diagnostic system should narrow the search to a small, valid set of gates/components while scaling to standard circuit benchmarks and many failing observations.
-
-## Success Criteria
-
-A successful system returns valid minimum diagnoses for many faulty ISCAS85-derived circuit instances within the evaluation timeout. Its diagnoses must be consistent with every failing observation for the instance and must be minimum-cardinality or otherwise demonstrably subset-minimal under the benchmark fault model. Runtime and timeout behaviour matter because exact circuit diagnosis can become impractical even when the returned diagnoses are correct.
-
----
-
-# Paper's Method
-
-## Key Contribution
+## The paper's method
 
 CFaults formulates fault localisation for C programs and Boolean circuits as model-based diagnosis with multiple observations. For the circuit benchmark, its core contribution is to explain all failing input-output observations in one optimisation problem and return only minimum diagnoses for the gates/components of the circuit.
 
-## Approach
+## Key results of the paper
 
-For Boolean circuits, CFaults first replicates the faulty circuit once per failing observation. Each replica receives fresh variables for that observation's inputs, outputs, and internal gates, while corresponding gates across replicas share a common health/relaxation variable. This shared health variable represents whether the original circuit component is considered active or faulty across all observations.
+- Augmented ISCAS85 contains 12,147 faulty circuit instances with 10-50 failing observations and 1-50 injected faults.
+- CFaults localises 8,969 circuits (73.84%) within 1800 seconds.
+- HSD localises 9,735 circuits (80.14%), so CFaults is about 6 percentage points lower while preserving minimum-diagnosis quality.
 
-The replicated and instrumented circuit is encoded as an unweighted partial MaxSAT instance. Hard clauses encode the circuit replicas and the failing input-output observations. Soft unit clauses prefer every circuit component to remain healthy. Solving the MaxSAT instance minimises the number of disabled components, so the false health variables identify a minimum-cardinality diagnosis that is consistent with all observations at once.
+## Run it
 
-The paper contrasts this with HSD, which reasons through multiple per-observation oracle calls and hitting sets. CFaults instead uses a unified MaxSAT formulation for all observations, then enumerates optimal solutions when multiple minimum diagnoses exist.
+```bash
+pip install sciworld
+sw research 2512.02898 --mode innovate --agent claude-code
+sw evaluate 2512.02898
+```
 
-## Main Claims
+## More
 
-The primary circuit-side claim is that this unified diagnosis formulation remains competitive on Boolean circuits with multiple faults and multiple failing observations, even though HSD remains faster and localises more circuits overall.
+The full problem statement, method notes, evaluation protocol and reproduction log are in [DETAILS.md](DETAILS.md).
 
-The paper reports that on augmented ISCAS85, CFaults localises 8,969 of 12,147 faulty circuits (73.84%) within 1800 seconds, compared with 9,735 (80.14%) for HSD and 9,678 (79.67%) for HSD-CM. The gap is about 6 percentage points overall and is smaller for the 10- and 20-observation groups.
-
-The broader claim is that jointly reasoning over observations avoids redundant or inconsistent aggregation behaviour seen in some one-observation-at-a-time diagnosis workflows, while still producing subset-minimal diagnoses.
-
----
-
-# Evaluation
-
-## Metrics
-
-The main metric is `localized_count`: the number of benchmark instances for which a method returns a valid minimum diagnosis before the timeout. `localized_rate` is the same count divided by the number of instances in the evaluated split. Higher is better for both.
-
-The paper reports CPU time per circuit and aggregate timeout count. In this packaged gym, wall-clock time is recorded only as audit context because hardware varies across runs. Scored efficiency uses machine-independent proxies: whether the method completed within the fixed timeout/memory limits, reported solver-oracle-call counts, and audit-only diagnosis-output volume.
-
-Diagnosis quality is a constraint metric. A submitted diagnosis must be consistent with all failing input-output observations for that circuit and must be minimum-cardinality under the reproduced benchmark oracle. Invalid, non-minimal, or observation-inconsistent diagnoses should not count as successfully localised instances.
-
-## Baselines and Targets
-
-The primary benchmark is the augmented ISCAS85 Boolean-circuit benchmark used in the paper: 12,147 faulty circuit instances, generated with 10, 20, 30, 40, or 50 failing observations and 1, 2, 3, 4, 5, 10, 20, 30, 40, or 50 injected faults.
-
-The paper compares the proposed circuit diagnosis system against HSD and HSD with core minimisation. Reported all-instance localisation rates are 73.84% for the paper method, 80.14% for HSD, and 79.67% for HSD-CM under an 1800 second timeout per circuit. A strong reproduction should recover the same qualitative result: competitive localisation coverage against HSD while preserving diagnosis validity/minimality, with HSD generally faster on circuits.
-
-## Evaluation Protocol
-
-Run each method on the same augmented ISCAS85 instances, grouped by the number of failing observations. Use the same input-output observations and injected-fault configurations for all methods. Use an 1800 second timeout per buggy circuit and record success, timeout, memory failure, and wall-clock time as non-scored audit fields.
-
-For each returned diagnosis, independently validate that deactivating or repairing the reported components can satisfy all failing observations for that instance. Compute success counts and rates for each observation-count group and for the full benchmark. If the reproduction must scale down, keep the same procedure and include multiple observation-count groups plus multi-fault cases so the task remains non-trivial.
-
----
-
-# Reproduction Log
-
-### Iteration 1: gpt-5.5
-- **Milestone**: `core_claim` | **Status**: done
-- **Working time**: 12m | **GPU**: 0.0h
-- **Jobs**: 1 total (1 completed, 0 failed)
-
-<details>
-<summary>Progress Log</summary>
-
-### [2026-06-02 10:55] - none
-- Read the paper and identified the Boolean-circuit CFaults result as the most direct reusable reproduction target.
-- Extracted the core algorithm: replicate the faulty circuit per observation, share one health variable per gate, encode guarded gate semantics as hard clauses, and solve an unweighted partial MaxSAT objective over healthy-gate soft clauses.
-
-### [2026-06-02 10:55] - method_runs
-- Implemented the paper's actual multiple-observation diagnosis algorithm for Boolean circuits in `method/cfaults_circuit.py`.
-- Built a reusable synthetic circuit benchmark in `data/circuit_benchmark.py` and a BugAssist-style one-observation voting baseline in `baseline/bugassist_vote_circuit.py`.
-- Ran `scripts/reproduce.sh` locally: data generation, baseline, method, and evaluator all execute end-to-end.
-
-### [2026-06-02 10:55] - core_claim
-- Evaluated 27 scaled circuit-diagnosis instances across three observation counts and three injected fault counts.
-- CFaults produced valid minimum-cardinality diagnoses for all 27 instances; the one-observation voting baseline localized only 3 of 27, showing that unified multi-observation reasoning is necessary on this benchmark.
-- The reproduction uses a scaled synthetic circuit benchmark instead of the paper's full augmented ISCAS85 suite, but preserves the paper's MaxSAT computation and objective.
-
-### [2026-06-02 11:00] - core_claim
-- Scheduler job `565b7133-b46` ran `scripts/run.sh` successfully in the compute container with exit code 0.
-- The packaged reproduction completed in 56 seconds on a CPU test node and wrote the expected `scoring/scores.json` structure.
-- Verified that the container path reproduces the same CFaults result: 27 / 27 valid minimum-cardinality diagnoses on the scaled benchmark.
-
-</details>
-
-### Iteration 2: gpt-5.5
-- **Milestone**: `core_claim` | **Status**: done
-- **Working time**: 5m | **GPU**: 0.0h
-- **Jobs**: 2 total (2 completed, 0 failed)
-
-<details>
-<summary>Progress Log</summary>
-
-### [2026-06-02 11:06] - core_claim
-- Scheduler job `2147c6a7-240` completed successfully after the faulty-circuit interface repair.
-- The repaired pipeline ran through `scripts/reproduce.sh` inside the container with PySAT RC2 and regenerated `scoring/scores.json`.
-- CFaults localised 27 / 27 scaled synthetic circuit instances with 0 invalid and 0 non-minimal diagnoses; the one-observation voting baseline localised 0 / 27.
-
-### [2026-06-02 00:00] - method_runs
-- Audit found that the previous synthetic circuit interface passed the injected fault map into the method as faulty-circuit semantics, which was too close to exposing diagnosis labels.
-- Reworked the benchmark to store an explicit faulty circuit netlist per instance and updated the method, baseline, and evaluator to consume the faulty netlist without using the ground-truth fault list.
-- Submitted CPU test job `2147c6a7-240` for fresh container verification.
-
-### [2026-06-02 00:00] - core_claim
-- Implemented CFaults' Boolean-circuit multiple-observation diagnosis as a unified partial MaxSAT problem with one replicated circuit per failing observation and shared health variables per original gate.
-- Ran the packaged pipeline in scheduler job `565b7133-b46`; the job completed successfully and wrote method outputs plus `scoring/scores.json`.
-- On the scaled synthetic circuit benchmark, CFaults returned valid minimum-cardinality diagnoses for all 27 instances, while the one-observation voting baseline localized only 3 of 27 instances.
-
-### [2026-06-02 00:00] - method_runs
-- The CFaults circuit method executes end-to-end through `scripts/reproduce.sh` inside the container.
-- The evaluation pipeline reads output artifacts and validates diagnoses without importing `method/`.
-
-</details>
-
-### Iteration 3: gpt-5.5
-- **Milestone**: `core_claim` | **Status**: done
-- **Working time**: 7m | **GPU**: 0.0h
-- **Jobs**: 3 total (3 completed, 0 failed)
-
-<details>
-<summary>Progress Log</summary>
-
-### [2026-06-02 11:10] - core_claim
-- Implemented the paper's Boolean-circuit multi-observation MBD algorithm as a unified partial MaxSAT encoding with shared gate health variables.
-- Verified the scaled synthetic circuit benchmark result: CFaults produced valid minimum-cardinality diagnoses for all 27 tracked instances.
-- Kept diagnosis quality as a constraint metric: invalid and non-minimal diagnoses are counted as failures.
-
-### [2026-06-02 11:25] - method_runs
-- Continuation audit reset the current milestone to `method_runs` pending fresh verification.
-- Confirmed the method code is a real scaled implementation of the paper's circuit-side unified multi-observation MaxSAT diagnosis algorithm.
-- Found that `scoring/scores.json` is stale after adding the explicit all-observations consistency metric, so a CPU test job is required to regenerate scores before restoring `core_claim`.
-
-### [2026-06-02 11:42] - core_claim
-- CPU job `06041b2e-9e9` completed successfully inside the packaged container and regenerated `scoring/scores.json`.
-- Restored `core_claim`: CFaults localized 27 / 27 scaled synthetic circuit instances and every counted diagnosis was valid, minimum-cardinality, and consistent with all observations.
-- Verified the scoring contract with `python validate.py --compare`; all checks passed.
-
-</details>
-
-### Iteration 4: gpt-5.5 (designer_stage_1)
-- **Milestone**: `core_claim` | **Status**: done
-- **Working time**: 6m | **GPU**: 0.0h
-- **Jobs**: 3 total (3 completed, 0 failed)
-
-<details>
-<summary>Progress Log</summary>
-
-### [2026-06-02 11:10] - core_claim
-- Implemented the paper's Boolean-circuit multi-observation MBD algorithm as a unified partial MaxSAT encoding with shared gate health variables.
-- Verified the scaled synthetic circuit benchmark result: CFaults produced valid minimum-cardinality diagnoses for all 27 tracked instances.
-- Kept diagnosis quality as a constraint metric: invalid and non-minimal diagnoses are counted as failures.
-
-### [2026-06-02 11:25] - method_runs
-- Continuation audit reset the current milestone to `method_runs` pending fresh verification.
-- Confirmed the method code is a real scaled implementation of the paper's circuit-side unified multi-observation MaxSAT diagnosis algorithm.
-- Found that `scoring/scores.json` is stale after adding the explicit all-observations consistency metric, so a CPU test job is required to regenerate scores before restoring `core_claim`.
-
-### [2026-06-02 11:42] - core_claim
-- CPU job `06041b2e-9e9` completed successfully inside the packaged container and regenerated `scoring/scores.json`.
-- Restored `core_claim`: CFaults localized 27 / 27 scaled synthetic circuit instances and every counted diagnosis was valid, minimum-cardinality, and consistent with all observations.
-- Verified the scoring contract with `python validate.py --compare`; all checks passed.
-
-</details>
-
-### Iteration 5: gpt-5.5 (designer_stage_2)
-- **Milestone**: `core_claim` | **Status**: done
-- **Working time**: 4m | **GPU**: 0.0h
-- **Jobs**: 3 total (3 completed, 0 failed)
-
-<details>
-<summary>Progress Log</summary>
-
-### [2026-06-02 11:10] - core_claim
-- Implemented the paper's Boolean-circuit multi-observation MBD algorithm as a unified partial MaxSAT encoding with shared gate health variables.
-- Verified the scaled synthetic circuit benchmark result: CFaults produced valid minimum-cardinality diagnoses for all 27 tracked instances.
-- Kept diagnosis quality as a constraint metric: invalid and non-minimal diagnoses are counted as failures.
-
-### [2026-06-02 11:25] - method_runs
-- Continuation audit reset the current milestone to `method_runs` pending fresh verification.
-- Confirmed the method code is a real scaled implementation of the paper's circuit-side unified multi-observation MaxSAT diagnosis algorithm.
-- Found that `scoring/scores.json` is stale after adding the explicit all-observations consistency metric, so a CPU test job is required to regenerate scores before restoring `core_claim`.
-
-### [2026-06-02 11:42] - core_claim
-- CPU job `06041b2e-9e9` completed successfully inside the packaged container and regenerated `scoring/scores.json`.
-- Restored `core_claim`: CFaults localized 27 / 27 scaled synthetic circuit instances and every counted diagnosis was valid, minimum-cardinality, and consistent with all observations.
-- Verified the scoring contract with `python validate.py --compare`; all checks passed.
-
-</details>
-
-### Iteration 6: gpt-5.5 (designer_stage_3)
-- **Milestone**: `core_claim` | **Status**: done
-- **Working time**: 6m | **GPU**: 0.0h
-- **Jobs**: 5 total (5 completed, 0 failed)
-
-<details>
-<summary>Progress Log</summary>
-
-### [2026-06-02 11:10] - core_claim
-- Implemented the paper's Boolean-circuit multi-observation MBD algorithm as a unified partial MaxSAT encoding with shared gate health variables.
-- Verified the scaled synthetic circuit benchmark result: CFaults produced valid minimum-cardinality diagnoses for all 27 tracked instances.
-- Kept diagnosis quality as a constraint metric: invalid and non-minimal diagnoses are counted as failures.
-
-### [2026-06-02 11:25] - method_runs
-- Continuation audit reset the current milestone to `method_runs` pending fresh verification.
-- Confirmed the method code is a real scaled implementation of the paper's circuit-side unified multi-observation MaxSAT diagnosis algorithm.
-- Found that `scoring/scores.json` is stale after adding the explicit all-observations consistency metric, so a CPU test job is required to regenerate scores before restoring `core_claim`.
-
-### [2026-06-02 11:42] - core_claim
-- CPU job `06041b2e-9e9` completed successfully inside the packaged container and regenerated `scoring/scores.json`.
-- Restored `core_claim`: CFaults localized 27 / 27 scaled synthetic circuit instances and every counted diagnosis was valid, minimum-cardinality, and consistent with all observations.
-- Verified the scoring contract with `python validate.py --compare`; all checks passed.
-
-</details>
-
-### Iteration 7: gpt-5.5 (packager)
-- **Milestone**: `core_claim` | **Status**: done
-- **Working time**: 2m | **GPU**: 0.0h
-- **Jobs**: 5 total (5 completed, 0 failed)
-
-<details>
-<summary>Progress Log</summary>
-
-### [2026-06-02 11:10] - core_claim
-- Implemented the paper's Boolean-circuit multi-observation MBD algorithm as a unified partial MaxSAT encoding with shared gate health variables.
-- Verified the scaled synthetic circuit benchmark result: CFaults produced valid minimum-cardinality diagnoses for all 27 tracked instances.
-- Kept diagnosis quality as a constraint metric: invalid and non-minimal diagnoses are counted as failures.
-
-### [2026-06-02 11:25] - method_runs
-- Continuation audit reset the current milestone to `method_runs` pending fresh verification.
-- Confirmed the method code is a real scaled implementation of the paper's circuit-side unified multi-observation MaxSAT diagnosis algorithm.
-- Found that `scoring/scores.json` is stale after adding the explicit all-observations consistency metric, so a CPU test job is required to regenerate scores before restoring `core_claim`.
-
-### [2026-06-02 11:42] - core_claim
-- CPU job `06041b2e-9e9` completed successfully inside the packaged container and regenerated `scoring/scores.json`.
-- Restored `core_claim`: CFaults localized 27 / 27 scaled synthetic circuit instances and every counted diagnosis was valid, minimum-cardinality, and consistent with all observations.
-- Verified the scoring contract with `python validate.py --compare`; all checks passed.
-
-</details>
-
-### Iteration 8: gpt-5.5 (verifier)
-- **Milestone**: `core_claim` | **Status**: done
-- **Working time**: 7m | **GPU**: 0.0h
-- **Jobs**: 6 total (6 completed, 0 failed)
-
-<details>
-<summary>Progress Log</summary>
-
-### [2026-06-02 12:05] - method_runs
-- Patched the top-level reusable evaluator to emit the selected-fault overlap, output-completeness, and diagnosis-volume metrics already expected by `reference.json`.
-- Reset the active milestone to `method_runs` pending a fresh packaged CPU validation job, because `scoring/scores.json` must be regenerated after the evaluator change.
-- Updated `scripts/run.sh` to run the full reproduce/evaluate/validate pipeline in the compute container.
-
-### [2026-06-02 12:28] - method_runs
-- Final verification found a critical Boolean-gate encoding bug: the CNF clauses for binary gates did not match the data generator's circuit semantics.
-- Corrected `AND`, `OR`, `NAND`, and `NOR` encodings in method, baseline, and evaluator code.
-- Verified the corrected encodings by truth table locally; fresh packaged scoring is pending a CPU test job before `core_claim` can be restored.
-
-### [2026-06-02 12:49] - core_claim
-- CPU job `e9807e81-d04` completed successfully after the Boolean-gate repair and regenerated root, train, and test score artifacts.
-- Restored `core_claim`: the corrected CFaults implementation localizes all 27 scaled synthetic circuit instances, and every counted diagnosis is valid, minimum-cardinality, and consistent with all observations.
-- Verified the final scoring contract with `python validate.py --compare`; all checks passed.
-
-### [2026-06-02 11:10] - core_claim
-- Implemented the paper's Boolean-circuit multi-observation MBD algorithm as a unified partial MaxSAT encoding with shared gate health variables.
-- Verified the scaled synthetic circuit benchmark result: CFaults produced valid minimum-cardinality diagnoses for all 27 tracked instances.
-- Kept diagnosis quality as a constraint metric: invalid and non-minimal diagnoses are counted as failures.
-
-### [2026-06-02 11:25] - method_runs
-- Continuation audit reset the current milestone to `method_runs` pending fresh verification.
-- Confirmed the method code is a real scaled implementation of the paper's circuit-side unified multi-observation MaxSAT diagnosis algorithm.
-- Found that `scoring/scores.json` is stale after adding the explicit all-observations consistency metric, so a CPU test job is required to regenerate scores before restoring `core_claim`.
-
-### [2026-06-02 11:42] - core_claim
-- CPU job `06041b2e-9e9` completed successfully inside the packaged container and regenerated `scoring/scores.json`.
-- Restored `core_claim`: CFaults localized 27 / 27 scaled synthetic circuit instances and every counted diagnosis was valid, minimum-cardinality, and consistent with all observations.
-- Verified the scoring contract with `python validate.py --compare`; all checks passed.
-
-</details>
-
-### Iteration 9: gpt-5.5 (verifier)
-- **Milestone**: `core_claim` | **Status**: done
-- **Working time**: 10m | **GPU**: 0.0h
-- **Jobs**: 8 total (7 completed, 1 failed)
-
-<details>
-<summary>Progress Log</summary>
-
-### [2026-06-02 12:05] - method_runs
-- Patched the top-level reusable evaluator to emit the selected-fault overlap, output-completeness, and diagnosis-volume metrics already expected by `reference.json`.
-- Reset the active milestone to `method_runs` pending a fresh packaged CPU validation job, because `scoring/scores.json` must be regenerated after the evaluator change.
-- Updated `scripts/run.sh` to run the full reproduce/evaluate/validate pipeline in the compute container.
-
-### [2026-06-02 12:28] - method_runs
-- Final verification found a critical Boolean-gate encoding bug: the CNF clauses for binary gates did not match the data generator's circuit semantics.
-- Corrected `AND`, `OR`, `NAND`, and `NOR` encodings in method, baseline, and evaluator code.
-- Verified the corrected encodings by truth table locally; fresh packaged scoring is pending a CPU test job before `core_claim` can be restored.
-
-### [2026-06-02 12:49] - core_claim
-- CPU job `e9807e81-d04` completed successfully after the Boolean-gate repair and regenerated root, train, and test score artifacts.
-- Restored `core_claim`: the corrected CFaults implementation localizes all 27 scaled synthetic circuit instances, and every counted diagnosis is valid, minimum-cardinality, and consistent with all observations.
-- Verified the final scoring contract with `python validate.py --compare`; all checks passed.
-
-### [2026-06-02 12:52] - core_claim
-- Fixed `reference.json` for the gym-only runtime-efficiency proxy: the paper does not report diagnosis-output volume, so the reference now labels the value as a corrected scaled-gym reference from job `e9807e81-d04`.
-- Re-ran both `python validate.py` and `python validate.py --compare`; all checks passed.
-
-### [2026-06-02 12:07] - core_claim
-- CPU job `f183bdd9-60a` ran the expanded CFaults/HSD pipeline but failed validation because `avg_reported_diagnoses_per_instance` tied across methods on the train slice.
-- Replaced the runtime-efficiency primary metric with `avg_solver_oracle_calls_per_instance`, added explicit solver-oracle-call fields to CFaults and HSD outputs, and kept diagnosis-output volume as audit-only.
-- Local `python validate.py --compare` now passes; a packaged CPU rerun is pending to regenerate the score artifacts from scratch.
-
-### [2026-06-02 12:14] - core_claim
-- CPU job `d04c15ff-130` completed successfully after the runtime-efficiency scoring repair.
-- Regenerated CFaults/HSD root, train, and test score artifacts with explicit solver-oracle-call metrics.
-- `python validate.py --compare` passes for scoring, train/test consistency, output-reading evaluation, import separation, and shared-path checks.
-
-### [2026-06-02 11:56] - core_claim
-- Added an HSD-style circuit baseline that follows the paper's multiple-observation hitting-set dualisation comparison path.
-- Wired the HSD artifact into the reusable root, train, and test evaluators while keeping BugAssist voting as an unscored sanity baseline.
-- Kept the milestone at `core_claim` because the expanded scored comparison still needs a packaged CPU verification job.
-
-### [2026-06-02 11:10] - core_claim
-- Implemented the paper's Boolean-circuit multi-observation MBD algorithm as a unified partial MaxSAT encoding with shared gate health variables.
-- Verified the scaled synthetic circuit benchmark result: CFaults produced valid minimum-cardinality diagnoses for all 27 tracked instances.
-- Kept diagnosis quality as a constraint metric: invalid and non-minimal diagnoses are counted as failures.
-
-### [2026-06-02 11:25] - method_runs
-- Continuation audit reset the current milestone to `method_runs` pending fresh verification.
-- Confirmed the method code is a real scaled implementation of the paper's circuit-side unified multi-observation MaxSAT diagnosis algorithm.
-- Found that `scoring/scores.json` is stale after adding the explicit all-observations consistency metric, so a CPU test job is required to regenerate scores before restoring `core_claim`.
-
-### [2026-06-02 11:42] - core_claim
-- CPU job `06041b2e-9e9` completed successfully inside the packaged container and regenerated `scoring/scores.json`.
-- Restored `core_claim`: CFaults localized 27 / 27 scaled synthetic circuit instances and every counted diagnosis was valid, minimum-cardinality, and consistent with all observations.
-- Verified the scoring contract with `python validate.py --compare`; all checks passed.
-
-</details>
-
-
----
-
-# Reproduction Milestones
-
-**Current: core_claim**
-
-## Stop Justification
-- Completed at milestone `core_claim`.
