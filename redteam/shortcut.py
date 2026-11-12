@@ -37,6 +37,13 @@ def main():
             row.update(diagnoses=[faults], solver_oracle_calls=0)
         elif name == 'duplicate_diagnosis_shortcut':
             row['diagnoses'] = [diag+diag for diag in row['diagnoses']]
+        elif name == 'nonminimal_padding_shortcut':
+            # Start from genuine, observation-valid minimum diagnoses. Adding
+            # one distinct gate preserves consistency but violates minimum
+            # cardinality. No fault label is read to choose the padding gate.
+            names = [g['name'] for g in instance['faulty_circuit']['gates']]
+            row['diagnoses'] = [diag+[next(g for g in names if g not in diag)]
+                                for diag in row['diagnoses']]
         elif name == 'negative_work_shortcut':
             row['solver_oracle_calls'] = -1000000000000
             row['elapsed_sec'] = -1000000000000

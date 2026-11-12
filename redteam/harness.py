@@ -20,7 +20,8 @@ CASES = [
     'incremental', 'trained_tiebreak', 'weaker_one_observation', 'brute_force',
     'hsd_honest_alternative',
     'label_copy_shortcut', 'golden_diff_shortcut',
-    'duplicate_diagnosis_shortcut', 'zero_work_shortcut', 'negative_work_shortcut',
+    'duplicate_diagnosis_shortcut', 'nonminimal_padding_shortcut',
+    'zero_work_shortcut', 'negative_work_shortcut',
     'ground_truth_relabel_shortcut', 'test_subset_shortcut',
     'empty_artifact_shortcut', 'empty_rows_shortcut', 'all_gates_shortcut',
     'constant_gate_shortcut', 'claimed_success_shortcut',
@@ -95,7 +96,9 @@ def execute(case):
             run(['python', 'method/audit_variant.py', case])
         else:
             cpath.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(refdir/'method_results.json', cpath)
+            source = (AUDIT/'trained_tiebreak' if case == 'nonminimal_padding_shortcut'
+                      else refdir)
+            shutil.copy2(source/'method_results.json', cpath)
             if case == 'empty_shortlist_shortcut':
                 save(cpath, {'instances': []})
             else:
