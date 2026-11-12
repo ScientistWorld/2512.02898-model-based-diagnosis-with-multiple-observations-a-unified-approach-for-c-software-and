@@ -1,0 +1,23 @@
+{
+  "case": "brute_force",
+  "env": {},
+  "hidden_arguments": [],
+  "hidden_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "pre_step": null,
+  "registrations": {
+    "cfaults_circuit": [
+      "python",
+      "method/audit_variants.py",
+      "brute_force",
+      "--instance",
+      "{instance}",
+      "--output",
+      "{output}"
+    ]
+  },
+  "returncode": 0,
+  "wall_seconds": 439.59480714797974
+}

@@ -1,0 +1,23 @@
+{
+  "case": "crash_shortcut",
+  "env": {},
+  "hidden_arguments": [],
+  "hidden_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "pre_step": null,
+  "registrations": {
+    "cfaults_circuit": [
+      "python",
+      "method/audit_shortcuts.py",
+      "crash",
+      "--instance",
+      "{instance}",
+      "--output",
+      "{output}"
+    ]
+  },
+  "returncode": 0,
+  "wall_seconds": 10.867281198501587
+}

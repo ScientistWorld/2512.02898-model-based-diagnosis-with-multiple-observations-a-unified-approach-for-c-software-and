@@ -1,0 +1,23 @@
+{
+  "case": "empty_output_shortcut",
+  "env": {},
+  "hidden_arguments": [],
+  "hidden_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "pre_step": null,
+  "registrations": {
+    "cfaults_circuit": [
+      "python",
+      "method/audit_shortcuts.py",
+      "empty_output",
+      "--instance",
+      "{instance}",
+      "--output",
+      "{output}"
+    ]
+  },
+  "returncode": 0,
+  "wall_seconds": 10.927228689193726
+}

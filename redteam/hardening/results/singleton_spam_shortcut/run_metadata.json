@@ -1,0 +1,23 @@
+{
+  "case": "singleton_spam_shortcut",
+  "env": {},
+  "hidden_arguments": [],
+  "hidden_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "pre_step": null,
+  "registrations": {
+    "cfaults_circuit": [
+      "python",
+      "method/audit_shortcuts.py",
+      "singleton_spam",
+      "--instance",
+      "{instance}",
+      "--output",
+      "{output}"
+    ]
+  },
+  "returncode": 0,
+  "wall_seconds": 10.996740102767944
+}

@@ -1,0 +1,29 @@
+{
+  "calibration": {
+    "instance_ids": [
+      "inst_56727ae3ee4ecaf0",
+      "inst_891b690a25853a26",
+      "inst_bad0ca9783717559"
+    ],
+    "reference_cpu_seconds": 0.2806866480000001
+  },
+  "cpu_limit_seconds": 10.0,
+  "limit_selection": {
+    "candidates": [
+      2.5,
+      5.0,
+      10.0
+    ],
+    "chosen": 10.0,
+    "probe_cap_seconds": 10.0,
+    "rule": "largest candidate budget at which the reference localises <= 75.0% of the public TRAIN instances (keeps headroom); smallest candidate if none",
+    "train_reference_coverage": {
+      "10.0": 73.33333333333333,
+      "2.5": 61.333333333333336,
+      "5.0": 66.66666666666667
+    }
+  },
+  "required_methods": [
+    "cfaults"
+  ]
+}
