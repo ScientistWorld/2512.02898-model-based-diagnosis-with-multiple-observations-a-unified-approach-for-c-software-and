@@ -1,22 +1,16 @@
 #!/bin/bash
-# Evaluate the visible train slice of the circuit benchmark.
+# Public train split.  Run with NO arguments.
 #
-# Contract mirrors scripts/evaluate.sh: callable standalone after methods have
-# written result artifacts. Positional $1 is the result root; methods are
-# enumerated from RESULT_ROOT.
+# Same protocol as the hidden test, on the public instances in
+# data/iscas85_train/: every method registered on disk
+# (checkpoints/<name>/solver.json) is run on each instance under the same
+# per-instance CPU budget and scored against the exact answers in
+# data/iscas85_train/ground_truth.json.  Writes scoring/scores_train.json.
 
 set -e
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
-
 mkdir -p scoring
 
-BENCHMARK="${EVAL_BENCHMARK:-data/synthetic_circuits}"
-RESULT_ROOT="${EVAL_RESULT_ROOT:-${1:-checkpoints}}"
-OUT="${EVAL_TRAIN_OUT:-scoring/scores_train.json}"
-
-python eval/train/evaluate_circuit_outputs.py \
-  --benchmark "$BENCHMARK" \
-  --result-root "$RESULT_ROOT" \
-  --out "$OUT"
+python -I eval/train/evaluate_circuit_outputs.py --out scoring/scores_train.json

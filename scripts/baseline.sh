@@ -1,30 +1,22 @@
 #!/bin/bash
-# Run a baseline method from the paper.
+# Regenerate the evaluator-owned baseline outputs on the PUBLIC train split.
 #
-# Baselines are simple reference methods the paper compares against. 
-# Implement this only if applicable, i.e. the paper has baselines.
-# You do not need to implement all baselines to begin — 
-# just enough to validate that the evaluation pipeline works 
-# and provide a reference point. You can decide to expand more baselines later.
-# Each baseline must be actually run and scored through evaluate.sh
-# so the numbers are verified, not self-reported.
-# You can decide what this baseline script should do yourself.
+# Baselines: HSD (hitting-set dualisation, the paper's circuit competitor) and
+# a BugAssist-style per-observation voting baseline.  Their raw outputs are
+# stored in eval/train/baseline_outputs/ and scored by scripts/evaluate_train.sh
+# under the keys "hsd" and "bugassist_vote".  (The hidden-test baseline
+# outputs are stored with the hidden test and cannot be regenerated here.)
 #
 # Usage:
-#   bash scripts/baseline.sh <name>
+#   bash scripts/baseline.sh
 
 set -e
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-python data/circuit_benchmark.py --out data/synthetic_circuits --instances-per-setting 3
-python baseline/bugassist_vote_circuit.py \
-  --benchmark data/synthetic_circuits \
-  --out checkpoints/bugassist_vote/results.json \
-  --solver auto
-python baseline/hsd_circuit.py \
-  --benchmark data/synthetic_circuits \
-  --out checkpoints/hsd_circuit/results.json \
-  --solver auto
-bash scripts/evaluate.sh
+python -I eval/train/evaluate_circuit_outputs.py --store-baseline hsd \
+  --command-json '["python", "baseline/hsd_circuit.py", "--instance", "{instance}", "--output", "{output}"]'
+python -I eval/train/evaluate_circuit_outputs.py --store-baseline bugassist_vote \
+  --command-json '["python", "baseline/bugassist_vote_circuit.py", "--instance", "{instance}", "--output", "{output}"]'
+bash scripts/evaluate_train.sh

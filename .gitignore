@@ -1,5 +1,10 @@
 # Large files — do not commit (applies everywhere, including tmp/)
-checkpoints/
+# checkpoints/ holds method registrations; only the reference registration is tracked
+checkpoints/*
+!checkpoints/.gitkeep
+!checkpoints/cfaults_circuit/
+checkpoints/cfaults_circuit/*
+!checkpoints/cfaults_circuit/solver.json
 *.pt
 *.pth
 *.ckpt
@@ -230,3 +235,10 @@ tmp/
 protocol.md
 *.egg-info
 core.[0-9]*
+
+# Raw per-instance method outputs on hidden/train instances (the reference's
+# outputs on hidden instances are the hidden answers): never commit.
+eval/test/runs/
+eval/train/runs/
+redteam/hardening/workspaces/
+redteam/hardening/results/*/runs/

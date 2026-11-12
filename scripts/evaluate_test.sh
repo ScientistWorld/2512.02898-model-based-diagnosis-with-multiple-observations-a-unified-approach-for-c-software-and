@@ -1,25 +1,17 @@
 #!/bin/bash
-# Evaluate the held-out test slice of the circuit benchmark.
+# Hidden test.  Run with NO arguments.
 #
-# Contract mirrors scripts/evaluate.sh: callable standalone after methods have
-# written result artifacts. Positional $1 is the result root; methods are
-# enumerated from RESULT_ROOT and, when scoring/scores_train.json exists,
-# restricted to the exact method keys scored on the train slice.
+# Runs every method registered on disk (checkpoints/<name>/solver.json, see
+# briefing/evaluation.md) on the hidden ISCAS85-derived test instances held in
+# eval/test/, one fresh process per instance under a fixed per-instance CPU
+# budget, and scores the raw diagnoses each method wrote against the exact
+# answers.  Evaluator-owned baselines (hsd, bugassist_vote) are scored from
+# their stored outputs.  Writes scoring/scores_test.json.
 
 set -e
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
-
 mkdir -p scoring
 
-BENCHMARK="${EVAL_BENCHMARK:-data/synthetic_circuits}"
-RESULT_ROOT="${EVAL_RESULT_ROOT:-${1:-checkpoints}}"
-TRAIN_SCORES="${EVAL_TRAIN_SCORES:-scoring/scores_train.json}"
-OUT="${EVAL_TEST_OUT:-scoring/scores_test.json}"
-
-python eval/test/evaluate_circuit_outputs.py \
-  --benchmark "$BENCHMARK" \
-  --result-root "$RESULT_ROOT" \
-  --train-scores "$TRAIN_SCORES" \
-  --out "$OUT"
+python -I eval/test/evaluate_circuit_outputs.py --out scoring/scores_test.json

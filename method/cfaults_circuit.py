@@ -1,21 +1,40 @@
 #!/usr/bin/env python3
-"""CFaults-style unified MaxSAT diagnosis for Boolean circuits."""
+"""CFaults for Boolean circuits: unified multi-observation MaxSAT diagnosis.
+
+Implements the circuit side of the paper (Sections 4.2 and 5.2, Algorithm 5):
+
+* the faulty circuit is unrolled once per failing observation (fresh wire
+  variables per replica, inputs and expected outputs fixed as hard units);
+* every gate is instrumented with ONE relaxation ("healthy") variable that is
+  shared by all replicas: ``h_g -> (out_g <-> op_g(inputs_g))`` in each replica;
+* soft unit clauses ``h_g`` (unweighted partial MaxSAT) maximise healthy gates;
+* RC2Stratified (PySAT) is the MaxSAT oracle;
+* all optimum solutions are enumerated by adding the blocking clause
+  ``OR_{g in Delta} h_g`` to the hard clauses and re-solving until the cost
+  exceeds the optimum.
+
+Interface (used by the train and hidden-test evaluators):
+
+    python method/cfaults_circuit.py --instance INSTANCE.json --output OUT.jsonl
+
+``INSTANCE.json`` holds ``circuit`` (inputs, outputs, gates in topological
+order with ops AND/NAND/OR/NOR/XOR/NOT/BUF) and ``observations`` (input
+values and expected output values).  Every minimum-cardinality diagnosis is
+written to ``OUT.jsonl`` as one JSON list of gate names per line, flushed as
+soon as it is found.
+
+``python method/cfaults_circuit.py --register`` writes the registration file
+``checkpoints/cfaults_circuit/solver.json`` that the evaluators read.
+"""
 
 from __future__ import annotations
 
 import argparse
-import itertools
 import json
-import time
 from pathlib import Path
 
-import sys
-
-sys.path.append(str(Path(__file__).resolve().parents[1]))
-from data.circuit_benchmark import Circuit, circuit_from_json  # noqa: E402
-
-
 Clause = list[int]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 class VarPool:
@@ -33,7 +52,7 @@ class VarPool:
 
 
 def guarded_equiv_clauses(op: str, out: int, ins: list[int], guard: int) -> list[Clause]:
-    """Return CNF clauses for guard -> (out <-> op(ins))."""
+    """CNF for guard -> (out <-> op(ins))."""
     gneg = -guard
     if op == "BUF":
         return [[gneg, -out, ins[0]], [gneg, out, -ins[0]]]
@@ -60,33 +79,36 @@ def guarded_equiv_clauses(op: str, out: int, ins: list[int], guard: int) -> list
     raise ValueError(f"unsupported op {op}")
 
 
-def build_unified_formula(circuit: Circuit, observations: list[dict]) -> tuple[list[Clause], list[int], VarPool, dict[str, int]]:
+def build_unified_formula(circuit: dict, observations: list[dict]) -> tuple[list[Clause], list[int], VarPool, dict[str, int]]:
+    """Hard clauses: all observation replicas; soft literals: shared h_g."""
     pool = VarPool()
-    healthy = {gate.name: pool.id(f"h::{gate.name}") for gate in circuit.gates}
+    healthy = {gate["name"]: pool.id(f"h::{gate['name']}") for gate in circuit["gates"]}
     hard: list[Clause] = []
     for obs_idx, obs in enumerate(observations):
+
         def v(name: str) -> int:
             return pool.id(f"o{obs_idx}::{name}")
 
-        for name, value in obs["inputs"].items():
-            hard.append([v(name) if value else -v(name)])
-        for gate in circuit.gates:
-            out = v(gate.name)
-            ins = [v(name) for name in gate.inputs]
-            hard.extend(guarded_equiv_clauses(gate.op, out, ins, healthy[gate.name]))
+        for name in circuit["inputs"]:
+            hard.append([v(name) if obs["inputs"][name] else -v(name)])
+        for gate in circuit["gates"]:
+            out = v(gate["name"])
+            ins = [v(name) for name in gate["inputs"]]
+            hard.extend(guarded_equiv_clauses(gate["op"], out, ins, healthy[gate["name"]]))
         for name, value in obs["expected_outputs"].items():
             hard.append([v(name) if value else -v(name)])
     return hard, list(healthy.values()), pool, healthy
 
 
-def solve_with_pysat(hard: list[Clause], soft: list[int], top: int, block: list[Clause] | None = None) -> tuple[set[int] | None, int | None]:
+def solve_maxsat(hard: list[Clause], soft: list[int], top: int, block: list[Clause]) -> tuple[set[int] | None, int | None]:
+    """One SolveMaxSAT call of Algorithm 5 (fresh RC2Stratified oracle)."""
     from pysat.examples.rc2 import RC2Stratified
     from pysat.formula import WCNF
 
     wcnf = WCNF()
     for clause in hard:
         wcnf.append(clause)
-    for clause in block or []:
+    for clause in block:
         wcnf.append(clause)
     for lit in soft:
         wcnf.append([lit], weight=1)
@@ -100,127 +122,61 @@ def solve_with_pysat(hard: list[Clause], soft: list[int], top: int, block: list[
         return disabled, len(disabled)
 
 
-def clause_sat(clause: Clause, assignment: dict[int, bool]) -> bool:
-    for lit in clause:
-        val = assignment.get(abs(lit))
-        if val is not None and val == (lit > 0):
-            return True
-    return False
-
-
-def solve_with_exhaustive(hard: list[Clause], soft: list[int], top: int, block: list[Clause] | None = None) -> tuple[set[int] | None, int | None]:
-    """Tiny fallback for smoke tests when PySAT is not installed."""
-    clauses = hard + (block or [])
-    best: set[int] | None = None
-    for bits in itertools.product([False, True], repeat=top):
-        assignment = {idx + 1: bits[idx] for idx in range(top)}
-        if not all(clause_sat(clause, assignment) for clause in clauses):
-            continue
-        disabled = {lit for lit in soft if not assignment[lit]}
-        if best is None or len(disabled) < len(best):
-            best = disabled
-    return (best, len(best)) if best is not None else (None, None)
-
-
-def solve_formula(hard: list[Clause], soft: list[int], top: int, block: list[Clause] | None = None, solver: str = "auto") -> tuple[set[int] | None, int | None, str]:
-    if solver in {"auto", "pysat"}:
-        try:
-            disabled, cost = solve_with_pysat(hard, soft, top, block)
-            return disabled, cost, "pysat_rc2stratified"
-        except ModuleNotFoundError:
-            if solver == "pysat":
-                raise
-    disabled, cost = solve_with_exhaustive(hard, soft, top, block)
-    return disabled, cost, "exhaustive"
-
-
-def diagnose(
-    circuit: Circuit,
-    observations: list[dict],
-    enumerate_all: bool = True,
-    solver: str = "auto",
-) -> dict:
-    start = time.perf_counter()
+def diagnose(circuit: dict, observations: list[dict], emit=None, enumerate_all: bool = True) -> list[list[str]]:
+    """Algorithm 5: enumerate all minimum-cardinality aggregated diagnoses."""
     hard, soft, pool, healthy = build_unified_formula(circuit, observations)
-    inv_healthy = {lit: name for name, lit in healthy.items()}
-    solutions: list[list[str]] = []
-    optimum = None
+    names = {lit: name for name, lit in healthy.items()}
     block: list[Clause] = []
-    solver_used = "unknown"
-    solver_oracle_calls = 0
+    optimum = None
+    found: list[list[str]] = []
     while True:
-        solver_oracle_calls += 1
-        disabled, cost, solver_used = solve_formula(hard, soft, pool.top, block, solver)
+        disabled, cost = solve_maxsat(hard, soft, pool.top, block)
         if disabled is None or cost is None:
             break
         if optimum is None:
             optimum = cost
         if cost > optimum:
+            break  # all optimum MaxSAT solutions enumerated
+        diagnosis = sorted(names[lit] for lit in disabled)
+        found.append(diagnosis)
+        if emit is not None:
+            emit(diagnosis)
+        if not enumerate_all or not disabled:
             break
-        diag = sorted(inv_healthy[lit] for lit in disabled)
-        if diag not in solutions:
-            solutions.append(diag)
-        if not enumerate_all:
-            break
-        if not disabled:
-            break
-        block.append([lit for lit in disabled])
-    elapsed = time.perf_counter() - start
-    return {
-        "solver": solver_used,
-        "diagnoses": solutions,
-        "diagnosis_count": len(solutions),
-        "optimum_cost": optimum,
-        "num_observations": len(observations),
-        "num_gates": len(circuit.gates),
-        "num_hard_clauses": len(hard),
-        "num_soft_clauses": len(soft),
-        "solver_oracle_calls": solver_oracle_calls,
-        "elapsed_sec": elapsed,
-    }
+        block.append(sorted(disabled))  # blocking clause: OR_{g in Delta} h_g
+    return found
 
 
-def load_instance(benchmark_dir: Path, instance_path: str) -> tuple[Circuit, dict]:
-    manifest = json.loads((benchmark_dir / "manifest.json").read_text())
-    instance = json.loads((benchmark_dir / instance_path).read_text())
-    if "faulty_circuit" in instance:
-        circuit = circuit_from_json(instance["faulty_circuit"])
-    else:
-        circuit = circuit_from_json(json.loads((benchmark_dir / manifest["circuit"]).read_text()))
-    return circuit, instance
+def register(key_dir: str = "cfaults_circuit", extra_args: list[str] | None = None) -> Path:
+    path = REPO_ROOT / "checkpoints" / key_dir / "solver.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    command = ["python", "method/cfaults_circuit.py", "--instance", "{instance}", "--output", "{output}"]
+    command += extra_args or []
+    path.write_text(json.dumps({"command": command}, indent=2) + "\n")
+    return path
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--benchmark", type=Path, default=Path("data/synthetic_circuits"))
-    parser.add_argument("--out", type=Path, default=Path("checkpoints/cfaults_circuit/results.json"))
-    parser.add_argument("--limit", type=int, default=0, help="0 means all instances")
-    parser.add_argument("--solver", choices=["auto", "pysat", "exhaustive"], default="auto")
-    parser.add_argument("--first-only", action="store_true")
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--instance", type=Path)
+    parser.add_argument("--output", type=Path)
+    parser.add_argument("--first-only", action="store_true", help="stop after the first optimum (ablation)")
+    parser.add_argument("--register", action="store_true", help="write checkpoints/cfaults_circuit/solver.json")
     args = parser.parse_args()
-    manifest = json.loads((args.benchmark / "manifest.json").read_text())
-    selected = manifest["instances"][: args.limit or None]
-    results = {"method": "cfaults_unified_maxsat", "benchmark": manifest["name"], "instances": []}
-    for entry in selected:
-        circuit, instance = load_instance(args.benchmark, entry["path"])
-        result = diagnose(
-            circuit,
-            instance["observations"],
-            enumerate_all=not args.first_only,
-            solver=args.solver,
-        )
-        result.update(
-            {
-                "id": instance["id"],
-                "path": entry["path"],
-                "fault_count": instance["fault_count"],
-                "observation_count": instance["observation_count"],
-                "true_faults": sorted(instance["faults"]),
-            }
-        )
-        results["instances"].append(result)
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(results, indent=2, sort_keys=True) + "\n")
+    if args.register:
+        print(register())
+        return
+    if args.instance is None or args.output is None:
+        parser.error("--instance and --output are required")
+    instance = json.loads(args.instance.read_text())
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    with args.output.open("w") as out:
+
+        def emit(diagnosis: list[str]) -> None:
+            out.write(json.dumps(diagnosis) + "\n")
+            out.flush()
+
+        diagnose(instance["circuit"], instance["observations"], emit=emit, enumerate_all=not args.first_only)
 
 
 if __name__ == "__main__":

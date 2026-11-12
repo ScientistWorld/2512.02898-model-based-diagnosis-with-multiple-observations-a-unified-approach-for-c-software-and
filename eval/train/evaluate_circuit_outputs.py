@@ -1,427 +1,540 @@
 #!/usr/bin/env python3
-"""Train-slice scorer for circuit-diagnosis output artifacts.
+"""Train-split evaluator for multi-observation circuit diagnosis.
 
-This evaluator reads method-produced ``checkpoints/*/results.json`` files and
-scores the visible train slice only. It intentionally does not import method
-code, train models, or regenerate method outputs.
+Run with no arguments (``bash scripts/evaluate_train.sh``).  It mirrors the
+hidden test exactly, on the public training split:
+
+1. loads the public ISCAS85-derived training instances and their exact
+   answers (the complete set of minimum-cardinality diagnoses) from
+   ``data/iscas85_train/``;
+2. calibrates the per-instance CPU budget to the speed of this machine with a
+   fixed, evaluator-owned workload;
+3. discovers every method registered on disk (``checkpoints/*/solver.json``)
+   and runs it on each training instance in a fresh temporary directory, under
+   the CPU budget, giving it only the faulty netlist and the observations;
+4. scores the raw diagnoses the method wrote.  Nothing the method reports
+   about itself (validity flags, work counters, timings) is read.
+
+The evaluator is deliberately a single self-contained file: it imports only
+the standard library (and PySAT for the calibration workload), never code
+from ``data/``, ``method/`` or ``baseline/``.
+
+Baselines (HSD, BugAssist-style voting) are evaluator-owned: their raw
+outputs on the training instances are stored in ``eval/train/baseline_outputs``
+and on-disk registrations using those names are ignored.  The proposed
+method key (``cfaults``) is always reported; if it is not registered, or it
+produces no output at all, it receives the worst value of every metric.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-from collections import defaultdict
-from pathlib import Path
+import math
+import os
+import resource
+import shutil
+import signal
+import statistics
+import subprocess
 import sys
-
-sys.path.append(str(Path(__file__).resolve().parents[2]))
-from data.circuit_benchmark import Circuit, circuit_from_json  # noqa: E402
+import tempfile
+import time
+from collections import Counter
+from pathlib import Path
 
 SLICE = "train"
+HERE = Path(__file__).resolve().parent
+REPO_ROOT = HERE.parents[1]
+TRAIN_DIR = REPO_ROOT / "data" / "iscas85_train"
+CONFIG_FILE = HERE / "config.json"
+BASELINE_DIR = HERE / "baseline_outputs"
+RUNS_DIR = HERE / "runs"
+DEFAULT_OUT = REPO_ROOT / "scoring" / "scores_train.json"
+
+OBSERVATION_BUCKETS = (10, 20, 30, 40, 50)
+FAULT_BUCKETS = (1, 3, 5)
+DIR_ALIASES = {"cfaults_circuit": "cfaults", "hsd_circuit": "hsd"}
+RESERVED_KEYS = ("hsd", "bugassist_vote")
+MAX_OUTPUT_BYTES = 64 * 1024 * 1024
+MEMORY_LIMIT_BYTES = 8 * 1024 ** 3
 
 
-def guarded_equiv_clauses(op: str, out: int, ins: list[int], guard: int) -> list[list[int]]:
-    gneg = -guard
+# --------------------------------------------------------------------------
+# Loading
+# --------------------------------------------------------------------------
+
+
+def load_json(path: Path, default=None):
+    try:
+        return json.loads(Path(path).read_text())
+    except (OSError, json.JSONDecodeError):
+        return default
+
+
+def load_benchmark() -> tuple[list[dict], dict[str, dict]]:
+    instances = [json.loads(line) for line in (TRAIN_DIR / "instances.jsonl").read_text().splitlines() if line.strip()]
+    truth = json.loads((TRAIN_DIR / "ground_truth.json").read_text())
+    for inst in instances:
+        if inst["id"] not in truth:
+            raise RuntimeError(f"no ground truth for {inst['id']}")
+    return instances, truth
+
+
+def public_view(instance: dict) -> dict:
+    return {"id": instance["id"], "circuit": instance["circuit"], "observations": instance["observations"]}
+
+
+# --------------------------------------------------------------------------
+# Machine-speed calibration (evaluator-owned workload)
+# --------------------------------------------------------------------------
+
+
+def _guarded(op: str, out: int, ins: list[int], h: int) -> list[list[int]]:
+    g = -h
     if op == "BUF":
-        return [[gneg, -out, ins[0]], [gneg, out, -ins[0]]]
+        return [[g, -out, ins[0]], [g, out, -ins[0]]]
     if op == "NOT":
-        return [[gneg, -out, -ins[0]], [gneg, out, ins[0]]]
+        return [[g, -out, -ins[0]], [g, out, ins[0]]]
     if op == "AND":
-        return [[gneg, out, *[-x for x in ins]], *[[gneg, -out, x] for x in ins]]
+        return [[g, out, *[-x for x in ins]], *[[g, -out, x] for x in ins]]
     if op == "NAND":
-        return [[gneg, -out, *[-x for x in ins]], *[[gneg, out, x] for x in ins]]
+        return [[g, -out, *[-x for x in ins]], *[[g, out, x] for x in ins]]
     if op == "OR":
-        return [[gneg, -out, *ins], *[[gneg, out, -x] for x in ins]]
+        return [[g, -out, *ins], *[[g, out, -x] for x in ins]]
     if op == "NOR":
-        return [[gneg, out, *ins], *[[gneg, -out, -x] for x in ins]]
+        return [[g, out, *ins], *[[g, -out, -x] for x in ins]]
     if op == "XOR":
         a, b = ins
-        return [[gneg, -a, -b, -out], [gneg, -a, b, out], [gneg, a, -b, out], [gneg, a, b, -out]]
-    raise ValueError(f"unsupported op {op}")
+        return [[g, -a, -b, -out], [g, -a, b, out], [g, a, -b, out], [g, a, b, -out]]
+    raise ValueError(op)
 
 
-class VarPool:
-    def __init__(self) -> None:
-        self.ids: dict[str, int] = {}
+def _calibration_once(instances: list[dict]) -> float:
+    from pysat.examples.rc2 import RC2
+    from pysat.formula import WCNF
 
-    def id(self, name: str) -> int:
-        if name not in self.ids:
-            self.ids[name] = len(self.ids) + 1
-        return self.ids[name]
-
-
-def build_clauses(
-    circuit: Circuit,
-    observations: list[dict],
-    diagnosis: list[str] | None = None,
-) -> tuple[list[list[int]], dict[str, int], int]:
-    disabled = set(diagnosis or [])
-    pool = VarPool()
-    healthy = {gate.name: pool.id(f"h::{gate.name}") for gate in circuit.gates}
-    clauses: list[list[int]] = []
-    if diagnosis is not None:
-        for name, lit in healthy.items():
-            clauses.append([-lit] if name in disabled else [lit])
-    for obs_idx, obs in enumerate(observations):
-
-        def v(name: str) -> int:
-            return pool.id(f"o{obs_idx}::{name}")
-
-        for name, value in obs["inputs"].items():
-            clauses.append([v(name) if value else -v(name)])
-        for gate in circuit.gates:
-            out = v(gate.name)
-            clauses.extend(guarded_equiv_clauses(gate.op, out, [v(name) for name in gate.inputs], healthy[gate.name]))
-        for name, value in obs["expected_outputs"].items():
-            clauses.append([v(name) if value else -v(name)])
-    return clauses, healthy, len(pool.ids)
-
-
-def diagnosis_valid(circuit: Circuit, observations: list[dict], diagnosis: list[str]) -> bool:
-    clauses, _, _ = build_clauses(circuit, observations, diagnosis)
-    try:
-        from pysat.solvers import Solver
-
-        with Solver(name="g3", bootstrap_with=clauses) as solver:
-            return bool(solver.solve())
-    except ModuleNotFoundError:
-        return dpll_sat([list(clause) for clause in clauses])
-
-
-def simplify_clauses(clauses: list[list[int]], lit: int) -> list[list[int]] | None:
-    simplified = []
-    neg = -lit
-    for clause in clauses:
-        if lit in clause:
-            continue
-        if neg in clause:
-            reduced = [x for x in clause if x != neg]
-            if not reduced:
-                return None
-            simplified.append(reduced)
-        else:
-            simplified.append(clause)
-    return simplified
-
-
-def dpll_sat(clauses: list[list[int]]) -> bool:
-    while True:
-        if not clauses:
-            return True
-        if any(not clause for clause in clauses):
-            return False
-        unit = next((clause[0] for clause in clauses if len(clause) == 1), None)
-        if unit is None:
-            break
-        clauses = simplify_clauses(clauses, unit)
-        if clauses is None:
-            return False
-
-    literal_counts: dict[int, int] = {}
-    for clause in clauses:
-        for lit in clause:
-            literal_counts[lit] = literal_counts.get(lit, 0) + 1
-    for lit in list(literal_counts):
-        if -lit not in literal_counts:
-            simplified = simplify_clauses(clauses, lit)
-            return simplified is not None and dpll_sat(simplified)
-
-    variable = max(
-        {abs(lit) for clause in clauses for lit in clause},
-        key=lambda v: literal_counts.get(v, 0) + literal_counts.get(-v, 0),
-    )
-    for lit in (variable, -variable):
-        simplified = simplify_clauses(clauses, lit)
-        if simplified is not None and dpll_sat(simplified):
-            return True
-    return False
-
-
-def optimum_cardinality(circuit: Circuit, observations: list[dict]) -> int | None:
-    clauses, healthy, top = build_clauses(circuit, observations)
-    try:
-        from pysat.examples.rc2 import RC2Stratified
-        from pysat.formula import WCNF
-
+    start = time.process_time()
+    for inst in instances:
+        circuit = inst["circuit"]
+        nv = 0
+        health = {}
+        for gate in circuit["gates"]:
+            nv += 1
+            health[gate["name"]] = nv
         wcnf = WCNF()
-        for clause in clauses:
-            wcnf.append(clause)
-        for lit in healthy.values():
-            wcnf.append([lit], weight=1)
-        wcnf.nv = max(top, wcnf.nv)
-        with RC2Stratified(wcnf) as solver:
-            model = solver.compute()
-            if model is None:
-                return None
-            assigned = set(model)
-            return sum(1 for lit in healthy.values() if -lit in assigned)
-    except ModuleNotFoundError:
-        gate_names = [gate.name for gate in circuit.gates]
-        import itertools
+        for obs in inst["observations"]:
+            var = {}
+            for name in circuit["inputs"]:
+                nv += 1
+                var[name] = nv
+                wcnf.append([nv if obs["inputs"][name] else -nv])
+            for gate in circuit["gates"]:
+                nv += 1
+                var[gate["name"]] = nv
+            for gate in circuit["gates"]:
+                for clause in _guarded(gate["op"], var[gate["name"]], [var[x] for x in gate["inputs"]], health[gate["name"]]):
+                    wcnf.append(clause)
+            for name, value in obs["expected_outputs"].items():
+                wcnf.append([var[name] if value else -var[name]])
+        for h in health.values():
+            wcnf.append([h], weight=1)
+        with RC2(wcnf) as rc2:
+            rc2.compute()
+    return time.process_time() - start
 
-        for size in range(len(gate_names) + 1):
-            for subset in itertools.combinations(gate_names, size):
-                if diagnosis_valid(circuit, observations, list(subset)):
-                    return size
-    return None
+
+def measure_calibration(instances: list[dict], ids: list[str], repeats: int = 3) -> float | None:
+    chosen = [inst for inst in instances if inst["id"] in set(ids)]
+    if not chosen:
+        return None
+    try:
+        times = [_calibration_once(chosen) for _ in range(repeats)]
+    except Exception:  # PySAT missing or broken: fall back to the nominal budget
+        return None
+    return statistics.median(times)
 
 
-def load_instances(benchmark: Path) -> dict[str, dict]:
-    manifest = json.loads((benchmark / "manifest.json").read_text())
-    instances = {}
-    for entry in manifest["instances"]:
-        instance = json.loads((benchmark / entry["path"]).read_text())
-        if "faulty_circuit" in instance:
-            instance["_faulty_circuit_obj"] = circuit_from_json(instance["faulty_circuit"])
+def cpu_budget(config: dict, instances: list[dict]) -> dict:
+    nominal = float(config["cpu_limit_seconds"])
+    calib = config.get("calibration", {})
+    ref = calib.get("reference_cpu_seconds")
+    measured = measure_calibration(instances, calib.get("instance_ids", [])) if ref else None
+    if measured and ref:
+        factor = min(max(measured / float(ref), 0.5), 2.0)
+    else:
+        factor = 1.0
+    return {
+        "nominal_cpu_limit_seconds": nominal,
+        "calibration_reference_cpu_seconds": ref,
+        "calibration_measured_cpu_seconds": measured,
+        "speed_factor": factor,
+        "cpu_limit_seconds": nominal * factor,
+    }
+
+
+# --------------------------------------------------------------------------
+# Running a method on one instance
+# --------------------------------------------------------------------------
+
+
+def _parse_output(raw: bytes) -> tuple[list, bool]:
+    truncated = len(raw) > MAX_OUTPUT_BYTES
+    raw = raw[:MAX_OUTPUT_BYTES]
+    lines = raw.split(b"\n")
+    complete = lines[:-1]  # the last fragment is unterminated (or empty)
+    parsed = []
+    for line in complete:
+        if not line.strip():
+            continue
+        try:
+            parsed.append(json.loads(line))
+        except (ValueError, UnicodeDecodeError):
+            parsed.append({"__malformed__": True})
+    return parsed, truncated
+
+
+def run_command_on_instance(command: list[str], instance: dict, cpu_limit: float) -> dict:
+    tmp = Path(tempfile.mkdtemp(prefix="diag_eval_"))
+    inst_path = tmp / "instance.json"
+    out_path = tmp / "diagnoses.jsonl"
+    err_path = tmp / "stderr.log"
+    inst_path.write_text(json.dumps(public_view(instance)))
+    argv = [str(a).replace("{instance}", str(inst_path)).replace("{output}", str(out_path)) for a in command]
+    soft = max(1, int(math.ceil(cpu_limit)))
+    wall_limit = 2.0 * cpu_limit + 10.0
+
+    def limit_child() -> None:
+        os.setsid()
+        try:
+            hard_cap = resource.getrlimit(resource.RLIMIT_CPU)[1]
+            hard = soft + 1 if hard_cap == resource.RLIM_INFINITY else min(soft + 1, hard_cap)
+            resource.setrlimit(resource.RLIMIT_CPU, (min(soft, hard), hard))
+        except (ValueError, OSError):
+            pass
+        try:
+            resource.setrlimit(resource.RLIMIT_AS, (MEMORY_LIMIT_BYTES, MEMORY_LIMIT_BYTES))
+        except (ValueError, OSError):
+            pass
+
+    record = {"id": instance["id"], "status": "ok", "cpu_seconds": 0.0, "wall_seconds": 0.0}
+    start = time.monotonic()
+    try:
+        with err_path.open("wb") as err:
+            proc = subprocess.Popen(
+                argv,
+                cwd=str(REPO_ROOT),
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=err,
+                preexec_fn=limit_child,
+            )
+            timed_out = False
+            while True:
+                pid, status, usage = os.wait4(proc.pid, os.WNOHANG)
+                if pid:
+                    break
+                if time.monotonic() - start > wall_limit:
+                    try:
+                        os.killpg(proc.pid, signal.SIGKILL)
+                    except OSError:
+                        pass
+                    pid, status, usage = os.wait4(proc.pid, 0)
+                    timed_out = True
+                    break
+                time.sleep(0.02)
+            proc.returncode = 0  # already reaped with wait4
+            try:
+                os.killpg(proc.pid, signal.SIGKILL)  # stray helpers of the method
+            except OSError:
+                pass
+        record["wall_seconds"] = time.monotonic() - start
+        record["cpu_seconds"] = usage.ru_utime + usage.ru_stime
+        if timed_out:
+            record["status"] = "wall_limit"
+        elif os.WIFSIGNALED(status):
+            sig = os.WTERMSIG(status)
+            record["status"] = "cpu_limit" if sig in (signal.SIGXCPU, signal.SIGKILL) else f"signal_{sig}"
+        elif os.WEXITSTATUS(status) != 0:
+            record["status"] = f"exit_{os.WEXITSTATUS(status)}"
+    except (OSError, subprocess.SubprocessError) as exc:
+        record["status"] = "launch_error"
+        record["error"] = str(exc)[:500]
+    raw = out_path.read_bytes() if out_path.exists() else b""
+    record["diagnoses"], record["truncated"] = _parse_output(raw)
+    try:
+        record["stderr_tail"] = err_path.read_bytes()[-1500:].decode(errors="replace")
+    except OSError:
+        record["stderr_tail"] = ""
+    shutil.rmtree(tmp, ignore_errors=True)
+    return record
+
+
+def valid_registration(spec) -> list[str] | None:
+    if not isinstance(spec, dict):
+        return None
+    command = spec.get("command")
+    if not isinstance(command, list) or not command or not all(isinstance(x, str) for x in command):
+        return None
+    joined = " ".join(command)
+    if "{instance}" not in joined or "{output}" not in joined:
+        return None
+    return command
+
+
+def discover_methods(result_root: Path) -> dict[str, list[str] | None]:
+    found: dict[str, list[str] | None] = {}
+    for path in sorted(Path(result_root).glob("*/solver.json")):
+        key = DIR_ALIASES.get(path.parent.name, path.parent.name)
+        if key.startswith("_") or key in RESERVED_KEYS:
+            continue  # baselines are evaluator-owned
+        found[key] = valid_registration(load_json(path))
+    return found
+
+
+def run_method(command: list[str] | None, instances: list[dict], cpu_limit: float, log_name: str) -> list[dict]:
+    records = []
+    for idx, inst in enumerate(instances):
+        if command is None:
+            records.append({"id": inst["id"], "status": "not_registered", "cpu_seconds": 0.0, "wall_seconds": 0.0,
+                            "diagnoses": [], "truncated": False})
+            continue
+        rec = run_command_on_instance(command, inst, cpu_limit)
+        records.append(rec)
+        print(f"[{SLICE}] {log_name} {idx + 1}/{len(instances)} {rec['status']} cpu={rec['cpu_seconds']:.2f}s "
+              f"lines={len(rec['diagnoses'])}", file=sys.stderr, flush=True)
+    return records
+
+
+# --------------------------------------------------------------------------
+# Scoring
+# --------------------------------------------------------------------------
+
+
+def score_instance(record: dict, inst: dict, truth_entry: dict, cpu_limit: float) -> dict:
+    truth = {frozenset(d) for d in truth_entry["diagnoses"]}
+    optimum = int(truth_entry["optimum"])
+    gate_names = {g["name"] for g in inst["circuit"]["gates"]}
+    kinds: Counter = Counter()
+    seen: set[frozenset] = set()
+    sound = 0
+    first = None
+    for diag in record.get("diagnoses", []):
+        if not isinstance(diag, list) or not all(isinstance(x, str) for x in diag):
+            kinds["malformed"] += 1
+            continue
+        if len(set(diag)) != len(diag) or any(x not in gate_names for x in diag):
+            kinds["malformed"] += 1
+            continue
+        fdiag = frozenset(diag)
+        if first is None:
+            first = fdiag
+        if fdiag in seen:
+            kinds["duplicate"] += 1
+            continue
+        seen.add(fdiag)
+        if fdiag in truth:
+            sound += 1
+        elif len(fdiag) > optimum:
+            kinds["not_minimum"] += 1
         else:
-            instance["_faulty_circuit_obj"] = circuit_from_json(json.loads((benchmark / manifest["circuit"]).read_text()))
-        instance["_manifest_path"] = entry["path"]
-        instances[instance["id"]] = instance
-    return instances
-
-
-def split_instance_ids(instances: dict[str, dict]) -> list[str]:
-    grouped: dict[tuple[int, int], list[str]] = defaultdict(list)
-    for instance_id, instance in instances.items():
-        grouped[(int(instance["fault_count"]), int(instance["observation_count"]))].append(instance_id)
-
-    selected: list[str] = []
-    for group_index, key in enumerate(sorted(grouped)):
-        ids = sorted(grouped[key])
-        train_count = 2 if group_index % 2 == 0 else 1
-        selected.extend(ids[:train_count])
-    return sorted(selected)
-
-
-def method_name_for_result(path: Path) -> str:
-    name = path.parent.name
-    if name == "cfaults_circuit":
-        return "cfaults"
-    if name == "hsd_circuit":
-        return "hsd"
-    return name
-
-
-def discover_result_files(result_root: Path) -> dict[str, Path]:
-    files: dict[str, Path] = {}
-    for path in sorted(result_root.glob("*/results.json")):
-        name = method_name_for_result(path)
-        files[name] = path
-    return files
-
-
-def summarize_method(instances: dict[str, dict], result_path: Path, slice_ids: list[str]) -> dict:
-    data = json.loads(result_path.read_text())
-    rows_by_id = {row["id"]: row for row in data.get("instances", [])}
-    valid_count = 0
-    optimum_count = 0
-    exact_count = 0
-    subset_minimal_count = 0
-    by_obs: dict[int, dict[str, int]] = {}
-    total_cost = 0
-    total_elapsed = 0.0
-    solved = 0
-    missing_count = 0
-    empty_diagnosis_count = 0
-    total_reported_diagnoses = 0
-    max_reported_diagnoses = 0
-    total_solver_oracle_calls = 0
-    max_solver_oracle_calls = 0
-    all_reported_valid_minimal_count = 0
-    total_fault_precision = 0.0
-    total_fault_recall = 0.0
-    total_fault_f1 = 0.0
-    total_extra_gate_count = 0
-    total_missing_fault_count = 0
-
-    for instance_id in slice_ids:
-        instance = instances[instance_id]
-        obs_count = int(instance["observation_count"])
-        by_obs.setdefault(obs_count, {"total": 0, "localized": 0, "exact": 0, "fault_f1_total": 0.0})
-        by_obs[obs_count]["total"] += 1
-        row = rows_by_id.get(instance_id)
-        if row is None:
-            missing_count += 1
-            continue
-
-        diagnoses = row.get("diagnoses") or []
-        solver_oracle_calls = int(
-            row.get("solver_oracle_calls", row.get("oracle_calls", len(diagnoses) + (1 if diagnoses else 0)))
-        )
-        total_solver_oracle_calls += solver_oracle_calls
-        max_solver_oracle_calls = max(max_solver_oracle_calls, solver_oracle_calls)
-        total_reported_diagnoses += len(diagnoses)
-        max_reported_diagnoses = max(max_reported_diagnoses, len(diagnoses))
-        if not diagnoses:
-            empty_diagnosis_count += 1
-            continue
-
-        chosen = diagnoses[0]
-        solved += 1
-        circuit = instance["_faulty_circuit_obj"]
-        valid = diagnosis_valid(circuit, instance["observations"], chosen)
-        valid_count += int(valid)
-        cost = len(chosen)
-        total_cost += cost
-        total_elapsed += float(row.get("elapsed_sec", 0.0))
-        predicted_faults = set(chosen)
-        true_faults = set(instance["faults"])
-        true_positive = len(predicted_faults & true_faults)
-        fault_precision = true_positive / len(predicted_faults) if predicted_faults else 0.0
-        fault_recall = true_positive / len(true_faults) if true_faults else 1.0
-        fault_f1 = (
-            2.0 * fault_precision * fault_recall / (fault_precision + fault_recall)
-            if fault_precision + fault_recall
-            else 0.0
-        )
-        total_fault_precision += fault_precision
-        total_fault_recall += fault_recall
-        total_fault_f1 += fault_f1
-        total_extra_gate_count += len(predicted_faults - true_faults)
-        total_missing_fault_count += len(true_faults - predicted_faults)
-        by_obs[obs_count]["fault_f1_total"] += fault_f1
-        opt = optimum_cardinality(circuit, instance["observations"])
-        optimal = valid and opt == cost
-        optimum_count += int(optimal)
-        by_obs[obs_count]["localized"] += int(optimal)
-        exact = valid and predicted_faults == true_faults
-        exact_count += int(exact)
-        by_obs[obs_count]["exact"] += int(exact)
-        for diagnosis in diagnoses:
-            reported_valid = diagnosis_valid(circuit, instance["observations"], diagnosis)
-            all_reported_valid_minimal_count += int(reported_valid and opt == len(diagnosis))
-        if valid:
-            subset_minimal_count += int(opt == cost)
-
-    n = max(1, len(slice_ids))
-    solved_n = max(1, solved)
-    reported_n = max(1, total_reported_diagnoses)
+            kinds["invalid"] += 1
+    over_limit = bool(record.get("truncated")) or float(record.get("cpu_seconds", 0.0)) > 1.1 * cpu_limit + 1.0
+    if over_limit:
+        kinds["over_limit"] += 1
+    unsound = sum(v for k, v in kinds.items() if k != "over_limit") > 0
+    credited = not unsound and not over_limit
+    localized = credited and sound == len(truth)
+    recall = (sound / len(truth)) if credited else 0.0
+    injected = set(inst["faults"])
+    f1 = 0.0
+    exact = False
+    if credited and first is not None and first in truth:
+        tp = len(first & injected)
+        prec = tp / len(first) if first else 0.0
+        rec = tp / len(injected) if injected else 0.0
+        f1 = 2 * prec * rec / (prec + rec) if prec + rec else 0.0
+        exact = set(first) == injected
     return {
-        "success_rate": valid_count / n,
-        "optimal_rate": optimum_count / n,
-        "exact_fault_set_rate": exact_count / n,
-        "subset_minimal_rate": subset_minimal_count / n,
-        "all_reported_valid_minimal_rate": all_reported_valid_minimal_count / reported_n,
-        "complete_output_rate": (len(slice_ids) - missing_count - empty_diagnosis_count) / n,
-        "avg_diagnosis_size": total_cost / solved_n,
-        "avg_elapsed_sec": total_elapsed / solved_n,
-        "avg_reported_diagnoses_per_instance": total_reported_diagnoses / n,
-        "max_reported_diagnoses_per_instance": max_reported_diagnoses,
-        "avg_solver_oracle_calls_per_instance": total_solver_oracle_calls / n,
-        "max_solver_oracle_calls_per_instance": max_solver_oracle_calls,
-        "selected_fault_precision": total_fault_precision / n,
-        "selected_fault_recall": total_fault_recall / n,
-        "selected_fault_f1": total_fault_f1 / n,
-        "avg_extra_gate_count": total_extra_gate_count / n,
-        "avg_missing_fault_count": total_missing_fault_count / n,
-        "instances_evaluated": len(slice_ids),
-        "localized_count": optimum_count,
-        "invalid_count": solved - valid_count,
-        "nonminimal_count": valid_count - optimum_count,
-        "missing_count": missing_count,
-        "empty_diagnosis_count": empty_diagnosis_count,
-        "by_observation_count": by_obs,
+        "localized": localized,
+        "recall": recall,
+        "unsound": unsound,
+        "sound_nonempty": credited and sound > 0,
+        "kinds": dict(kinds),
+        "selected_fault_f1": f1,
+        "exact": exact,
+        "status": record.get("status", "missing"),
+        "cpu_seconds": float(record.get("cpu_seconds", 0.0)),
+        "lines": len(record.get("diagnoses", [])),
+        "true_count": len(truth),
     }
 
 
-def format_scores(summaries: dict[str, dict], benchmark: Path, result_root: Path, slice_ids: list[str]) -> dict:
-    scored = {k: v for k, v in summaries.items() if not k.startswith("_")}
-    localisation = {}
-    quality = {}
-    scaling = {}
-    runtime = {}
-    for name, summary in scored.items():
-        n = summary["instances_evaluated"]
-        localized = summary["localized_count"]
-        localisation[name] = {
-            "localized_rate": 100.0 * localized / max(1, n),
-            "selected_fault_f1": 100.0 * summary["selected_fault_f1"],
-            "exact_fault_set_rate": 100.0 * summary["exact_fault_set_rate"],
-            "total_instances": n,
-            "localized_count": localized,
-            "timeout_count": 0,
-            "memout_count": 0,
-        }
-        quality[name] = {
-            "valid_minimal_rate": 100.0 * summary["optimal_rate"],
-            "all_observations_consistent_rate": 100.0 * summary["success_rate"],
-            "all_reported_valid_minimal_rate": 100.0 * summary["all_reported_valid_minimal_rate"],
-            "exact_fault_set_rate": 100.0 * summary["exact_fault_set_rate"],
-            "selected_fault_precision": 100.0 * summary["selected_fault_precision"],
-            "selected_fault_recall": 100.0 * summary["selected_fault_recall"],
-            "selected_fault_f1": 100.0 * summary["selected_fault_f1"],
-            "avg_extra_gate_count": summary["avg_extra_gate_count"],
-            "avg_missing_fault_count": summary["avg_missing_fault_count"],
-            "complete_output_rate": 100.0 * summary["complete_output_rate"],
-            "invalid_count": summary["invalid_count"],
-            "nonminimal_count": summary["nonminimal_count"],
-            "missing_count": summary["missing_count"],
-            "empty_diagnosis_count": summary["empty_diagnosis_count"],
-        }
-        obs_metrics = {}
-        for paper_obs in (10, 20, 30, 40, 50):
-            scaled_obs = {10: 4, 20: 8, 30: 16, 40: 16, 50: 16}[paper_obs]
-            bucket = summary["by_observation_count"].get(
-                scaled_obs, {"total": 0, "localized": 0, "exact": 0, "fault_f1_total": 0.0}
-            )
-            obs_metrics[f"localized_rate_obs{paper_obs}"] = 100.0 * bucket["localized"] / max(1, bucket["total"])
-            obs_metrics[f"localized_count_obs{paper_obs}"] = bucket["localized"]
-            obs_metrics[f"exact_fault_set_rate_obs{paper_obs}"] = 100.0 * bucket["exact"] / max(1, bucket["total"])
-            obs_metrics[f"selected_fault_f1_obs{paper_obs}"] = (
-                100.0 * bucket["fault_f1_total"] / max(1, bucket["total"])
-            )
-        scaling[name] = obs_metrics
-        runtime[name] = {
-            "relative_runtime_rank": 3,
-            "timeout_seconds": 1800,
-            "avg_solver_oracle_calls_per_instance": summary["avg_solver_oracle_calls_per_instance"],
-            "max_solver_oracle_calls_per_instance": summary["max_solver_oracle_calls_per_instance"],
-            "avg_reported_diagnoses_per_instance": summary["avg_reported_diagnoses_per_instance"],
-            "max_reported_diagnoses_per_instance": summary["max_reported_diagnoses_per_instance"],
-        }
-
-    return {
-        "experiments": {
-            "iscas85_localisation": {"results": localisation},
-            "diagnosis_quality": {"results": quality},
-            "observation_scaling": {"results": scaling},
-            "runtime_efficiency": {"results": runtime},
-        },
-        "_evaluation_slice": {
-            "slice": SLICE,
-            "split_style": "deterministic stratified split by fault_count and observation_count",
-            "instance_count": len(slice_ids),
-            "instance_ids": slice_ids,
-        },
-        "_scaled_reproduction_context": {
-            "benchmark": str(benchmark),
-            "result_root": str(result_root),
-            "slice": SLICE,
-            "note": "Scores are from the visible train slice of the scaled synthetic circuit benchmark.",
-            "unscored": {k: v for k, v in summaries.items() if k.startswith("_")},
-        },
+def worst_values() -> dict:
+    out = {
+        "iscas85_localisation": {"localized_rate": 0.0, "min_diagnosis_recall": 0.0},
+        "diagnosis_quality": {"unsound_output_rate": 100.0},
+        "observation_scaling": {f"localized_rate_obs{m}": 0.0 for m in OBSERVATION_BUCKETS},
+        "fault_scaling": {f"localized_rate_f{k}": 0.0 for k in FAULT_BUCKETS},
     }
+    return out
+
+
+def aggregate(records: list[dict], instances: list[dict], truth: dict, cpu_limit: float) -> dict:
+    by_id = {r["id"]: r for r in records}
+    rows = []
+    for inst in instances:
+        rec = by_id.get(inst["id"], {"id": inst["id"], "status": "missing", "diagnoses": []})
+        row = score_instance(rec, inst, truth[inst["id"]], cpu_limit)
+        row["observation_count"] = inst["observation_count"]
+        row["fault_count"] = inst["fault_count"]
+        rows.append(row)
+    n = len(rows)
+    produced_any = any(r["lines"] > 0 for r in rows)
+    kinds = Counter()
+    for r in rows:
+        kinds.update(r["kinds"])
+
+    def rate(flag_rows, key):
+        return 100.0 * sum(1 for r in flag_rows if r[key]) / max(1, len(flag_rows))
+
+    loc = {
+        "localized_rate": rate(rows, "localized"),
+        "min_diagnosis_recall": 100.0 * sum(r["recall"] for r in rows) / max(1, n),
+        "localized_count": sum(1 for r in rows if r["localized"]),
+        "total_instances": n,
+        "cpu_limit_count": sum(1 for r in rows if r["status"] in ("cpu_limit", "wall_limit")),
+        "error_count": sum(1 for r in rows if r["status"] not in ("ok", "cpu_limit", "wall_limit")),
+        "selected_fault_f1": 100.0 * sum(r["selected_fault_f1"] for r in rows) / max(1, n),
+        "exact_fault_set_rate": rate(rows, "exact"),
+        "audit_avg_cpu_seconds": sum(r["cpu_seconds"] for r in rows) / max(1, n),
+    }
+    quality = {
+        "unsound_output_rate": rate(rows, "unsound"),
+        "sound_output_rate": rate(rows, "sound_nonempty"),
+        "unsound_count": sum(1 for r in rows if r["unsound"]),
+        "invalid_count": kinds.get("invalid", 0),
+        "not_minimum_count": kinds.get("not_minimum", 0),
+        "malformed_count": kinds.get("malformed", 0),
+        "duplicate_count": kinds.get("duplicate", 0),
+        "over_limit_count": kinds.get("over_limit", 0),
+    }
+    obs = {}
+    for m in OBSERVATION_BUCKETS:
+        bucket = [r for r in rows if r["observation_count"] == m]
+        obs[f"localized_rate_obs{m}"] = rate(bucket, "localized")
+        obs[f"min_diagnosis_recall_obs{m}"] = 100.0 * sum(r["recall"] for r in bucket) / max(1, len(bucket))
+        obs[f"localized_count_obs{m}"] = sum(1 for r in bucket if r["localized"])
+    faults = {}
+    for k in FAULT_BUCKETS:
+        bucket = [r for r in rows if r["fault_count"] == k]
+        faults[f"localized_rate_f{k}"] = rate(bucket, "localized")
+        faults[f"min_diagnosis_recall_f{k}"] = 100.0 * sum(r["recall"] for r in bucket) / max(1, len(bucket))
+        faults[f"localized_count_f{k}"] = sum(1 for r in bucket if r["localized"])
+    result = {
+        "iscas85_localisation": loc,
+        "diagnosis_quality": quality,
+        "observation_scaling": obs,
+        "fault_scaling": faults,
+    }
+    if not produced_any:
+        # A run that produced nothing at all is a failed run: worst values.
+        for exp, metrics in worst_values().items():
+            result[exp].update(metrics)
+        result["iscas85_localisation"]["failed_run"] = 1
+    else:
+        result["iscas85_localisation"]["failed_run"] = 0
+    return result
+
+
+def write_scores(per_method: dict[str, dict], out: Path, extra: dict) -> dict:
+    experiments: dict[str, dict] = {}
+    for method, result in sorted(per_method.items()):
+        for exp, metrics in result.items():
+            experiments.setdefault(exp, {"results": {}})["results"][method] = metrics
+    scores = {"experiments": experiments, **extra}
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(scores, indent=2, sort_keys=True) + "\n")
+    return scores
+
+
+def save_runs(name: str, payload: dict) -> None:
+    try:
+        RUNS_DIR.mkdir(parents=True, exist_ok=True)
+        (RUNS_DIR / f"{name}.json").write_text(json.dumps(payload, sort_keys=True) + "\n")
+    except OSError:
+        pass
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--benchmark", type=Path, default=Path("data/synthetic_circuits"))
-    parser.add_argument("--result-root", type=Path, default=Path("checkpoints"))
-    parser.add_argument("--out", type=Path, default=Path("scoring/scores_train.json"))
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    # Build-time helpers used once when the gym is packaged; never needed for scoring.
+    parser.add_argument("--calibrate-only", action="store_true")
+    parser.add_argument("--store-baseline", default=None, help="run a baseline command and store its raw outputs")
+    parser.add_argument("--command-json", default=None)
+    parser.add_argument("--cpu-limit", type=float, default=None, help="override the per-instance CPU budget (development only)")
+    parser.add_argument("--methods", default=None, help="comma-separated subset of registered methods (development only)")
     args = parser.parse_args()
 
-    instances = load_instances(args.benchmark)
-    slice_ids = split_instance_ids(instances)
-    result_files = discover_result_files(args.result_root)
-    summaries = {}
-    for name, path in result_files.items():
-        score_name = f"_{name}_unscored" if name == "bugassist_vote" else name
-        summaries[score_name] = summarize_method(instances, path, slice_ids)
+    instances, truth = load_benchmark()
+    config = json.loads(CONFIG_FILE.read_text())
 
-    scores = format_scores(summaries, args.benchmark, args.result_root, slice_ids)
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(scores, indent=2, sort_keys=True) + "\n")
-    print(json.dumps(scores, indent=2, sort_keys=True))
+    if args.calibrate_only:
+        ids = config.get("calibration", {}).get("instance_ids", [])
+        print(json.dumps({"cpu_seconds": measure_calibration(instances, ids, repeats=5)}))
+        return
+
+    budget = cpu_budget(config, instances)
+    if args.cpu_limit is not None:
+        budget["cpu_limit_seconds"] = float(args.cpu_limit)
+        budget["override"] = True
+    cpu_limit = budget["cpu_limit_seconds"]
+    print(f"[{SLICE}] cpu budget per instance: {json.dumps(budget)}", file=sys.stderr, flush=True)
+
+    if args.store_baseline:
+        command = valid_registration({"command": json.loads(args.command_json)})
+        records = run_method(command, instances, cpu_limit, args.store_baseline)
+        BASELINE_DIR.mkdir(parents=True, exist_ok=True)
+        (BASELINE_DIR / f"{args.store_baseline}.json").write_text(
+            json.dumps({"method": args.store_baseline, "budget": budget, "records": records}, sort_keys=True) + "\n"
+        )
+        return
+
+    registered = discover_methods(REPO_ROOT / "checkpoints")
+    for required in config.get("required_methods", ["cfaults"]):
+        registered.setdefault(required, None)
+
+    if args.methods:
+        wanted = set(args.methods.split(","))
+        registered = {k: v for k, v in registered.items() if k in wanted}
+    per_method: dict[str, dict] = {}
+    run_payloads: dict[str, dict] = {}
+    for key, command in sorted(registered.items()):
+        records = run_method(command, instances, cpu_limit, key)
+        per_method[key] = aggregate(records, instances, truth, cpu_limit)
+        run_payloads[key] = {"method": key, "budget": budget, "command": command, "records": records}
+    for key, payload in run_payloads.items():
+        save_runs(key, payload)
+
+    for key in RESERVED_KEYS:
+        stored = load_json(BASELINE_DIR / f"{key}.json")
+        if stored is None:
+            continue
+        stored_limit = float(stored.get("budget", {}).get("cpu_limit_seconds", cpu_limit))
+        per_method[key] = aggregate(stored.get("records", []), instances, truth, stored_limit)
+
+    extra = {
+        "_evaluation": {
+            "slice": SLICE,
+            "instance_count": len(instances),
+            "budget": budget,
+            "methods_run": sorted(registered),
+            "baselines_from": "eval/train/baseline_outputs (evaluator-owned, fixed)",
+        }
+    }
+    scores = write_scores(per_method, args.out, extra)
+    print(json.dumps(scores["experiments"]["iscas85_localisation"], indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":

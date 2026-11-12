@@ -1,7 +1,11 @@
 #!/bin/bash
-# Run the paper's proposed method.
+# Register the paper's method (CFaults, unified multi-observation MaxSAT) and
+# score it on the public train split.
 #
-# This script trains/runs the paper's method using code in method/.
+# The method needs no training: "running" it means registering its command in
+# checkpoints/cfaults_circuit/solver.json; the evaluators then run it on each
+# instance themselves (train: scripts/evaluate_train.sh, hidden test:
+# scripts/evaluate_test.sh).
 #
 # Usage:
 #   bash scripts/method.sh
@@ -11,9 +15,5 @@ set -e
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-python data/circuit_benchmark.py --out data/synthetic_circuits --instances-per-setting 3
-python method/cfaults_circuit.py \
-  --benchmark data/synthetic_circuits \
-  --out checkpoints/cfaults_circuit/results.json \
-  --solver auto
-bash scripts/evaluate.sh
+python method/cfaults_circuit.py --register
+bash scripts/evaluate_train.sh

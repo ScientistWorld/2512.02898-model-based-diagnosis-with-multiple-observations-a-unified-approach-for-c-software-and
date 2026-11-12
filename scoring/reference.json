@@ -1,83 +1,260 @@
 {
   "experiments": {
     "iscas85_localisation": {
-      "description": "Augmented ISCAS85 Boolean-circuit fault localisation, paper Table 5. Main score tracks recovery of the injected faulty gates on the scaled benchmark; minimum-diagnosis localisation is retained as an audit field because it saturated on the first real split run.",
+      "description": "Main circuit result (paper Table 5 'All'): share of hidden ISCAS85-derived instances whose complete set of minimum-cardinality diagnoses the method localises within the fixed per-instance CPU budget. The method is run by the hidden test on instances it has never seen.",
       "weight": 0.45,
-      "primary_metric": "selected_fault_f1",
+      "primary_metric": "localized_rate",
       "metrics": {
-        "selected_fault_f1": {"higher_is_better": true, "coefficient": 1.0, "description": "Mean F1 overlap between the selected diagnosis and the injected faulty-gate set."},
-        "exact_fault_set_rate": {"higher_is_better": true, "coefficient": 0.0, "description": "Rate at which the selected diagnosis exactly recovers the injected faulty-gate set; audit-only because the train slice was too sparse for this as a ranked metric."},
-        "localized_rate": {"higher_is_better": true, "coefficient": 0.0, "description": "Fraction of slice instances whose first reported diagnosis is valid and minimum-cardinality; audit-only after saturation on the scaled split."},
-        "total_instances": {"higher_is_better": true, "coefficient": 0.0, "description": "Number of instances scored in this slice; included for auditability, not ranking."},
-        "localized_count": {"higher_is_better": true, "coefficient": 0.0, "description": "Raw count of valid minimum-cardinality selected diagnoses; audit-only after saturation on the scaled split."},
-        "timeout_count": {"higher_is_better": false, "coefficient": 0.0, "description": "Timeout count retained for compatibility with the original score schema; not ranked in train/test because wall-clock timing is hardware-dependent."},
-        "memout_count": {"higher_is_better": false, "coefficient": 0.0, "description": "Memory-failure count retained for compatibility with the original score schema; not ranked in train/test because resource limits vary by runner."}
-      },
-      "results": {
-        "cfaults": {"type": "proposed", "selected_fault_f1": 37.3015873015873, "localized_rate": 73.84, "total_instances": 12147, "localized_count": 8969, "timeout_count": 3178, "memout_count": 0},
-        "hsd": {"type": "baseline", "localized_rate": 80.14, "total_instances": 12147, "localized_count": 9735, "timeout_count": 2412, "memout_count": 0},
-        "hsd_cm": {"type": "baseline", "localized_rate": 79.67, "total_instances": 12147, "localized_count": 9678, "timeout_count": 2469, "memout_count": 0}
-      }
-    },
-    "diagnosis_quality": {
-      "description": "Validity and minimality constraints for counted circuit diagnoses. The paper reports successful localisations as minimum diagnoses.",
-      "weight": 0.25,
-      "primary_metric": "selected_fault_f1",
-      "metrics": {
-        "selected_fault_f1": {"higher_is_better": true, "coefficient": 1.0, "description": "Mean F1 overlap between the selected diagnosis and the injected faulty-gate set."},
-        "selected_fault_precision": {"higher_is_better": true, "coefficient": 0.4, "description": "Mean precision of selected diagnosis gates against the injected faulty-gate set."},
-        "selected_fault_recall": {"higher_is_better": true, "coefficient": 0.4, "description": "Mean recall of injected faulty gates in the selected diagnosis."},
-        "exact_fault_set_rate": {"higher_is_better": true, "coefficient": 0.0, "description": "Rate at which the selected diagnosis exactly matches the injected faulty gates in the generated benchmark; audit-only because the train slice was too sparse for this as a ranked metric."},
-        "avg_extra_gate_count": {"higher_is_better": false, "coefficient": -0.3, "description": "Average number of non-injected gates included in the selected diagnosis."},
-        "avg_missing_fault_count": {"higher_is_better": false, "coefficient": -0.3, "description": "Average number of injected faulty gates omitted from the selected diagnosis."},
-        "valid_minimal_rate": {"higher_is_better": true, "coefficient": 0.0, "description": "Rate at which the first reported diagnosis is both observation-consistent and minimum-cardinality; audit-only after saturation on the scaled split."},
-        "all_observations_consistent_rate": {"higher_is_better": true, "coefficient": 0.0, "description": "Rate at which the first reported diagnosis explains all failing observations, independent of cardinality; audit-only after saturation on the scaled split."},
-        "all_reported_valid_minimal_rate": {"higher_is_better": true, "coefficient": 0.0, "description": "Fraction of every reported diagnosis, not just the first, that is valid and minimum-cardinality; audit-only after saturation on the scaled split."},
-        "complete_output_rate": {"higher_is_better": true, "coefficient": 0.0, "description": "Rate at which a method provides a non-empty diagnosis artifact for scored instances; audit-only after saturation on the scaled split."},
-        "invalid_count": {"higher_is_better": false, "coefficient": 0.0, "description": "Number of first diagnoses that do not explain all failing observations; audit-only after saturation on the scaled split."},
-        "nonminimal_count": {"higher_is_better": false, "coefficient": 0.0, "description": "Number of valid first diagnoses that are not minimum-cardinality; audit-only after saturation on the scaled split."},
-        "missing_count": {"higher_is_better": false, "coefficient": 0.0, "description": "Number of scored instances missing from the method artifact; audit-only after saturation on the scaled split."},
-        "empty_diagnosis_count": {"higher_is_better": false, "coefficient": 0.0, "description": "Number of scored instances present in the artifact but carrying no diagnosis; audit-only after saturation on the scaled split."}
-      },
-      "results": {
-        "cfaults": {"type": "proposed", "selected_fault_f1": 37.3015873015873, "valid_minimal_rate": 100.0, "all_observations_consistent_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0},
-        "hsd": {"type": "baseline", "valid_minimal_rate": 100.0, "all_observations_consistent_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0},
-        "hsd_cm": {"type": "baseline", "valid_minimal_rate": 100.0, "all_observations_consistent_rate": 100.0, "invalid_count": 0, "nonminimal_count": 0}
-      }
-    },
-    "observation_scaling": {
-      "description": "Augmented ISCAS85 localisation rates by number of failing observations, paper Table 5.",
-      "weight": 0.2,
-      "primary_metric": "selected_fault_f1_obs50",
-      "metrics": {
-        "selected_fault_f1_obs10": {"higher_is_better": true, "coefficient": 0.2, "description": "Mean selected fault-set F1 on the lowest-observation bucket of the scaled benchmark."},
-        "selected_fault_f1_obs20": {"higher_is_better": true, "coefficient": 0.2, "description": "Mean selected fault-set F1 on the next-lowest observation bucket of the scaled benchmark."},
-        "selected_fault_f1_obs30": {"higher_is_better": true, "coefficient": 0.2, "description": "Mean selected fault-set F1 on the highest-observation bucket of the scaled benchmark."},
-        "selected_fault_f1_obs40": {"higher_is_better": true, "coefficient": 0.2, "description": "Replicated high-observation selected fault-set F1 to preserve the paper's increasing-observation score shape."},
-        "selected_fault_f1_obs50": {"higher_is_better": true, "coefficient": 0.2, "description": "Replicated high-observation selected fault-set F1 used as the primary scaling stress metric."},
-        "exact_fault_set_rate_obs10": {"higher_is_better": true, "coefficient": 0.0, "description": "Exact injected-fault recovery rate for the lowest-observation bucket; audit-only because the train slice was too sparse for this as a ranked metric."},
-        "exact_fault_set_rate_obs20": {"higher_is_better": true, "coefficient": 0.0, "description": "Exact injected-fault recovery rate for the next-lowest observation bucket; audit-only because the train slice was too sparse for this as a ranked metric."},
-        "exact_fault_set_rate_obs30": {"higher_is_better": true, "coefficient": 0.0, "description": "Exact injected-fault recovery rate for the highest-observation bucket; audit-only because the train slice was too sparse for this as a ranked metric."},
-        "exact_fault_set_rate_obs40": {"higher_is_better": true, "coefficient": 0.0, "description": "Replicated high-observation exact injected-fault recovery rate; audit-only because the train slice was too sparse for this as a ranked metric."},
-        "exact_fault_set_rate_obs50": {"higher_is_better": true, "coefficient": 0.0, "description": "Replicated high-observation exact injected-fault recovery rate; audit-only because the train slice was too sparse for this as a ranked metric."},
-        "localized_rate_obs10": {"higher_is_better": true, "coefficient": 0.0, "description": "Localisation rate on the lowest-observation bucket of the scaled benchmark; audit-only after saturation on the scaled split."},
-        "localized_rate_obs20": {"higher_is_better": true, "coefficient": 0.0, "description": "Localisation rate on the next-lowest observation bucket of the scaled benchmark; audit-only after saturation on the scaled split."},
-        "localized_rate_obs30": {"higher_is_better": true, "coefficient": 0.0, "description": "Localisation rate on the highest-observation bucket of the scaled benchmark; audit-only after saturation on the scaled split."},
-        "localized_rate_obs40": {"higher_is_better": true, "coefficient": 0.0, "description": "Replicated high-observation localisation rate; audit-only after saturation on the scaled split."},
-        "localized_rate_obs50": {"higher_is_better": true, "coefficient": 0.0, "description": "Replicated high-observation localisation rate; audit-only after saturation on the scaled split."},
-        "localized_count_obs10": {"higher_is_better": true, "coefficient": 0.0, "description": "Raw successful-localisation count for the lowest-observation bucket; audit-only after saturation on the scaled split."},
-        "localized_count_obs20": {"higher_is_better": true, "coefficient": 0.0, "description": "Raw successful-localisation count for the next-lowest observation bucket; audit-only after saturation on the scaled split."},
-        "localized_count_obs30": {"higher_is_better": true, "coefficient": 0.0, "description": "Raw successful-localisation count for the highest-observation bucket; audit-only after saturation on the scaled split."},
-        "localized_count_obs40": {"higher_is_better": true, "coefficient": 0.0, "description": "Raw successful-localisation count for the replicated high-observation bucket; audit-only after saturation on the scaled split."},
-        "localized_count_obs50": {"higher_is_better": true, "coefficient": 0.0, "description": "Raw successful-localisation count for the primary high-observation stress metric; audit-only after saturation on the scaled split."}
+        "localized_rate": {
+          "higher_is_better": true,
+          "coefficient": 1.0,
+          "description": "Percentage of hidden instances for which the method wrote, within the per-instance CPU budget, exactly the complete set of minimum-cardinality diagnoses and nothing else (every reported diagnosis valid for all observations, of minimum cardinality, well-formed and distinct). The paper's 'successfully localised' measure (Table 5)."
+        },
+        "min_diagnosis_recall": {
+          "higher_is_better": true,
+          "coefficient": 0.5,
+          "description": "Mean percentage of each instance's minimum-cardinality diagnoses that the method reported within the budget; an instance with any unsound report (invalid, non-minimum, malformed, duplicate) or a budget violation counts 0."
+        },
+        "localized_count": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Raw count behind localized_rate (audit)."
+        },
+        "total_instances": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Number of evaluated instances (audit)."
+        },
+        "cpu_limit_count": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Instances on which the method was stopped by the CPU or wall guard (audit; the paper's timeout count)."
+        },
+        "error_count": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Instances on which the method process failed to start or exited with an error (audit)."
+        },
+        "selected_fault_f1": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit only: F1 overlap between the first reported diagnosis (if sound) and the injected faulty gates. Not ranked: all minimum diagnoses are equally valid explanations in the paper's formulation."
+        },
+        "exact_fault_set_rate": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit only: first reported diagnosis equals the injected fault set."
+        },
+        "audit_avg_cpu_seconds": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Audit only, never ranked: mean CPU seconds per instance as measured by the evaluator."
+        },
+        "failed_run": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "1 if the method produced no output on any instance (then every ranked metric is set to its worst value)."
+        }
       },
       "results": {
         "cfaults": {
           "type": "proposed",
-          "selected_fault_f1_obs50": 28.977072310405642,
+          "localized_rate": 0.0
+        },
+        "hsd": {
+          "type": "baseline"
+        },
+        "bugassist_vote": {
+          "type": "baseline"
+        }
+      },
+      "_paper_reported": {
+        "note": "Paper-reported numbers (augmented ISCAS85: 10 circuits, 12,147 instances, 1-50 injected faults, 10-50 observations, 1800 s per circuit on Xeon Silver 4110). Not on this gym's scale (5 circuits, 1/3/5 faults, 75 hidden instances, a few CPU-seconds per instance), so kept here for context only and never used as targets.",
+        "cfaults": {
+          "localized_count": 8969,
+          "localized_rate": 73.84,
+          "total_instances": 12147,
+          "timeout_seconds": 1800
+        },
+        "hsd": {
+          "localized_count": 9735,
+          "localized_rate": 80.14
+        },
+        "hsd_cm": {
+          "localized_count": 9678,
+          "localized_rate": 79.67
+        }
+      }
+    },
+    "diagnosis_quality": {
+      "description": "Constraint: every reported diagnosis must be a minimum-cardinality diagnosis consistent with all observations (the paper's claim that the unified approach yields only minimal diagnoses, unlike per-observation aggregation).",
+      "weight": 0.15,
+      "primary_metric": "unsound_output_rate",
+      "metrics": {
+        "unsound_output_rate": {
+          "higher_is_better": false,
+          "coefficient": 1.0,
+          "description": "Percentage of instances on which the method reported at least one diagnosis that is not a minimum-cardinality diagnosis (invalid for some observation, non-minimum, malformed, unknown gate, or duplicated). The paper's claim that CFaults produces only minimal diagnoses, as a constraint."
+        },
+        "sound_output_rate": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: instances with at least one reported diagnosis, all of them minimum-cardinality diagnoses."
+        },
+        "unsound_count": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Audit count behind unsound_output_rate."
+        },
+        "invalid_count": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Audit: reported diagnoses of cardinality <= optimum that are not diagnoses."
+        },
+        "not_minimum_count": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Audit: reported diagnoses larger than the minimum cardinality."
+        },
+        "malformed_count": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Audit: output lines that are not a list of distinct known gate names."
+        },
+        "duplicate_count": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Audit: diagnoses reported more than once."
+        },
+        "over_limit_count": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Audit: instances whose measured CPU exceeded the budget or whose output exceeded the size cap."
+        }
+      },
+      "results": {
+        "cfaults": {
+          "type": "proposed",
+          "unsound_output_rate": 0.0
+        },
+        "hsd": {
+          "type": "baseline"
+        },
+        "bugassist_vote": {
+          "type": "baseline"
+        }
+      },
+      "_paper_reported": {
+        "note": "Paper Sections 6.1-6.2: CFaults and HSD always return optimal minimal diagnoses; BugAssist returns a non-optimal diagnosis in 2.4% (TCAS) / 9% (C-Pack-IPAs) of programs; SNIPER enumerates redundant diagnoses in 27% / 55%. C-program results; no circuit breakdown is reported.",
+        "bugassist_nonoptimal_pct": {
+          "tcas": 2.4,
+          "c_pack_ipas": 9.0
+        },
+        "sniper_redundant_pct": {
+          "tcas": 27.0,
+          "c_pack_ipas": 55.0
+        }
+      }
+    },
+    "observation_scaling": {
+      "description": "Paper Table 5 rows: localisation rate for 10, 20, 30, 40 and 50 failing observations (each bucket is a distinct set of hidden instances).",
+      "weight": 0.2,
+      "primary_metric": "localized_rate_obs50",
+      "metrics": {
+        "localized_rate_obs10": {
+          "higher_is_better": true,
+          "coefficient": 0.2,
+          "description": "localized_rate restricted to instances with 10 failing observations (paper Table 5 row)."
+        },
+        "localized_rate_obs20": {
+          "higher_is_better": true,
+          "coefficient": 0.2,
+          "description": "localized_rate restricted to instances with 20 failing observations (paper Table 5 row)."
+        },
+        "localized_rate_obs30": {
+          "higher_is_better": true,
+          "coefficient": 0.2,
+          "description": "localized_rate restricted to instances with 30 failing observations (paper Table 5 row)."
+        },
+        "localized_rate_obs40": {
+          "higher_is_better": true,
+          "coefficient": 0.2,
+          "description": "localized_rate restricted to instances with 40 failing observations (paper Table 5 row)."
+        },
+        "localized_rate_obs50": {
+          "higher_is_better": true,
+          "coefficient": 0.2,
+          "description": "localized_rate restricted to instances with 50 failing observations (paper Table 5 row)."
+        },
+        "min_diagnosis_recall_obs10": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: min_diagnosis_recall on the 10-observation instances."
+        },
+        "localized_count_obs10": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: localized count on the 10-observation instances."
+        },
+        "min_diagnosis_recall_obs20": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: min_diagnosis_recall on the 20-observation instances."
+        },
+        "localized_count_obs20": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: localized count on the 20-observation instances."
+        },
+        "min_diagnosis_recall_obs30": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: min_diagnosis_recall on the 30-observation instances."
+        },
+        "localized_count_obs30": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: localized count on the 30-observation instances."
+        },
+        "min_diagnosis_recall_obs40": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: min_diagnosis_recall on the 40-observation instances."
+        },
+        "localized_count_obs40": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: localized count on the 40-observation instances."
+        },
+        "min_diagnosis_recall_obs50": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: min_diagnosis_recall on the 50-observation instances."
+        },
+        "localized_count_obs50": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: localized count on the 50-observation instances."
+        }
+      },
+      "results": {
+        "cfaults": {
+          "type": "proposed",
+          "localized_rate_obs50": 0.0
+        },
+        "hsd": {
+          "type": "baseline"
+        },
+        "bugassist_vote": {
+          "type": "baseline"
+        }
+      },
+      "_paper_reported": {
+        "note": "Paper-reported numbers (augmented ISCAS85: 10 circuits, 12,147 instances, 1-50 injected faults, 10-50 observations, 1800 s per circuit on Xeon Silver 4110). Not on this gym's scale (5 circuits, 1/3/5 faults, 75 hidden instances, a few CPU-seconds per instance), so kept here for context only and never used as targets.",
+        "cfaults": {
           "localized_rate_obs10": 81.62,
           "localized_rate_obs20": 76.12,
-          "localized_rate_obs30": 71.70,
+          "localized_rate_obs30": 71.7,
           "localized_rate_obs40": 70.82,
           "localized_rate_obs50": 68.73,
           "localized_count_obs10": 2011,
@@ -87,9 +264,8 @@
           "localized_count_obs50": 1664
         },
         "hsd": {
-          "type": "baseline",
           "localized_rate_obs10": 86.65,
-          "localized_rate_obs20": 81.80,
+          "localized_rate_obs20": 81.8,
           "localized_rate_obs30": 78.28,
           "localized_rate_obs40": 78.16,
           "localized_rate_obs50": 75.67,
@@ -100,7 +276,6 @@
           "localized_count_obs50": 1832
         },
         "hsd_cm": {
-          "type": "baseline",
           "localized_rate_obs10": 85.63,
           "localized_rate_obs20": 80.94,
           "localized_rate_obs30": 77.53,
@@ -114,32 +289,97 @@
         }
       }
     },
-    "runtime_efficiency": {
-      "description": "Machine-independent solver-work and artifact-size audit for circuit diagnosis. This replaces wall-clock ranking in train/test because hardware timing is not stable across benchmark runners.",
-      "notes": "The paper reports wall-clock runtime ranks and a fixed timeout policy, but not solver-oracle-call counts. The solver-call and diagnosis-count values here are scaled-gym reference values; they are included because wall-clock runtime must not be a scored gym metric.",
-      "weight": 0.1,
-      "primary_metric": "avg_solver_oracle_calls_per_instance",
+    "fault_scaling": {
+      "description": "Localisation rate by number of injected faults (1, 3, 5). The multi-fault instances are where the paper's method falls short (timeouts grow with the number of minimum diagnoses and formula size) and where exhaustive candidate search fails.",
+      "weight": 0.2,
+      "primary_metric": "localized_rate_f3",
       "metrics": {
-        "relative_runtime_rank": {"higher_is_better": false, "coefficient": 0.0, "description": "Legacy paper runtime-rank field retained for reference compatibility only; not used for train/test ranking."},
-        "timeout_seconds": {"higher_is_better": false, "coefficient": 0.0, "description": "Legacy timeout-policy field retained for reference compatibility only; not used for train/test ranking."},
-        "avg_solver_oracle_calls_per_instance": {"higher_is_better": false, "coefficient": -0.8, "description": "Average number of solver-oracle calls reported per scored instance; a machine-independent proxy for search effort."},
-        "max_solver_oracle_calls_per_instance": {"higher_is_better": false, "coefficient": -0.2, "description": "Maximum solver-oracle calls reported for any scored instance; catches concentrated hard cases."},
-        "avg_reported_diagnoses_per_instance": {"higher_is_better": false, "coefficient": 0.0, "description": "Average number of diagnoses emitted per scored instance; audit-only because exact enumerators may legitimately tie on this value."},
-        "max_reported_diagnoses_per_instance": {"higher_is_better": false, "coefficient": 0.0, "description": "Maximum number of diagnoses emitted for any scored instance; audit-only because exact enumerators may legitimately tie on this value."}
+        "localized_rate_f1": {
+          "higher_is_better": true,
+          "coefficient": 0.2,
+          "description": "localized_rate on single-fault instances."
+        },
+        "localized_rate_f3": {
+          "higher_is_better": true,
+          "coefficient": 0.4,
+          "description": "localized_rate on three-fault instances."
+        },
+        "localized_rate_f5": {
+          "higher_is_better": true,
+          "coefficient": 0.4,
+          "description": "localized_rate on five-fault instances, where exhaustive candidate search is hopeless and the number of minimum diagnoses grows."
+        },
+        "min_diagnosis_recall_f1": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: min_diagnosis_recall on 1-fault instances."
+        },
+        "localized_count_f1": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: localized count on 1-fault instances."
+        },
+        "min_diagnosis_recall_f3": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: min_diagnosis_recall on 3-fault instances."
+        },
+        "localized_count_f3": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: localized count on 3-fault instances."
+        },
+        "min_diagnosis_recall_f5": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: min_diagnosis_recall on 5-fault instances."
+        },
+        "localized_count_f5": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: localized count on 5-fault instances."
+        }
       },
       "results": {
-        "hsd": {"type": "baseline", "relative_runtime_rank": 1, "timeout_seconds": 1800, "avg_solver_oracle_calls_per_instance": 112.66666666666667, "max_solver_oracle_calls_per_instance": 1321, "avg_reported_diagnoses_per_instance": 8.444444444444445, "max_reported_diagnoses_per_instance": 81},
-        "hsd_cm": {"type": "baseline", "relative_runtime_rank": 2, "timeout_seconds": 1800},
-        "cfaults": {"type": "proposed", "relative_runtime_rank": 3, "timeout_seconds": 1800, "avg_solver_oracle_calls_per_instance": 9.444444444444445, "max_solver_oracle_calls_per_instance": 82, "avg_reported_diagnoses_per_instance": 8.444444444444445, "max_reported_diagnoses_per_instance": 81}
+        "cfaults": {
+          "type": "proposed",
+          "localized_rate_f3": 0.0
+        },
+        "hsd": {
+          "type": "baseline"
+        },
+        "bugassist_vote": {
+          "type": "baseline"
+        }
+      },
+      "_paper_reported": {
+        "note": "The paper injects 1,2,3,4,5,10,20,30,40,50 faults but reports results only aggregated by observation count; no per-fault-count numbers exist."
       }
     }
   },
   "context": {
     "motivating_example": {
-      "description": "C-program motivating example from Tables 1-2, included only as context for multi-observation aggregation failure modes; not part of the circuit benchmark score.",
-      "bugassist": {"unique_diagnoses": 32, "final_diagnosis": "{4,13}", "diagnoses_per_test": {"t0": 8, "t1": 21, "t2": 9}},
-      "sniper": {"unique_diagnoses": 1297, "final_diagnosis": "{5,8,11}", "diagnoses_per_test": {"t0": 8, "t1": 21, "t2": 9}},
+      "description": "C-program motivating example from Tables 1-2, context only.",
+      "bugassist": {
+        "unique_diagnoses": 32,
+        "final_diagnosis": "{4,13}",
+        "diagnoses_per_test": {
+          "t0": 8,
+          "t1": 21,
+          "t2": 9
+        }
+      },
+      "sniper": {
+        "unique_diagnoses": 1297,
+        "final_diagnosis": "{5,8,11}",
+        "diagnoses_per_test": {
+          "t0": 8,
+          "t1": 21,
+          "t2": 9
+        }
+      },
       "known_minimal_faulty_lines": "{5,8,11}"
-    }
+    },
+    "scale_note": "Gym results in 'results' are this gym's reference runs (hidden test, iteration 11); paper numbers live under each experiment's '_paper_reported'."
   }
 }

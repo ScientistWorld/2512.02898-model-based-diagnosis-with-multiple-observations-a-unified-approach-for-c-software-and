@@ -1,36 +1,26 @@
 #!/usr/bin/env python3
-"""BugAssist-style per-observation diagnosis voting baseline for circuits."""
+"""BugAssist-style baseline: per-observation diagnosis plus frequency voting.
+
+Algorithms 1-2 of the paper, transferred to circuits.  Each failing
+observation is diagnosed on its own (single-replica MaxSAT; minimum-cost
+correction sets enumerated with blocking clauses, capped per observation).
+The diagnoses are ranked by how many observations produced them, ties broken
+by size, and - as in the paper's experimental setup for BugAssist - the
+highest-ranked diagnosis that is consistent with *all* observations is
+returned (the top-ranked one if none is).  Exactly one diagnosis is written.
+
+    python baseline/bugassist_vote_circuit.py --instance INSTANCE.json --output OUT.jsonl
+"""
 
 from __future__ import annotations
 
 import argparse
 import collections
-import itertools
 import json
-import time
 from pathlib import Path
 
-import sys
-
-sys.path.append(str(Path(__file__).resolve().parents[1]))
-from data.circuit_benchmark import circuit_from_json  # noqa: E402
-
-
 Clause = list[int]
-
-
-class VarPool:
-    def __init__(self) -> None:
-        self._ids: dict[str, int] = {}
-
-    def id(self, name: str) -> int:
-        if name not in self._ids:
-            self._ids[name] = len(self._ids) + 1
-        return self._ids[name]
-
-    @property
-    def top(self) -> int:
-        return len(self._ids)
+PER_OBSERVATION_CAP = 50
 
 
 def guarded_equiv_clauses(op: str, out: int, ins: list[int], guard: int) -> list[Clause]:
@@ -49,151 +39,86 @@ def guarded_equiv_clauses(op: str, out: int, ins: list[int], guard: int) -> list
         return [[gneg, out, *ins], *[[gneg, -out, -x] for x in ins]]
     if op == "XOR":
         a, b = ins
-        return [
-            [gneg, -a, -b, -out],
-            [gneg, -a, b, out],
-            [gneg, a, -b, out],
-            [gneg, a, b, -out],
-        ]
+        return [[gneg, -a, -b, -out], [gneg, -a, b, out], [gneg, a, -b, out], [gneg, a, b, -out]]
     raise ValueError(f"unsupported op {op}")
 
 
-def build_one_observation_formula(circuit, observation: dict) -> tuple[list[Clause], list[int], int, dict[int, str]]:
-    pool = VarPool()
-    healthy = {gate.name: pool.id(f"h::{gate.name}") for gate in circuit.gates}
-    hard: list[Clause] = []
-
-    def v(name: str) -> int:
-        return pool.id(f"o0::{name}")
-
-    for name, value in observation["inputs"].items():
-        hard.append([v(name) if value else -v(name)])
-    for gate in circuit.gates:
-        hard.extend(guarded_equiv_clauses(gate.op, v(gate.name), [v(name) for name in gate.inputs], healthy[gate.name]))
+def observation_formula(circuit: dict, observation: dict, health: dict[str, int]) -> tuple[list[Clause], int]:
+    nv = len(health)
+    var: dict[str, int] = {}
+    clauses: list[Clause] = []
+    for name in circuit["inputs"]:
+        nv += 1
+        var[name] = nv
+        clauses.append([nv if observation["inputs"][name] else -nv])
+    for gate in circuit["gates"]:
+        nv += 1
+        var[gate["name"]] = nv
+    for gate in circuit["gates"]:
+        clauses.extend(guarded_equiv_clauses(gate["op"], var[gate["name"]], [var[x] for x in gate["inputs"]], health[gate["name"]]))
     for name, value in observation["expected_outputs"].items():
-        hard.append([v(name) if value else -v(name)])
-    return hard, list(healthy.values()), pool.top, {lit: name for name, lit in healthy.items()}
+        clauses.append([var[name] if value else -var[name]])
+    return clauses, nv
 
 
-def clause_sat(clause: Clause, assignment: dict[int, bool]) -> bool:
-    return any(assignment.get(abs(lit), False) == (lit > 0) for lit in clause)
+def per_observation_diagnoses(circuit: dict, observation: dict, health: dict[str, int]) -> list[frozenset[str]]:
+    from pysat.examples.rc2 import RC2
+    from pysat.formula import WCNF
 
-
-def solve_one_observation(
-    hard: list[Clause],
-    soft: list[int],
-    top: int,
-    block: list[Clause] | None,
-    solver: str,
-) -> tuple[set[int] | None, int | None, str]:
-    if solver in {"auto", "pysat"}:
-        try:
-            from pysat.examples.rc2 import RC2Stratified
-            from pysat.formula import WCNF
-
-            wcnf = WCNF()
-            for clause in hard:
-                wcnf.append(clause)
-            for clause in block or []:
-                wcnf.append(clause)
-            for lit in soft:
-                wcnf.append([lit], weight=1)
-            wcnf.nv = max(top, wcnf.nv)
-            with RC2Stratified(wcnf) as rc2:
-                model = rc2.compute()
-                if model is None:
-                    return None, None, "pysat_rc2stratified"
-                assigned = set(model)
-                disabled = {lit for lit in soft if -lit in assigned}
-                return disabled, len(disabled), "pysat_rc2stratified"
-        except ModuleNotFoundError:
-            if solver == "pysat":
-                raise
-
-    clauses = hard + (block or [])
-    best: set[int] | None = None
-    for bits in itertools.product([False, True], repeat=top):
-        assignment = {idx + 1: bits[idx] for idx in range(top)}
-        if not all(clause_sat(clause, assignment) for clause in clauses):
-            continue
-        disabled = {lit for lit in soft if not assignment[lit]}
-        if best is None or len(disabled) < len(best):
-            best = disabled
-    return (best, len(best), "exhaustive") if best is not None else (None, None, "exhaustive")
-
-
-def diagnose_one_observation(circuit, observation: dict, solver: str) -> dict:
-    start = time.perf_counter()
-    hard, soft, top, names = build_one_observation_formula(circuit, observation)
-    block: list[Clause] = []
-    diagnoses: list[list[str]] = []
+    clauses, nv = observation_formula(circuit, observation, health)
+    wcnf = WCNF()
+    for clause in clauses:
+        wcnf.append(clause)
+    for lit in health.values():
+        wcnf.append([lit], weight=1)
+    name_of = {lit: name for name, lit in health.items()}
+    out: list[frozenset[str]] = []
     optimum = None
-    solver_used = "unknown"
-    while True:
-        disabled, cost, solver_used = solve_one_observation(hard, soft, top, block, solver)
-        if disabled is None or cost is None:
-            break
-        if optimum is None:
-            optimum = cost
-        if cost > optimum:
-            break
-        diag = sorted(names[lit] for lit in disabled)
-        if diag not in diagnoses:
-            diagnoses.append(diag)
-        if not disabled:
-            break
-        block.append([lit for lit in disabled])
-    return {
-        "diagnoses": diagnoses,
-        "diagnosis_count": len(diagnoses),
-        "optimum_cost": optimum,
-        "elapsed_sec": time.perf_counter() - start,
-        "solver": solver_used,
-    }
+    with RC2(wcnf) as rc2:
+        while len(out) < PER_OBSERVATION_CAP:
+            model = rc2.compute()
+            if model is None:
+                break
+            assigned = set(model)
+            disabled = [lit for lit in health.values() if -lit in assigned]
+            if optimum is None:
+                optimum = len(disabled)
+            if len(disabled) > optimum or not disabled:
+                break
+            out.append(frozenset(name_of[lit] for lit in disabled))
+            rc2.add_clause(sorted(disabled))
+    return out
 
 
-def run_baseline(benchmark: Path, out: Path, limit: int = 0, solver: str = "auto") -> None:
-    manifest = json.loads((benchmark / "manifest.json").read_text())
-    results = {"method": "bugassist_vote", "benchmark": manifest["name"], "instances": []}
-    for entry in manifest["instances"][: limit or None]:
-        instance = json.loads((benchmark / entry["path"]).read_text())
-        circuit = circuit_from_json(instance["faulty_circuit"])
-        votes: collections.Counter[tuple[str, ...]] = collections.Counter()
-        per_obs = []
-        for obs in instance["observations"]:
-            result = diagnose_one_observation(circuit, obs, solver=solver)
-            for diag in result["diagnoses"]:
-                votes[tuple(diag)] += 1
-            per_obs.append(result)
-        ranked = sorted(votes, key=lambda item: (-votes[item], len(item), item))
-        chosen = list(ranked[0]) if ranked else []
-        results["instances"].append(
-            {
-                "id": instance["id"],
-                "path": entry["path"],
-                "fault_count": instance["fault_count"],
-                "observation_count": instance["observation_count"],
-                "true_faults": sorted(instance["faults"]),
-                "diagnoses": [chosen],
-                "diagnosis_count": len(votes),
-                "optimum_cost": len(chosen),
-                "per_observation_diagnosis_total": sum(r["diagnosis_count"] for r in per_obs),
-                "elapsed_sec": sum(r["elapsed_sec"] for r in per_obs),
-                "solver": per_obs[0]["solver"] if per_obs else "none",
-            }
-        )
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(results, indent=2, sort_keys=True) + "\n")
+def diagnose_vote(circuit: dict, observations: list[dict], max_checked: int = 200) -> list[str]:
+    from pysat.solvers import Solver
+
+    health = {gate["name"]: idx + 1 for idx, gate in enumerate(circuit["gates"])}
+    votes: collections.Counter = collections.Counter()
+    for obs in observations:
+        votes.update(per_observation_diagnoses(circuit, obs, health))
+    ranked = sorted(votes, key=lambda d: (-votes[d], len(d), sorted(d)))
+    oracles = [Solver(name="g3", bootstrap_with=observation_formula(circuit, obs, health)[0]) for obs in observations]
+    try:
+        for diagnosis in ranked[:max_checked]:
+            assumptions = [lit for name, lit in health.items() if name not in diagnosis]
+            if all(oracle.solve(assumptions=assumptions) for oracle in oracles):
+                return sorted(diagnosis)
+    finally:
+        for oracle in oracles:
+            oracle.delete()
+    return sorted(ranked[0]) if ranked else []
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--benchmark", type=Path, default=Path("data/synthetic_circuits"))
-    parser.add_argument("--out", type=Path, default=Path("checkpoints/bugassist_vote/results.json"))
-    parser.add_argument("--limit", type=int, default=0)
-    parser.add_argument("--solver", choices=["auto", "pysat", "exhaustive"], default="auto")
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--instance", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    run_baseline(args.benchmark, args.out, args.limit, args.solver)
+    instance = json.loads(args.instance.read_text())
+    diagnosis = diagnose_vote(instance["circuit"], instance["observations"])
+    with args.output.open("w") as out:
+        out.write(json.dumps(diagnosis) + "\n")
 
 
 if __name__ == "__main__":
