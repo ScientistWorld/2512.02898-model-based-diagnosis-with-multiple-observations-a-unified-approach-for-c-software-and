@@ -1,4 +1,4 @@
 action: submit
 gpus: 0
 test: false
-notes: "Run 24 isolated scoring-audit cases: reference seeds, genuine variants, ablation, brute force, and artifact/data shortcuts; save all hidden-test scores under redteam."
+notes: "Run the nonminimal-padding shortcut from saved genuine outputs through the unchanged hidden test, then refresh the audit-cohort rank summary."

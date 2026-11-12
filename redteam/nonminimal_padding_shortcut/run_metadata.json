@@ -1,0 +1,60 @@
+{
+  "case": "nonminimal_padding_shortcut",
+  "events": [
+    {
+      "command": [
+        "python",
+        "method/audit_shortcut.py",
+        "nonminimal_padding_shortcut"
+      ],
+      "returncode": 0,
+      "wall_seconds": 0.21488993099774234
+    },
+    {
+      "command": [
+        "bash",
+        "scripts/evaluate_train.sh"
+      ],
+      "returncode": 0,
+      "wall_seconds": 0.7185534489981364
+    },
+    {
+      "command": [
+        "bash",
+        "scripts/evaluate_test.sh"
+      ],
+      "returncode": 0,
+      "wall_seconds": 0.7161128380103037
+    }
+  ],
+  "hidden_arguments": [],
+  "hidden_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "hidden_restored_after_method": true,
+  "manifest_instances": 27,
+  "result_files_on_disk": [
+    "checkpoints/cfaults_circuit/results.json",
+    "checkpoints/hsd_circuit/results.json"
+  ],
+  "scored_methods": {
+    "diagnosis_quality": [
+      "cfaults",
+      "hsd"
+    ],
+    "iscas85_localisation": [
+      "cfaults",
+      "hsd"
+    ],
+    "observation_scaling": [
+      "cfaults",
+      "hsd"
+    ],
+    "runtime_efficiency": [
+      "cfaults",
+      "hsd"
+    ]
+  },
+  "visible_data_only": true
+}

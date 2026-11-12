@@ -1,0 +1,1668 @@
+{
+  "method": "trained_tiebreak",
+  "seed": 0,
+  "instances": [
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_sum",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 1,
+      "optimum_cost": 1,
+      "num_observations": 4,
+      "num_gates": 25,
+      "num_hard_clauses": 380,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 2,
+      "elapsed_sec": 0.11506229700171389,
+      "id": "three_bit_adder_logic_f1_o4_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g_any_ab",
+          "g0_axb"
+        ],
+        [
+          "g_ctrl",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 4,
+      "num_gates": 25,
+      "num_hard_clauses": 384,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.001850333996117115,
+      "id": "three_bit_adder_logic_f1_o4_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_axb",
+          "g0_sum"
+        ],
+        [
+          "g0_sum",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 4,
+      "num_gates": 25,
+      "num_hard_clauses": 380,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.0017785639793146402,
+      "id": "three_bit_adder_logic_f1_o4_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_carry",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 1,
+      "optimum_cost": 1,
+      "num_observations": 8,
+      "num_gates": 25,
+      "num_hard_clauses": 768,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 2,
+      "elapsed_sec": 0.002335975004825741,
+      "id": "three_bit_adder_logic_f1_o8_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g2_sum",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 1,
+      "optimum_cost": 1,
+      "num_observations": 8,
+      "num_gates": 25,
+      "num_hard_clauses": 760,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 2,
+      "elapsed_sec": 0.00236691499594599,
+      "id": "three_bit_adder_logic_f1_o8_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_sum",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 1,
+      "optimum_cost": 1,
+      "num_observations": 8,
+      "num_gates": 25,
+      "num_hard_clauses": 760,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 2,
+      "elapsed_sec": 0.0025630249874666333,
+      "id": "three_bit_adder_logic_f1_o8_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_carry",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 1,
+      "optimum_cost": 1,
+      "num_observations": 16,
+      "num_gates": 25,
+      "num_hard_clauses": 1536,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 2,
+      "elapsed_sec": 0.004381139006000012,
+      "id": "three_bit_adder_logic_f1_o16_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 16,
+      "num_gates": 25,
+      "num_hard_clauses": 1552,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.006085612985771149,
+      "id": "three_bit_adder_logic_f1_o16_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_bc",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 16,
+      "num_gates": 25,
+      "num_hard_clauses": 1536,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.006254492996959016,
+      "id": "three_bit_adder_logic_f1_o16_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_axb",
+          "g0_sum"
+        ],
+        [
+          "g0_sum",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 4,
+      "num_gates": 25,
+      "num_hard_clauses": 384,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.0019518039771355689,
+      "id": "three_bit_adder_logic_f2_o4_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_axb",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 4,
+      "num_gates": 25,
+      "num_hard_clauses": 380,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.002023693989031017,
+      "id": "three_bit_adder_logic_f2_o4_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_axb",
+          "g2_bc",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_bc",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_bc",
+          "g0_axb"
+        ],
+        [
+          "g0_ab",
+          "g2_bc",
+          "g0_axb"
+        ],
+        [
+          "g0_ac",
+          "g2_bc",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g2_bc",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_bc",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_ab",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_ac",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_carry",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 14,
+      "optimum_cost": 2,
+      "num_observations": 4,
+      "num_gates": 25,
+      "num_hard_clauses": 380,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 15,
+      "elapsed_sec": 0.00920214899815619,
+      "id": "three_bit_adder_logic_f2_o4_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_carry",
+          "g1_axb",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g1_carry",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g1_bc",
+          "g0_axb"
+        ],
+        [
+          "g0_ab",
+          "g1_axb",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_axb",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_carry",
+          "g1_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_bc",
+          "g1_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_ab",
+          "g1_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_sum",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 11,
+      "optimum_cost": 2,
+      "num_observations": 8,
+      "num_gates": 25,
+      "num_hard_clauses": 760,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 12,
+      "elapsed_sec": 0.014398528990568593,
+      "id": "three_bit_adder_logic_f2_o8_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_axb",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_sum",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 4,
+      "optimum_cost": 2,
+      "num_observations": 8,
+      "num_gates": 25,
+      "num_hard_clauses": 752,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 5,
+      "elapsed_sec": 0.005634011002257466,
+      "id": "three_bit_adder_logic_f2_o8_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_carry",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 1,
+      "optimum_cost": 1,
+      "num_observations": 8,
+      "num_gates": 25,
+      "num_hard_clauses": 768,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 2,
+      "elapsed_sec": 0.0029446660191752017,
+      "id": "three_bit_adder_logic_f2_o8_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_carry",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 1,
+      "optimum_cost": 1,
+      "num_observations": 16,
+      "num_gates": 25,
+      "num_hard_clauses": 1536,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 2,
+      "elapsed_sec": 0.005219170998316258,
+      "id": "three_bit_adder_logic_f2_o16_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_carry",
+          "g_any_ab",
+          "g0_axb"
+        ],
+        [
+          "g1_bc",
+          "g_any_ab",
+          "g0_axb"
+        ],
+        [
+          "g1_carry_tmp",
+          "g_any_ab",
+          "g0_axb"
+        ],
+        [
+          "g1_carry",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g1_bc",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g1_carry_tmp",
+          "g_ctrl",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 6,
+      "optimum_cost": 2,
+      "num_observations": 16,
+      "num_gates": 25,
+      "num_hard_clauses": 1552,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 7,
+      "elapsed_sec": 0.016756804019678384,
+      "id": "three_bit_adder_logic_f2_o16_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_carry",
+          "g1_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_bc",
+          "g1_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_carry_tmp",
+          "g1_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_axb",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 5,
+      "optimum_cost": 2,
+      "num_observations": 16,
+      "num_gates": 25,
+      "num_hard_clauses": 1536,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 6,
+      "elapsed_sec": 0.031130424002185464,
+      "id": "three_bit_adder_logic_f2_o16_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_bc",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 4,
+      "num_gates": 25,
+      "num_hard_clauses": 388,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.002510924998205155,
+      "id": "three_bit_adder_logic_f3_o4_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_sum",
+          "g_ctrl",
+          "g_parity_01",
+          "g0_axb"
+        ],
+        [
+          "g0_axb",
+          "g_ctrl",
+          "g_parity_01",
+          "g0_sum"
+        ],
+        [
+          "g0_sum",
+          "g_ctrl",
+          "g_parity",
+          "g0_axb"
+        ],
+        [
+          "g0_axb",
+          "g_ctrl",
+          "g_parity",
+          "g0_sum"
+        ]
+      ],
+      "diagnosis_count": 4,
+      "optimum_cost": 3,
+      "num_observations": 4,
+      "num_gates": 25,
+      "num_hard_clauses": 376,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 5,
+      "elapsed_sec": 0.003188206988852471,
+      "id": "three_bit_adder_logic_f3_o4_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_sum",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_axb",
+          "g2_carry",
+          "g0_sum"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 2,
+      "num_observations": 4,
+      "num_gates": 25,
+      "num_hard_clauses": 380,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.0019683639984577894,
+      "id": "three_bit_adder_logic_f3_o4_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_ac",
+          "g1_carry",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_ac",
+          "g1_carry",
+          "g2_axb",
+          "g0_axb"
+        ],
+        [
+          "g0_ac",
+          "g1_carry",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_ac",
+          "g2_ac",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_ac",
+          "g2_ac",
+          "g2_axb",
+          "g0_axb"
+        ],
+        [
+          "g0_ac",
+          "g2_carry_tmp",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_ac",
+          "g2_carry",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_ac",
+          "g2_axb",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_ac",
+          "g2_axb",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_carry",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_carry",
+          "g2_axb",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_carry",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_ac",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g1_carry",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_carry",
+          "g1_sum",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_ac",
+          "g2_axb",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g1_carry",
+          "g2_axb",
+          "g0_axb"
+        ],
+        [
+          "g1_carry",
+          "g1_sum",
+          "g2_axb",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_carry_tmp",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g1_carry",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_carry",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_carry",
+          "g1_sum",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g2_ac",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_ac",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_axb",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry",
+          "g2_axb",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_axb",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g2_ac",
+          "g2_axb",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_ac",
+          "g2_axb",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_ac",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g2_carry_tmp",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g2_carry",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_carry_tmp",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_carry",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g2_axb",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_ac",
+          "g2_axb",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g2_axb",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_axb",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_axb",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_carry_tmp",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_carry",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_axb",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_axb",
+          "g2_carry",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 45,
+      "optimum_cost": 3,
+      "num_observations": 8,
+      "num_gates": 25,
+      "num_hard_clauses": 768,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 46,
+      "elapsed_sec": 0.05073192500276491,
+      "id": "three_bit_adder_logic_f3_o8_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_carry",
+          "g2_axb",
+          "g_parity",
+          "g0_axb"
+        ],
+        [
+          "g1_carry",
+          "g2_sum",
+          "g_parity",
+          "g0_axb"
+        ],
+        [
+          "g2_ac",
+          "g2_sum",
+          "g_parity",
+          "g0_axb"
+        ],
+        [
+          "g2_carry_tmp",
+          "g2_sum",
+          "g_parity",
+          "g0_axb"
+        ],
+        [
+          "g2_carry",
+          "g2_sum",
+          "g_parity",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 5,
+      "optimum_cost": 3,
+      "num_observations": 8,
+      "num_gates": 25,
+      "num_hard_clauses": 760,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 6,
+      "elapsed_sec": 0.006822983996244147,
+      "id": "three_bit_adder_logic_f3_o8_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_carry",
+          "g0_sum",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_sum",
+          "g1_axb",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_sum",
+          "g1_sum",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g0_sum",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g0_sum",
+          "g2_sum",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 5,
+      "optimum_cost": 3,
+      "num_observations": 8,
+      "num_gates": 25,
+      "num_hard_clauses": 760,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 6,
+      "elapsed_sec": 0.006501063005998731,
+      "id": "three_bit_adder_logic_f3_o8_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_carry",
+          "g1_carry",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_axb",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g1_carry",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_sum",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g1_carry",
+          "g1_sum",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g1_carry",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_bc",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_carry_tmp",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g1_axb",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g1_bc",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g1_sum",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g1_bc",
+          "g1_sum",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_axb",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g1_carry_tmp",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_sum",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g1_carry_tmp",
+          "g1_sum",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g1_bc",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g1_carry_tmp",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_bc",
+          "g_ctrl",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry_tmp",
+          "g_ctrl",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 21,
+      "optimum_cost": 3,
+      "num_observations": 16,
+      "num_gates": 25,
+      "num_hard_clauses": 1568,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 22,
+      "elapsed_sec": 0.04477779197623022,
+      "id": "three_bit_adder_logic_f3_o16_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g2_carry_tmp",
+          "g_ctrl",
+          "g_parity",
+          "g0_axb"
+        ],
+        [
+          "g2_carry_tmp",
+          "g_any_ab",
+          "g_parity",
+          "g0_axb"
+        ],
+        [
+          "g2_carry",
+          "g_ctrl",
+          "g_parity",
+          "g0_axb"
+        ],
+        [
+          "g2_carry",
+          "g_any_ab",
+          "g_parity",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 4,
+      "optimum_cost": 3,
+      "num_observations": 16,
+      "num_gates": 25,
+      "num_hard_clauses": 1536,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 5,
+      "elapsed_sec": 0.016209483001148328,
+      "id": "three_bit_adder_logic_f3_o16_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_carry",
+          "g1_carry",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_carry",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_carry",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_ac",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_ac",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_axb",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_axb",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_ac",
+          "g2_axb",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_axb",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g1_carry",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g1_carry",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_ac",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_axb",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_sum",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_sum",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_ac",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_axb",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_carry_tmp",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g1_carry",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g1_carry",
+          "g1_sum",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g1_carry",
+          "g1_sum",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_sum",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_carry",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_carry",
+          "g1_sum",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g1_carry",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g1_carry",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g1_carry",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_carry_tmp",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_carry_tmp",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_carry_tmp",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g1_ac",
+          "g1_axb",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g1_ac",
+          "g1_axb",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g2_ac",
+          "g2_axb",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g2_axb",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g1_ac",
+          "g1_axb",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g1_ac",
+          "g1_sum",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g1_ac",
+          "g1_sum",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g2_ac",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g2_axb",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g2_carry_tmp",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_ac",
+          "g2_axb",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_axb",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g1_ac",
+          "g1_sum",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g2_carry",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_ac",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_axb",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_carry_tmp",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_carry",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g1_ac",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g1_ac",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g2_ac",
+          "g2_axb",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g2_axb",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_ac",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_ac",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_ac",
+          "g2_axb",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_axb",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g1_ac",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g2_ac",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g2_axb",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g2_carry_tmp",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_ac",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_ac",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_axb",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_carry_tmp",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g2_carry",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_carry",
+          "g2_sum",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g1_carry_tmp",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g1_carry_tmp",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g1_axb",
+          "g1_carry_tmp",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g1_carry_tmp",
+          "g1_sum",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g1_carry_tmp",
+          "g1_sum",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g1_carry_tmp",
+          "g1_sum",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g1_carry_tmp",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g1_carry_tmp",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry_tmp",
+          "g2_ac",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry_tmp",
+          "g2_carry_tmp",
+          "g0_axb"
+        ],
+        [
+          "g0_bc",
+          "g1_carry_tmp",
+          "g2_carry",
+          "g0_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry_tmp",
+          "g2_carry",
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 81,
+      "optimum_cost": 3,
+      "num_observations": 16,
+      "num_gates": 25,
+      "num_hard_clauses": 1552,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 82,
+      "elapsed_sec": 0.1601150800124742,
+      "id": "three_bit_adder_logic_f3_o16_002"
+    }
+  ]
+}
