@@ -3,8 +3,8 @@
 #
 # Idempotent: files already present with the right checksum are skipped.
 #
-# Estimated total download size: < 0.1 MB (five ISCAS85 .bench netlists)
-# Estimated disk usage after extraction: < 0.1 MB
+# Estimated total download size: < 0.3 MB (nine ISCAS85 .bench netlists)
+# Estimated disk usage after extraction: < 0.3 MB
 #
 # The ISCAS85 combinational benchmark circuits (Brglez & Fujiwara, 1985) are
 # fetched from the public mirror at Tallinn University of Technology.  They
@@ -44,6 +44,10 @@ c499 a7a6a6c48c2b7c66
 c880 6c8940cdbd4b59e3
 c1355 21cf62a376a0fde9
 c1908 948e4c168d412bb5
+c2670 f9cea6f6734725b8
+c3540 57c629ae6bbb9cd2
+c5315 5da6e65f5df89a39
+c7552 209d2aa40b31abec
 LIST
 
 # PySAT is installed into the container by environment/setup.sh.

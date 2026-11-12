@@ -418,6 +418,7 @@ def worst_values() -> dict:
         "diagnosis_quality": {"unsound_output_rate": 100.0},
         "observation_scaling": {f"localized_rate_obs{m}": 0.0 for m in OBSERVATION_BUCKETS},
         "fault_scaling": {f"localized_rate_f{k}": 0.0 for k in FAULT_BUCKETS},
+        "scale_stress": {"localized_rate_stress": 0.0, "min_diagnosis_recall_stress": 0.0},
     }
     return out
 
@@ -430,12 +431,16 @@ def aggregate(records: list[dict], instances: list[dict], truth: dict, cpu_limit
         row = score_instance(rec, inst, truth[inst["id"]], cpu_limit)
         row["observation_count"] = inst["observation_count"]
         row["fault_count"] = inst["fault_count"]
+        row["tier"] = inst.get("tier", "base")
         rows.append(row)
-    n = len(rows)
-    produced_any = any(r["lines"] > 0 for r in rows)
+    all_rows = rows
+    produced_any = any(r["lines"] > 0 for r in all_rows)
     kinds = Counter()
-    for r in rows:
+    for r in all_rows:
         kinds.update(r["kinds"])
+    stress = [r for r in all_rows if r["tier"] == "stress"]
+    rows = [r for r in all_rows if r["tier"] == "base"]  # main/observation/fault experiments: base tier
+    n = len(rows)
 
     def rate(flag_rows, key):
         return 100.0 * sum(1 for r in flag_rows if r[key]) / max(1, len(flag_rows))
@@ -451,10 +456,10 @@ def aggregate(records: list[dict], instances: list[dict], truth: dict, cpu_limit
         "exact_fault_set_rate": rate(rows, "exact"),
         "audit_avg_cpu_seconds": sum(r["cpu_seconds"] for r in rows) / max(1, n),
     }
-    quality = {
-        "unsound_output_rate": rate(rows, "unsound"),
-        "sound_output_rate": rate(rows, "sound_nonempty"),
-        "unsound_count": sum(1 for r in rows if r["unsound"]),
+    quality = {  # constraint over every instance (both tiers)
+        "unsound_output_rate": rate(all_rows, "unsound"),
+        "sound_output_rate": rate(all_rows, "sound_nonempty"),
+        "unsound_count": sum(1 for r in all_rows if r["unsound"]),
         "invalid_count": kinds.get("invalid", 0),
         "not_minimum_count": kinds.get("not_minimum", 0),
         "malformed_count": kinds.get("malformed", 0),
@@ -473,11 +478,22 @@ def aggregate(records: list[dict], instances: list[dict], truth: dict, cpu_limit
         faults[f"localized_rate_f{k}"] = rate(bucket, "localized")
         faults[f"min_diagnosis_recall_f{k}"] = 100.0 * sum(r["recall"] for r in bucket) / max(1, len(bucket))
         faults[f"localized_count_f{k}"] = sum(1 for r in bucket if r["localized"])
+    scale = {
+        "localized_rate_stress": rate(stress, "localized"),
+        "min_diagnosis_recall_stress": 100.0 * sum(r["recall"] for r in stress) / max(1, len(stress)),
+        "localized_count_stress": sum(1 for r in stress if r["localized"]),
+        "total_instances_stress": len(stress),
+        "cpu_limit_count_stress": sum(1 for r in stress if r["status"] in ("cpu_limit", "wall_limit")),
+    }
+    for k in sorted({r["fault_count"] for r in stress}):
+        bucket = [r for r in stress if r["fault_count"] == k]
+        scale[f"localized_rate_stress_f{k}"] = rate(bucket, "localized")
     result = {
         "iscas85_localisation": loc,
         "diagnosis_quality": quality,
         "observation_scaling": obs,
         "fault_scaling": faults,
+        "scale_stress": scale,
     }
     if not produced_any:
         # A run that produced nothing at all is a failed run: worst values.

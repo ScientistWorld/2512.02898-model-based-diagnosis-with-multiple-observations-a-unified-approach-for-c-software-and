@@ -39,12 +39,15 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from data.circuit_benchmark import (  # noqa: E402
     CIRCUITS,
+    STRESS_CIRCUITS,
     TRAIN_SEED,
+    cell_key,
     circuit_from_json,
     diagnosis_semantically_valid,
     grid,
     load_iscas85,
     make_instance,
+    stress_grid,
     write_jsonl,
 )
 
@@ -55,8 +58,8 @@ TRAIN_DIR = REPO_ROOT / "data" / "iscas85_train"
 TEST_CONFIG = HERE / "config.json"
 TRAIN_CONFIG = REPO_ROOT / "eval" / "train" / "config.json"
 MAX_DIAGNOSES = 3000
-GT_CPU_BUDGET = 150.0
-MAX_ATTEMPTS = 12
+GT_CPU_BUDGET = {"base": 150.0, "stress": 120.0}
+MAX_ATTEMPTS = {"base": 12, "stress": 2}
 LIMIT_CANDIDATES = (2.5, 5.0, 10.0)
 LIMIT_PROBE_CAP = 10.0
 TARGET_MAX_TRAIN_COVERAGE = 75.0
@@ -114,7 +117,7 @@ def encode(circuit: dict, observations: list[dict]) -> tuple[list[list[int]], di
     return clauses, health, nv
 
 
-def exact_answer(instance: dict) -> dict:
+def exact_answer(instance: dict, cpu_budget: float = 150.0) -> dict:
     from pysat.card import CardEnc, EncType
     from pysat.examples.rc2 import RC2
     from pysat.formula import WCNF
@@ -156,7 +159,7 @@ def exact_answer(instance: dict) -> dict:
             if len(diagnoses) > MAX_DIAGNOSES:
                 status = "too_many"
                 break
-            if time.process_time() - t0 > GT_CPU_BUDGET:
+            if time.process_time() - t0 > cpu_budget:
                 status = "too_slow"
                 break
             sat.add_clause([health[name] for name in diag])
@@ -178,56 +181,98 @@ def verify_answer(instance: dict, answer: dict, rng: random.Random) -> None:
         raise RuntimeError("duplicate diagnoses in answer")
 
 
-def build_split(split: str, seed_text: str) -> tuple[list[dict], dict[str, dict], dict[str, int], list[dict]]:
-    circuits = {name: load_iscas85(BENCH_DIR, name) for name in CIRCUITS}
-    instances, truth, accepted, rejected = [], {}, {}, []
+def build_cells(split: str, seed_text: str, cells: list[tuple[str, str, int, int]]):
+    circuits = {name: load_iscas85(BENCH_DIR, name) for name in CIRCUITS + STRESS_CIRCUITS}
+    instances, truth, accepted, rejected, skipped = [], {}, {}, [], []
     rng = random.Random(f"verify|{seed_text}")
-    for circuit_name, k, m in grid():
-        for attempt in range(MAX_ATTEMPTS):
-            inst = make_instance(circuits[circuit_name], split, seed_text, k, m, attempt)
+    for tier, circuit_name, k, m in cells:
+        key = cell_key(tier, circuit_name, k, m)
+        for attempt in range(MAX_ATTEMPTS[tier]):
+            inst = make_instance(circuits[circuit_name], split, seed_text, k, m, attempt, tier)
             if inst is None:
-                rejected.append({"cell": f"{circuit_name}|{k}|{m}", "attempt": attempt, "reason": "no_failing_observations"})
+                rejected.append({"cell": key, "attempt": attempt, "reason": "no_failing_observations"})
                 continue
-            answer = exact_answer(inst)
+            answer = exact_answer(inst, GT_CPU_BUDGET[tier])
             if answer["status"] != "complete":
-                rejected.append({"cell": f"{circuit_name}|{k}|{m}", "attempt": attempt, "reason": answer["status"],
+                rejected.append({"cell": key, "attempt": attempt, "reason": answer["status"],
                                  "optimum": answer["optimum"], "partial_count": len(answer["diagnoses"])})
-                log(f"{split} {circuit_name} f{k} o{m} attempt {attempt}: rejected ({answer['status']})")
+                log(f"{split} {key} attempt {attempt}: rejected ({answer['status']})")
                 continue
             verify_answer(inst, answer, rng)
             instances.append(inst)
             truth[inst["id"]] = {"optimum": answer["optimum"], "diagnoses": answer["diagnoses"],
                                  "enumeration_cpu_seconds": round(answer["cpu_seconds"], 3)}
-            accepted[f"{circuit_name}|{k}|{m}"] = attempt
-            log(f"{split} {circuit_name} f{k} o{m} attempt {attempt}: k*={answer['optimum']} "
+            accepted[key] = attempt
+            log(f"{split} {key} attempt {attempt}: k*={answer['optimum']} "
                 f"#min={len(answer['diagnoses'])} ({answer['cpu_seconds']:.1f}s)")
             break
         else:
-            raise RuntimeError(f"no acceptable instance for {circuit_name} f{k} o{m}")
-    return instances, truth, accepted, rejected
+            if tier == "base":
+                raise RuntimeError(f"no acceptable instance for {key}")
+            skipped.append(key)
+            log(f"{split} {key}: skipped (no attempt enumerable offline)")
+    return instances, truth, accepted, rejected, skipped
+
+
+def all_cells() -> list[tuple[str, str, int, int]]:
+    return [("base", *c) for c in grid()] + [("stress", *c) for c in stress_grid()]
 
 
 def phase_build() -> None:
-    if not TEST_FILE.exists():
-        instances, truth, accepted, rejected = build_split("test", HIDDEN_SEED)
-        TEST_FILE.write_text(json.dumps({"instances": instances, "ground_truth": truth, "accepted_attempts": accepted,
-                                         "rejected_attempts": rejected}, sort_keys=True, separators=(",", ":")) + "\n")
-        log(f"wrote {len(instances)} hidden test instances")
-    if not (TRAIN_DIR / "ground_truth.json").exists():
-        instances, truth, accepted, rejected = build_split("train", TRAIN_SEED)
-        write_jsonl(TRAIN_DIR / "instances.jsonl", instances)
-        (TRAIN_DIR / "ground_truth.json").write_text(json.dumps(truth, sort_keys=True, separators=(",", ":")) + "\n")
-        (TRAIN_DIR / "manifest.json").write_text(json.dumps({
-            "name": "iscas85_multi_observation_diagnosis_train",
-            "source": "ISCAS85 .bench netlists (scripts/download.sh), gate-type fault injection",
-            "circuits": list(CIRCUITS),
-            "grid": [list(cell) for cell in grid()],
-            "seed": TRAIN_SEED,
-            "accepted_attempts": accepted,
-            "rejected_attempts": rejected,
-            "files": {"instances": "instances.jsonl", "ground_truth": "ground_truth.json"},
-        }, indent=2, sort_keys=True) + "\n")
-        log(f"wrote {len(instances)} train instances")
+    # hidden test split
+    state = json.loads(TEST_FILE.read_text()) if TEST_FILE.exists() else {
+        "instances": [], "ground_truth": {}, "accepted_attempts": {}, "rejected_attempts": []}
+    state.setdefault("skipped_cells", [])
+    for inst in state["instances"]:
+        inst.setdefault("tier", "base")
+    todo = [c for c in all_cells() if cell_key(*c) not in state["accepted_attempts"]
+            and cell_key(*c) not in state["skipped_cells"]]
+    for cell in todo:  # one cell at a time, saved after each (resumable)
+        instances, truth, accepted, rejected, skipped = build_cells("test", HIDDEN_SEED, [cell])
+        state["instances"] += instances
+        state["ground_truth"].update(truth)
+        state["accepted_attempts"].update(accepted)
+        state["rejected_attempts"] += rejected
+        state["skipped_cells"] += skipped
+        TEST_FILE.write_text(json.dumps(state, sort_keys=True, separators=(",", ":")) + "\n")
+    log(f"hidden test has {len(state['instances'])} instances")
+    # public train split
+    manifest_path = TRAIN_DIR / "manifest.json"
+    if manifest_path.exists():
+        manifest = json.loads(manifest_path.read_text())
+        rows = [json.loads(line) for line in (TRAIN_DIR / "instances.jsonl").read_text().splitlines() if line.strip()]
+        truth_all = json.loads((TRAIN_DIR / "ground_truth.json").read_text())
+    else:
+        manifest, rows, truth_all = {"accepted_attempts": {}, "rejected_attempts": []}, [], {}
+    manifest.setdefault("skipped_cells", [])
+    for row in rows:
+        row.setdefault("tier", "base")
+    todo = [c for c in all_cells() if cell_key(*c) not in manifest["accepted_attempts"]
+            and cell_key(*c) not in manifest["skipped_cells"]]
+    for cell in todo or [None]:
+        if cell is not None:
+            instances, truth, accepted, rejected, skipped = build_cells("train", TRAIN_SEED, [cell])
+            rows += instances
+            truth_all.update(truth)
+            manifest["accepted_attempts"].update(accepted)
+            manifest["rejected_attempts"] += rejected
+            manifest["skipped_cells"] += skipped
+        save_train(rows, truth_all, manifest, manifest_path)
+    log(f"train split has {len(rows)} instances")
+
+
+def save_train(rows, truth_all, manifest, manifest_path) -> None:
+    write_jsonl(TRAIN_DIR / "instances.jsonl", rows)
+    (TRAIN_DIR / "ground_truth.json").write_text(json.dumps(truth_all, sort_keys=True, separators=(",", ":")) + "\n")
+    manifest.update({
+        "name": "iscas85_multi_observation_diagnosis_train",
+        "source": "ISCAS85 .bench netlists (scripts/download.sh), gate-type fault injection",
+        "circuits": list(CIRCUITS), "stress_circuits": list(STRESS_CIRCUITS),
+        "grid": [list(cell) for cell in grid()], "stress_grid": [list(cell) for cell in stress_grid()],
+        "seed": TRAIN_SEED,
+        "files": {"instances": "instances.jsonl", "ground_truth": "ground_truth.json"},
+    })
+    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
 
 
 def default_config(instances: list[dict]) -> dict:

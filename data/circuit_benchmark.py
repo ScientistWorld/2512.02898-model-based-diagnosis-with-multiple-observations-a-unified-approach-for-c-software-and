@@ -41,9 +41,14 @@ UNARY_OPS = ("NOT", "BUF")
 
 # Benchmark grid (scaled version of the paper's 10 circuits x {1..50 faults}
 # x {10,20,30,40,50 observations}).
+# Base tier: the five smaller ISCAS85 circuits, full observation grid.
 CIRCUITS = ("c432", "c499", "c880", "c1355", "c1908")
 FAULT_COUNTS = (1, 3, 5)
 OBSERVATION_COUNTS = (10, 20, 30, 40, 50)
+# Scale-stress tier: the larger ISCAS85 circuits (1.2k-3.5k gates), multi-fault.
+STRESS_CIRCUITS = ("c2670", "c3540", "c5315", "c7552")
+STRESS_FAULT_COUNTS = (3, 5)
+STRESS_OBSERVATION_COUNTS = (10, 30, 50)
 TRAIN_SEED = "cfaults-iscas85-public-train-v2"
 
 ISCAS85_URL = "https://pld.ttu.ee/~maksim/benchmarks/iscas85/bench/{name}.bench"
@@ -53,6 +58,10 @@ ISCAS85_SHA256 = {
     "c880": "6c8940cdbd4b59e3",
     "c1355": "21cf62a376a0fde9",
     "c1908": "948e4c168d412bb5",
+    "c2670": "f9cea6f6734725b8",
+    "c3540": "57c629ae6bbb9cd2",
+    "c5315": "5da6e65f5df89a39",
+    "c7552": "209d2aa40b31abec",
 }
 
 
@@ -372,7 +381,8 @@ def obfuscate(circuit: Circuit, observations: list[dict], faults: Iterable[str],
     return new_circuit, new_obs, sorted(rename[f] for f in faults), rename
 
 
-def make_instance(golden: Circuit, split: str, seed_text: str, fault_count: int, observation_count: int, attempt: int) -> dict | None:
+def make_instance(golden: Circuit, split: str, seed_text: str, fault_count: int, observation_count: int, attempt: int,
+                  tier: str = "base") -> dict | None:
     """Deterministic candidate instance for one grid cell and attempt index."""
     rng = random.Random(stable_seed(seed_text, golden.name, fault_count, observation_count, attempt))
     faulty, mutations = mutate_circuit(golden, rng, fault_count)
@@ -385,6 +395,7 @@ def make_instance(golden: Circuit, split: str, seed_text: str, fault_count: int,
     return {
         "id": public_id,
         "split": split,
+        "tier": tier,
         "source_circuit": golden.name,
         "fault_count": fault_count,
         "observation_count": observation_count,
@@ -405,6 +416,14 @@ def grid() -> list[tuple[str, int, int]]:
     return [(c, k, m) for c in CIRCUITS for k in FAULT_COUNTS for m in OBSERVATION_COUNTS]
 
 
+def stress_grid() -> list[tuple[str, int, int]]:
+    return [(c, k, m) for c in STRESS_CIRCUITS for k in STRESS_FAULT_COUNTS for m in STRESS_OBSERVATION_COUNTS]
+
+
+def cell_key(tier: str, circuit: str, k: int, m: int) -> str:
+    return f"{circuit}|{k}|{m}" if tier == "base" else f"{tier}|{circuit}|{k}|{m}"
+
+
 def read_jsonl(path: Path) -> list[dict]:
     return [json.loads(line) for line in Path(path).read_text().splitlines() if line.strip()]
 
@@ -417,19 +436,23 @@ def write_jsonl(path: Path, rows: Iterable[dict]) -> None:
 
 
 def generate_split(bench_dir: Path, split: str, seed_text: str, accepted: dict[str, int] | None = None) -> list[dict]:
-    """Generate one instance per grid cell.
+    """Generate one instance per grid cell (base tier, then scale-stress tier).
 
-    ``accepted`` maps ``"circuit|faults|obs"`` to the attempt index that was
-    accepted when the split was built (an attempt is rejected only if no
-    failing observations exist or the exact answer is too large to enumerate).
+    ``accepted`` maps a cell key (see ``cell_key``) to the attempt index that
+    was accepted when the split was built (an attempt is rejected only if no
+    failing observations exist or the exact answer is too large to enumerate
+    offline); stress cells absent from ``accepted`` were skipped.
     """
-    circuits = {name: load_iscas85(bench_dir, name) for name in CIRCUITS}
+    circuits = {name: load_iscas85(bench_dir, name) for name in CIRCUITS + STRESS_CIRCUITS}
     rows = []
-    for circuit_name, k, m in grid():
-        key = f"{circuit_name}|{k}|{m}"
+    cells = [("base", *c) for c in grid()] + [("stress", *c) for c in stress_grid()]
+    for tier, circuit_name, k, m in cells:
+        key = cell_key(tier, circuit_name, k, m)
+        if accepted is not None and key not in accepted:
+            continue
         attempt = (accepted or {}).get(key, 0)
         while True:
-            inst = make_instance(circuits[circuit_name], split, seed_text, k, m, attempt)
+            inst = make_instance(circuits[circuit_name], split, seed_text, k, m, attempt, tier)
             if inst is not None:
                 break
             attempt += 1
@@ -443,7 +466,7 @@ def main() -> None:
     parser.add_argument("--out", type=Path, default=Path("data/iscas85_train"))
     args = parser.parse_args()
     manifest_path = args.out / "manifest.json"
-    accepted = json.loads(manifest_path.read_text()).get("accepted_attempts", {}) if manifest_path.exists() else {}
+    accepted = json.loads(manifest_path.read_text()).get("accepted_attempts") if manifest_path.exists() else None
     rows = generate_split(args.bench_dir, "train", TRAIN_SEED, accepted)
     write_jsonl(args.out / "instances.jsonl", rows)
     print(f"wrote {len(rows)} training instances to {args.out / 'instances.jsonl'}")

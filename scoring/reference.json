@@ -1,8 +1,8 @@
 {
   "experiments": {
     "iscas85_localisation": {
-      "description": "Main circuit result (paper Table 5 'All'): share of hidden ISCAS85-derived instances whose complete set of minimum-cardinality diagnoses the method localises within the fixed per-instance CPU budget. The method is run by the hidden test on instances it has never seen.",
-      "weight": 0.45,
+      "description": "Main circuit result (paper Table 5 'All'), base tier (c432, c499, c880, c1355, c1908; 1/3/5 faults; 10-50 observations): share of hidden ISCAS85-derived instances whose complete set of minimum-cardinality diagnoses the method localises within the fixed per-instance CPU budget. The method is run by the hidden test on instances it has never seen.",
+      "weight": 0.35,
       "primary_metric": "localized_rate",
       "metrics": {
         "localized_rate": {
@@ -87,7 +87,7 @@
       }
     },
     "diagnosis_quality": {
-      "description": "Constraint: every reported diagnosis must be a minimum-cardinality diagnosis consistent with all observations (the paper's claim that the unified approach yields only minimal diagnoses, unlike per-observation aggregation).",
+      "description": "Constraint over every hidden instance (both tiers): every reported diagnosis must be a minimum-cardinality diagnosis consistent with all observations (the paper's claim that the unified approach yields only minimal diagnoses, unlike per-observation aggregation).",
       "weight": 0.15,
       "primary_metric": "unsound_output_rate",
       "metrics": {
@@ -157,8 +157,8 @@
       }
     },
     "observation_scaling": {
-      "description": "Paper Table 5 rows: localisation rate for 10, 20, 30, 40 and 50 failing observations (each bucket is a distinct set of hidden instances).",
-      "weight": 0.2,
+      "description": "Paper Table 5 rows on the base tier: localisation rate for 10, 20, 30, 40 and 50 failing observations (each bucket is a distinct set of hidden instances).",
+      "weight": 0.15,
       "primary_metric": "localized_rate_obs50",
       "metrics": {
         "localized_rate_obs10": {
@@ -290,8 +290,8 @@
       }
     },
     "fault_scaling": {
-      "description": "Localisation rate by number of injected faults (1, 3, 5). The multi-fault instances are where the paper's method falls short (timeouts grow with the number of minimum diagnoses and formula size) and where exhaustive candidate search fails.",
-      "weight": 0.2,
+      "description": "Base-tier localisation rate by number of injected faults (1, 3, 5). Multi-fault instances are where the number of minimum diagnoses grows and exhaustive candidate search fails.",
+      "weight": 0.15,
       "primary_metric": "localized_rate_f3",
       "metrics": {
         "localized_rate_f1": {
@@ -354,6 +354,63 @@
       },
       "_paper_reported": {
         "note": "The paper injects 1,2,3,4,5,10,20,30,40,50 faults but reports results only aggregated by observation count; no per-fault-count numbers exist."
+      }
+    },
+    "scale_stress": {
+      "description": "Where the paper's method falls short: scale. The larger ISCAS85 circuits (c2670, c3540, c5315, c7552; 1.2k-3.5k gates) with 3 or 5 injected faults and 10/30/50 observations, same budget and scoring as the main experiment. The paper reports CFaults timing out on 26% of its circuits; at gym scale the base tier is solved almost completely by stronger exact methods, so this tier keeps room above them.",
+      "weight": 0.2,
+      "primary_metric": "localized_rate_stress",
+      "metrics": {
+        "localized_rate_stress": {
+          "higher_is_better": true,
+          "coefficient": 1.0,
+          "description": "localized_rate on the scale-stress tier (complete and sound minimum-diagnosis set within the per-instance CPU budget)."
+        },
+        "min_diagnosis_recall_stress": {
+          "higher_is_better": true,
+          "coefficient": 0.5,
+          "description": "min_diagnosis_recall on the scale-stress tier."
+        },
+        "localized_count_stress": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: localized count on the stress tier."
+        },
+        "total_instances_stress": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: number of stress-tier instances."
+        },
+        "cpu_limit_count_stress": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Audit: stress instances stopped by the CPU/wall guard."
+        },
+        "localized_rate_stress_f3": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: stress-tier localized_rate, 3 injected faults."
+        },
+        "localized_rate_stress_f5": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: stress-tier localized_rate, 5 injected faults."
+        }
+      },
+      "results": {
+        "cfaults": {
+          "type": "proposed",
+          "localized_rate_stress": 0.0
+        },
+        "hsd": {
+          "type": "baseline"
+        },
+        "bugassist_vote": {
+          "type": "baseline"
+        }
+      },
+      "_paper_reported": {
+        "note": "The paper's full benchmark includes these circuits (and c6288) with up to 50 faults; CFaults localises 73.84% and HSD 80.14% of all 12,147 instances within 1800 s. No per-circuit breakdown is reported."
       }
     }
   },

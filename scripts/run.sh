@@ -15,6 +15,15 @@ mkdir -p tmp logs
 echo "== python / pysat"; python --version; python -c "import pysat; print('pysat', pysat.__version__)"
 echo "== nproc $(nproc)"; date
 
+# The first hardening job (base tier only) showed HSD and simple exact variants at the
+# bound; keep its audit as evidence and rebuild with the scale-stress tier.
+if [ -d redteam/hardening/results ] && [ ! -d redteam/hardening/results_base_only ]; then
+  mv redteam/hardening/results redteam/hardening/results_base_only
+  mv redteam/hardening/summary.json redteam/hardening/results_base_only/summary.json || true
+  mv redteam/hardening/summary.txt redteam/hardening/results_base_only/summary.txt || true
+  rm -rf eval/test/baseline_outputs eval/train/baseline_outputs tmp/reference_done
+fi
+
 echo "== smoke"; python redteam/hardening/smoke.py
 
 echo "== build hidden benchmark + train split"; python eval/test/build_hidden_benchmark.py build

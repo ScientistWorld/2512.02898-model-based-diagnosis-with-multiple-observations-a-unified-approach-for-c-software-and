@@ -242,3 +242,4 @@ eval/test/runs/
 eval/train/runs/
 redteam/hardening/workspaces/
 redteam/hardening/results/*/runs/
+redteam/hardening/results_base_only/*/runs/

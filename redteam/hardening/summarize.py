@@ -102,6 +102,8 @@ def main() -> None:
             "min_diagnosis_recall": get(scores, "iscas85_localisation", "min_diagnosis_recall", key),
             "unsound_output_rate": get(scores, "diagnosis_quality", "unsound_output_rate", key),
             "localized_rate_f5": get(scores, "fault_scaling", "localized_rate_f5", key),
+            "localized_rate_stress": get(scores, "scale_stress", "localized_rate_stress", key),
+            "min_diagnosis_recall_stress": get(scores, "scale_stress", "min_diagnosis_recall_stress", key),
             "selected_fault_f1_audit": get(scores, "iscas85_localisation", "selected_fault_f1", key),
             "failed_run": get(scores, "iscas85_localisation", "failed_run", key),
             "missing_ranked_metrics": missing,
@@ -144,13 +146,13 @@ def main() -> None:
         "runs": rows,
     }
     (HARD / "summary.json").write_text(json.dumps(doc, indent=2, sort_keys=True) + "\n")
-    print(f"{'case':42s} {'rank':>8s} {'loc%':>6s} {'recall%':>8s} {'unsound%':>8s} {'f5%':>6s} paired(w/l,p)")
+    print(f"{'case':42s} {'rank':>8s} {'loc%':>6s} {'recall%':>8s} {'unsound%':>8s} {'f5%':>6s} {'stress%':>7s} paired(w/l,p)")
     for name, r in sorted(rows.items(), key=lambda kv: -kv[1]["rank_vs_reference"]):
         p = r.get("paired_vs_reference")
         ptxt = f"{p['instances_localized_only_by_case']}/{p['instances_localized_only_by_reference']},{p['sign_test_p']:.3g}" if p else ""
         fmt = lambda v: f"{v:6.1f}" if isinstance(v, (int, float)) else "     -"
         print(f"{name:42s} {r['rank_vs_reference']:8.3f} {fmt(r['localized_rate'])} {fmt(r['min_diagnosis_recall']):>8s} "
-              f"{fmt(r['unsound_output_rate']):>8s} {fmt(r['localized_rate_f5'])} {ptxt}")
+              f"{fmt(r['unsound_output_rate']):>8s} {fmt(r['localized_rate_f5'])} {fmt(r['localized_rate_stress']):>7s} {ptxt}")
     print("seed spread:", json.dumps(spread))
 
 
