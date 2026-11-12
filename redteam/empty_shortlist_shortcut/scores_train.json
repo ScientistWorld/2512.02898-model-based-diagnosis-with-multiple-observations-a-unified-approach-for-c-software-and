@@ -1,0 +1,44 @@
+{
+  "_evaluation_slice": {
+    "instance_count": 14,
+    "instance_ids": [
+      "three_bit_adder_logic_f1_o16_000",
+      "three_bit_adder_logic_f1_o16_001",
+      "three_bit_adder_logic_f1_o4_000",
+      "three_bit_adder_logic_f1_o4_001",
+      "three_bit_adder_logic_f1_o8_000",
+      "three_bit_adder_logic_f2_o16_000",
+      "three_bit_adder_logic_f2_o4_000",
+      "three_bit_adder_logic_f2_o8_000",
+      "three_bit_adder_logic_f2_o8_001",
+      "three_bit_adder_logic_f3_o16_000",
+      "three_bit_adder_logic_f3_o16_001",
+      "three_bit_adder_logic_f3_o4_000",
+      "three_bit_adder_logic_f3_o4_001",
+      "three_bit_adder_logic_f3_o8_000"
+    ],
+    "slice": "train",
+    "split_style": "deterministic stratified split by fault_count and observation_count"
+  },
+  "_scaled_reproduction_context": {
+    "benchmark": "data/synthetic_circuits",
+    "note": "Scores are from the visible train slice of the scaled synthetic circuit benchmark.",
+    "result_root": "checkpoints",
+    "slice": "train",
+    "unscored": {}
+  },
+  "experiments": {
+    "diagnosis_quality": {
+      "results": {}
+    },
+    "iscas85_localisation": {
+      "results": {}
+    },
+    "observation_scaling": {
+      "results": {}
+    },
+    "runtime_efficiency": {
+      "results": {}
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "case": "late_method_shortcut",
+  "events": [
+    {
+      "command": [
+        "python",
+        "method/audit_shortcut.py",
+        "late_method_shortcut"
+      ],
+      "returncode": 0,
+      "wall_seconds": 0.16454843297833577
+    },
+    {
+      "command": [
+        "bash",
+        "scripts/evaluate_train.sh"
+      ],
+      "returncode": 0,
+      "wall_seconds": 0.515181192982709
+    },
+    {
+      "command": [
+        "bash",
+        "scripts/evaluate_test.sh"
+      ],
+      "returncode": 0,
+      "wall_seconds": 0.7153485500020906
+    }
+  ],
+  "hidden_arguments": [],
+  "hidden_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "hidden_restored_after_method": true,
+  "manifest_instances": 27,
+  "result_files_on_disk": [
+    "checkpoints/cfaults_circuit/results.json",
+    "checkpoints/hsd_circuit/results.json",
+    "checkpoints/late_method_shortcut/results.json"
+  ],
+  "scored_methods": {
+    "diagnosis_quality": [
+      "cfaults",
+      "hsd"
+    ],
+    "iscas85_localisation": [
+      "cfaults",
+      "hsd"
+    ],
+    "observation_scaling": [
+      "cfaults",
+      "hsd"
+    ],
+    "runtime_efficiency": [
+      "cfaults",
+      "hsd"
+    ]
+  },
+  "visible_data_only": true
+}

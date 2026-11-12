@@ -1,0 +1,51 @@
+{
+  "case": "hsd_honest_alternative",
+  "events": [
+    {
+      "command": [
+        "bash",
+        "scripts/evaluate_train.sh"
+      ],
+      "returncode": 0,
+      "wall_seconds": 0.5655604449857492
+    },
+    {
+      "command": [
+        "bash",
+        "scripts/evaluate_test.sh"
+      ],
+      "returncode": 0,
+      "wall_seconds": 0.6650644089968409
+    }
+  ],
+  "hidden_arguments": [],
+  "hidden_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "hidden_restored_after_method": true,
+  "manifest_instances": 27,
+  "result_files_on_disk": [
+    "checkpoints/cfaults_circuit/results.json",
+    "checkpoints/hsd_circuit/results.json"
+  ],
+  "scored_methods": {
+    "diagnosis_quality": [
+      "cfaults",
+      "hsd"
+    ],
+    "iscas85_localisation": [
+      "cfaults",
+      "hsd"
+    ],
+    "observation_scaling": [
+      "cfaults",
+      "hsd"
+    ],
+    "runtime_efficiency": [
+      "cfaults",
+      "hsd"
+    ]
+  },
+  "visible_data_only": true
+}

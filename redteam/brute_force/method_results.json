@@ -1,0 +1,1278 @@
+{
+  "method": "brute_force",
+  "seed": 0,
+  "instances": [
+    {
+      "diagnoses": [
+        [
+          "g1_sum"
+        ]
+      ],
+      "optimum_cost": 1,
+      "solver_oracle_calls": 26,
+      "elapsed_sec": 0.0007900019991211593,
+      "id": "three_bit_adder_logic_f1_o4_000"
+    },
+    {
+      "diagnoses": [
+        [
+          "g_any_ab"
+        ],
+        [
+          "g_ctrl"
+        ]
+      ],
+      "optimum_cost": 1,
+      "solver_oracle_calls": 26,
+      "elapsed_sec": 0.0005005109997000545,
+      "id": "three_bit_adder_logic_f1_o4_001"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_axb"
+        ],
+        [
+          "g0_sum"
+        ]
+      ],
+      "optimum_cost": 1,
+      "solver_oracle_calls": 26,
+      "elapsed_sec": 0.0005067609890829772,
+      "id": "three_bit_adder_logic_f1_o4_002"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_carry"
+        ]
+      ],
+      "optimum_cost": 1,
+      "solver_oracle_calls": 26,
+      "elapsed_sec": 0.0007430019904859364,
+      "id": "three_bit_adder_logic_f1_o8_000"
+    },
+    {
+      "diagnoses": [
+        [
+          "g2_sum"
+        ]
+      ],
+      "optimum_cost": 1,
+      "solver_oracle_calls": 26,
+      "elapsed_sec": 0.0007639809919055551,
+      "id": "three_bit_adder_logic_f1_o8_001"
+    },
+    {
+      "diagnoses": [
+        [
+          "g1_sum"
+        ]
+      ],
+      "optimum_cost": 1,
+      "solver_oracle_calls": 26,
+      "elapsed_sec": 0.0007228610047604889,
+      "id": "three_bit_adder_logic_f1_o8_002"
+    },
+    {
+      "diagnoses": [
+        [
+          "g1_carry"
+        ]
+      ],
+      "optimum_cost": 1,
+      "solver_oracle_calls": 26,
+      "elapsed_sec": 0.0014005029806867242,
+      "id": "three_bit_adder_logic_f1_o16_000"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_bc"
+        ],
+        [
+          "g0_carry"
+        ]
+      ],
+      "optimum_cost": 1,
+      "solver_oracle_calls": 26,
+      "elapsed_sec": 0.0013034529983997345,
+      "id": "three_bit_adder_logic_f1_o16_001"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_bc"
+        ],
+        [
+          "g0_carry"
+        ]
+      ],
+      "optimum_cost": 1,
+      "solver_oracle_calls": 26,
+      "elapsed_sec": 0.0014416030026040971,
+      "id": "three_bit_adder_logic_f1_o16_002"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_axb"
+        ],
+        [
+          "g0_sum"
+        ]
+      ],
+      "optimum_cost": 1,
+      "solver_oracle_calls": 26,
+      "elapsed_sec": 0.0004478310002014041,
+      "id": "three_bit_adder_logic_f2_o4_000"
+    },
+    {
+      "diagnoses": [
+        [
+          "g1_axb"
+        ],
+        [
+          "g1_sum"
+        ]
+      ],
+      "optimum_cost": 1,
+      "solver_oracle_calls": 26,
+      "elapsed_sec": 0.0005048110033385456,
+      "id": "three_bit_adder_logic_f2_o4_001"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_ab",
+          "g2_bc"
+        ],
+        [
+          "g0_ab",
+          "g2_carry"
+        ],
+        [
+          "g0_ac",
+          "g2_bc"
+        ],
+        [
+          "g0_ac",
+          "g2_carry"
+        ],
+        [
+          "g0_bc",
+          "g2_bc"
+        ],
+        [
+          "g0_bc",
+          "g2_carry"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_bc"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_carry"
+        ],
+        [
+          "g0_carry",
+          "g2_bc"
+        ],
+        [
+          "g0_carry",
+          "g2_carry"
+        ],
+        [
+          "g1_axb",
+          "g2_bc"
+        ],
+        [
+          "g1_axb",
+          "g2_carry"
+        ],
+        [
+          "g1_sum",
+          "g2_bc"
+        ],
+        [
+          "g1_sum",
+          "g2_carry"
+        ]
+      ],
+      "optimum_cost": 2,
+      "solver_oracle_calls": 326,
+      "elapsed_sec": 0.0023900050146039575,
+      "id": "three_bit_adder_logic_f2_o4_002"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_ab",
+          "g1_axb"
+        ],
+        [
+          "g0_ab",
+          "g1_sum"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_sum"
+        ],
+        [
+          "g0_carry",
+          "g1_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_sum"
+        ],
+        [
+          "g0_carry",
+          "g1_carry"
+        ],
+        [
+          "g1_axb",
+          "g1_bc"
+        ],
+        [
+          "g1_axb",
+          "g1_carry"
+        ],
+        [
+          "g1_bc",
+          "g1_sum"
+        ],
+        [
+          "g1_carry",
+          "g1_sum"
+        ]
+      ],
+      "optimum_cost": 2,
+      "solver_oracle_calls": 326,
+      "elapsed_sec": 0.002631635987199843,
+      "id": "three_bit_adder_logic_f2_o8_000"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_carry_tmp",
+          "g2_sum"
+        ],
+        [
+          "g0_carry",
+          "g2_sum"
+        ],
+        [
+          "g1_axb",
+          "g2_sum"
+        ],
+        [
+          "g1_sum",
+          "g2_sum"
+        ]
+      ],
+      "optimum_cost": 2,
+      "solver_oracle_calls": 326,
+      "elapsed_sec": 0.002474444976542145,
+      "id": "three_bit_adder_logic_f2_o8_001"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_carry"
+        ]
+      ],
+      "optimum_cost": 1,
+      "solver_oracle_calls": 26,
+      "elapsed_sec": 0.0008883720147423446,
+      "id": "three_bit_adder_logic_f2_o8_002"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_carry"
+        ]
+      ],
+      "optimum_cost": 1,
+      "solver_oracle_calls": 26,
+      "elapsed_sec": 0.0014349129924084991,
+      "id": "three_bit_adder_logic_f2_o16_000"
+    },
+    {
+      "diagnoses": [
+        [
+          "g1_bc",
+          "g_any_ab"
+        ],
+        [
+          "g1_bc",
+          "g_ctrl"
+        ],
+        [
+          "g1_carry_tmp",
+          "g_any_ab"
+        ],
+        [
+          "g1_carry_tmp",
+          "g_ctrl"
+        ],
+        [
+          "g1_carry",
+          "g_any_ab"
+        ],
+        [
+          "g1_carry",
+          "g_ctrl"
+        ]
+      ],
+      "optimum_cost": 2,
+      "solver_oracle_calls": 326,
+      "elapsed_sec": 0.0037486480141524225,
+      "id": "three_bit_adder_logic_f2_o16_001"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_carry",
+          "g1_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_sum"
+        ],
+        [
+          "g1_bc",
+          "g1_sum"
+        ],
+        [
+          "g1_carry_tmp",
+          "g1_sum"
+        ],
+        [
+          "g1_carry",
+          "g1_sum"
+        ]
+      ],
+      "optimum_cost": 2,
+      "solver_oracle_calls": 326,
+      "elapsed_sec": 0.003099345980444923,
+      "id": "three_bit_adder_logic_f2_o16_002"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_bc"
+        ],
+        [
+          "g0_carry"
+        ]
+      ],
+      "optimum_cost": 1,
+      "solver_oracle_calls": 26,
+      "elapsed_sec": 0.00047257100231945515,
+      "id": "three_bit_adder_logic_f3_o4_000"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_axb",
+          "g_ctrl",
+          "g_parity_01"
+        ],
+        [
+          "g0_axb",
+          "g_ctrl",
+          "g_parity"
+        ],
+        [
+          "g0_sum",
+          "g_ctrl",
+          "g_parity_01"
+        ],
+        [
+          "g0_sum",
+          "g_ctrl",
+          "g_parity"
+        ]
+      ],
+      "optimum_cost": 3,
+      "solver_oracle_calls": 2626,
+      "elapsed_sec": 0.012872785999206826,
+      "id": "three_bit_adder_logic_f3_o4_001"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_axb",
+          "g2_carry"
+        ],
+        [
+          "g0_sum",
+          "g2_carry"
+        ]
+      ],
+      "optimum_cost": 2,
+      "solver_oracle_calls": 326,
+      "elapsed_sec": 0.0018680740031413734,
+      "id": "three_bit_adder_logic_f3_o4_002"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_ac",
+          "g1_carry",
+          "g2_axb"
+        ],
+        [
+          "g0_ac",
+          "g1_carry",
+          "g2_sum"
+        ],
+        [
+          "g0_ac",
+          "g1_carry",
+          "g2_carry"
+        ],
+        [
+          "g0_ac",
+          "g2_ac",
+          "g2_axb"
+        ],
+        [
+          "g0_ac",
+          "g2_axb",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_ac",
+          "g2_axb",
+          "g2_carry"
+        ],
+        [
+          "g0_ac",
+          "g2_ac",
+          "g2_sum"
+        ],
+        [
+          "g0_ac",
+          "g2_carry_tmp",
+          "g2_sum"
+        ],
+        [
+          "g0_ac",
+          "g2_carry",
+          "g2_sum"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry",
+          "g2_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry",
+          "g2_sum"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry",
+          "g2_carry"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_ac",
+          "g2_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_axb",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_axb",
+          "g2_carry"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_ac",
+          "g2_sum"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_carry_tmp",
+          "g2_sum"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_carry",
+          "g2_sum"
+        ],
+        [
+          "g0_carry",
+          "g1_carry",
+          "g2_axb"
+        ],
+        [
+          "g0_carry",
+          "g1_carry",
+          "g2_sum"
+        ],
+        [
+          "g0_carry",
+          "g1_carry",
+          "g2_carry"
+        ],
+        [
+          "g0_carry",
+          "g2_ac",
+          "g2_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_axb",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_carry",
+          "g2_axb",
+          "g2_carry"
+        ],
+        [
+          "g0_carry",
+          "g2_ac",
+          "g2_sum"
+        ],
+        [
+          "g0_carry",
+          "g2_carry_tmp",
+          "g2_sum"
+        ],
+        [
+          "g0_carry",
+          "g2_carry",
+          "g2_sum"
+        ],
+        [
+          "g1_axb",
+          "g1_carry",
+          "g2_axb"
+        ],
+        [
+          "g1_axb",
+          "g1_carry",
+          "g2_sum"
+        ],
+        [
+          "g1_axb",
+          "g1_carry",
+          "g2_carry"
+        ],
+        [
+          "g1_axb",
+          "g2_ac",
+          "g2_axb"
+        ],
+        [
+          "g1_axb",
+          "g2_axb",
+          "g2_carry_tmp"
+        ],
+        [
+          "g1_axb",
+          "g2_axb",
+          "g2_carry"
+        ],
+        [
+          "g1_axb",
+          "g2_ac",
+          "g2_sum"
+        ],
+        [
+          "g1_axb",
+          "g2_carry_tmp",
+          "g2_sum"
+        ],
+        [
+          "g1_axb",
+          "g2_carry",
+          "g2_sum"
+        ],
+        [
+          "g1_carry",
+          "g1_sum",
+          "g2_axb"
+        ],
+        [
+          "g1_carry",
+          "g1_sum",
+          "g2_sum"
+        ],
+        [
+          "g1_carry",
+          "g1_sum",
+          "g2_carry"
+        ],
+        [
+          "g1_sum",
+          "g2_ac",
+          "g2_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_axb",
+          "g2_carry_tmp"
+        ],
+        [
+          "g1_sum",
+          "g2_axb",
+          "g2_carry"
+        ],
+        [
+          "g1_sum",
+          "g2_ac",
+          "g2_sum"
+        ],
+        [
+          "g1_sum",
+          "g2_carry_tmp",
+          "g2_sum"
+        ],
+        [
+          "g1_sum",
+          "g2_carry",
+          "g2_sum"
+        ]
+      ],
+      "optimum_cost": 3,
+      "solver_oracle_calls": 2626,
+      "elapsed_sec": 0.015170512022450566,
+      "id": "three_bit_adder_logic_f3_o8_000"
+    },
+    {
+      "diagnoses": [
+        [
+          "g1_carry",
+          "g2_axb",
+          "g_parity"
+        ],
+        [
+          "g1_carry",
+          "g2_sum",
+          "g_parity"
+        ],
+        [
+          "g2_ac",
+          "g2_sum",
+          "g_parity"
+        ],
+        [
+          "g2_carry_tmp",
+          "g2_sum",
+          "g_parity"
+        ],
+        [
+          "g2_carry",
+          "g2_sum",
+          "g_parity"
+        ]
+      ],
+      "optimum_cost": 3,
+      "solver_oracle_calls": 2626,
+      "elapsed_sec": 0.01616455300245434,
+      "id": "three_bit_adder_logic_f3_o8_001"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_bc",
+          "g0_sum",
+          "g2_sum"
+        ],
+        [
+          "g0_carry_tmp",
+          "g0_sum",
+          "g2_sum"
+        ],
+        [
+          "g0_carry",
+          "g0_sum",
+          "g2_sum"
+        ],
+        [
+          "g0_sum",
+          "g1_axb",
+          "g2_sum"
+        ],
+        [
+          "g0_sum",
+          "g1_sum",
+          "g2_sum"
+        ]
+      ],
+      "optimum_cost": 3,
+      "solver_oracle_calls": 2626,
+      "elapsed_sec": 0.01274149600067176,
+      "id": "three_bit_adder_logic_f3_o8_002"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_bc",
+          "g1_axb",
+          "g_ctrl"
+        ],
+        [
+          "g0_bc",
+          "g1_sum",
+          "g_ctrl"
+        ],
+        [
+          "g0_bc",
+          "g1_bc",
+          "g_ctrl"
+        ],
+        [
+          "g0_bc",
+          "g1_carry_tmp",
+          "g_ctrl"
+        ],
+        [
+          "g0_bc",
+          "g1_carry",
+          "g_ctrl"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_axb",
+          "g_ctrl"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_sum",
+          "g_ctrl"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_bc",
+          "g_ctrl"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry_tmp",
+          "g_ctrl"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry",
+          "g_ctrl"
+        ],
+        [
+          "g0_carry",
+          "g1_axb",
+          "g_ctrl"
+        ],
+        [
+          "g0_carry",
+          "g1_sum",
+          "g_ctrl"
+        ],
+        [
+          "g0_carry",
+          "g1_bc",
+          "g_ctrl"
+        ],
+        [
+          "g0_carry",
+          "g1_carry_tmp",
+          "g_ctrl"
+        ],
+        [
+          "g0_carry",
+          "g1_carry",
+          "g_ctrl"
+        ],
+        [
+          "g1_axb",
+          "g1_bc",
+          "g_ctrl"
+        ],
+        [
+          "g1_axb",
+          "g1_carry_tmp",
+          "g_ctrl"
+        ],
+        [
+          "g1_axb",
+          "g1_carry",
+          "g_ctrl"
+        ],
+        [
+          "g1_bc",
+          "g1_sum",
+          "g_ctrl"
+        ],
+        [
+          "g1_carry_tmp",
+          "g1_sum",
+          "g_ctrl"
+        ],
+        [
+          "g1_carry",
+          "g1_sum",
+          "g_ctrl"
+        ]
+      ],
+      "optimum_cost": 3,
+      "solver_oracle_calls": 2626,
+      "elapsed_sec": 0.01878088800003752,
+      "id": "three_bit_adder_logic_f3_o16_000"
+    },
+    {
+      "diagnoses": [
+        [
+          "g2_carry_tmp",
+          "g_any_ab",
+          "g_parity"
+        ],
+        [
+          "g2_carry_tmp",
+          "g_ctrl",
+          "g_parity"
+        ],
+        [
+          "g2_carry",
+          "g_any_ab",
+          "g_parity"
+        ],
+        [
+          "g2_carry",
+          "g_ctrl",
+          "g_parity"
+        ]
+      ],
+      "optimum_cost": 3,
+      "solver_oracle_calls": 2626,
+      "elapsed_sec": 0.02080170199042186,
+      "id": "three_bit_adder_logic_f3_o16_001"
+    },
+    {
+      "diagnoses": [
+        [
+          "g0_bc",
+          "g1_ac",
+          "g2_ac"
+        ],
+        [
+          "g0_bc",
+          "g1_ac",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_bc",
+          "g1_ac",
+          "g2_carry"
+        ],
+        [
+          "g0_bc",
+          "g1_carry_tmp",
+          "g2_ac"
+        ],
+        [
+          "g0_bc",
+          "g1_carry_tmp",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_bc",
+          "g1_carry_tmp",
+          "g2_carry"
+        ],
+        [
+          "g0_bc",
+          "g1_carry",
+          "g2_ac"
+        ],
+        [
+          "g0_bc",
+          "g1_carry",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_bc",
+          "g1_carry",
+          "g2_carry"
+        ],
+        [
+          "g0_bc",
+          "g2_ac",
+          "g2_axb"
+        ],
+        [
+          "g0_bc",
+          "g2_axb",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_bc",
+          "g2_axb",
+          "g2_carry"
+        ],
+        [
+          "g0_bc",
+          "g2_ac",
+          "g2_sum"
+        ],
+        [
+          "g0_bc",
+          "g2_carry_tmp",
+          "g2_sum"
+        ],
+        [
+          "g0_bc",
+          "g2_carry",
+          "g2_sum"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_ac",
+          "g2_ac"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_ac",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_ac",
+          "g2_carry"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry_tmp",
+          "g2_ac"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry_tmp",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry_tmp",
+          "g2_carry"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry",
+          "g2_ac"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_carry_tmp",
+          "g1_carry",
+          "g2_carry"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_ac",
+          "g2_axb"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_axb",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_axb",
+          "g2_carry"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_ac",
+          "g2_sum"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_carry_tmp",
+          "g2_sum"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_carry",
+          "g2_sum"
+        ],
+        [
+          "g0_carry",
+          "g1_axb",
+          "g2_ac"
+        ],
+        [
+          "g0_carry",
+          "g1_axb",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_carry",
+          "g1_axb",
+          "g2_carry"
+        ],
+        [
+          "g0_carry",
+          "g1_sum",
+          "g2_ac"
+        ],
+        [
+          "g0_carry",
+          "g1_sum",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_carry",
+          "g1_sum",
+          "g2_carry"
+        ],
+        [
+          "g0_carry",
+          "g1_ac",
+          "g2_ac"
+        ],
+        [
+          "g0_carry",
+          "g1_ac",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_carry",
+          "g1_ac",
+          "g2_carry"
+        ],
+        [
+          "g0_carry",
+          "g1_carry_tmp",
+          "g2_ac"
+        ],
+        [
+          "g0_carry",
+          "g1_carry_tmp",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_carry",
+          "g1_carry_tmp",
+          "g2_carry"
+        ],
+        [
+          "g0_carry",
+          "g1_carry",
+          "g2_ac"
+        ],
+        [
+          "g0_carry",
+          "g1_carry",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_carry",
+          "g1_carry",
+          "g2_carry"
+        ],
+        [
+          "g0_carry",
+          "g2_ac",
+          "g2_axb"
+        ],
+        [
+          "g0_carry",
+          "g2_axb",
+          "g2_carry_tmp"
+        ],
+        [
+          "g0_carry",
+          "g2_axb",
+          "g2_carry"
+        ],
+        [
+          "g0_carry",
+          "g2_ac",
+          "g2_sum"
+        ],
+        [
+          "g0_carry",
+          "g2_carry_tmp",
+          "g2_sum"
+        ],
+        [
+          "g0_carry",
+          "g2_carry",
+          "g2_sum"
+        ],
+        [
+          "g1_ac",
+          "g1_axb",
+          "g2_ac"
+        ],
+        [
+          "g1_ac",
+          "g1_axb",
+          "g2_carry_tmp"
+        ],
+        [
+          "g1_ac",
+          "g1_axb",
+          "g2_carry"
+        ],
+        [
+          "g1_axb",
+          "g1_carry_tmp",
+          "g2_ac"
+        ],
+        [
+          "g1_axb",
+          "g1_carry_tmp",
+          "g2_carry_tmp"
+        ],
+        [
+          "g1_axb",
+          "g1_carry_tmp",
+          "g2_carry"
+        ],
+        [
+          "g1_axb",
+          "g1_carry",
+          "g2_ac"
+        ],
+        [
+          "g1_axb",
+          "g1_carry",
+          "g2_carry_tmp"
+        ],
+        [
+          "g1_axb",
+          "g1_carry",
+          "g2_carry"
+        ],
+        [
+          "g1_axb",
+          "g2_ac",
+          "g2_axb"
+        ],
+        [
+          "g1_axb",
+          "g2_axb",
+          "g2_carry_tmp"
+        ],
+        [
+          "g1_axb",
+          "g2_axb",
+          "g2_carry"
+        ],
+        [
+          "g1_axb",
+          "g2_ac",
+          "g2_sum"
+        ],
+        [
+          "g1_axb",
+          "g2_carry_tmp",
+          "g2_sum"
+        ],
+        [
+          "g1_axb",
+          "g2_carry",
+          "g2_sum"
+        ],
+        [
+          "g1_ac",
+          "g1_sum",
+          "g2_ac"
+        ],
+        [
+          "g1_ac",
+          "g1_sum",
+          "g2_carry_tmp"
+        ],
+        [
+          "g1_ac",
+          "g1_sum",
+          "g2_carry"
+        ],
+        [
+          "g1_carry_tmp",
+          "g1_sum",
+          "g2_ac"
+        ],
+        [
+          "g1_carry_tmp",
+          "g1_sum",
+          "g2_carry_tmp"
+        ],
+        [
+          "g1_carry_tmp",
+          "g1_sum",
+          "g2_carry"
+        ],
+        [
+          "g1_carry",
+          "g1_sum",
+          "g2_ac"
+        ],
+        [
+          "g1_carry",
+          "g1_sum",
+          "g2_carry_tmp"
+        ],
+        [
+          "g1_carry",
+          "g1_sum",
+          "g2_carry"
+        ],
+        [
+          "g1_sum",
+          "g2_ac",
+          "g2_axb"
+        ],
+        [
+          "g1_sum",
+          "g2_axb",
+          "g2_carry_tmp"
+        ],
+        [
+          "g1_sum",
+          "g2_axb",
+          "g2_carry"
+        ],
+        [
+          "g1_sum",
+          "g2_ac",
+          "g2_sum"
+        ],
+        [
+          "g1_sum",
+          "g2_carry_tmp",
+          "g2_sum"
+        ],
+        [
+          "g1_sum",
+          "g2_carry",
+          "g2_sum"
+        ]
+      ],
+      "optimum_cost": 3,
+      "solver_oracle_calls": 2626,
+      "elapsed_sec": 0.018771217990433797,
+      "id": "three_bit_adder_logic_f3_o16_002"
+    }
+  ]
+}

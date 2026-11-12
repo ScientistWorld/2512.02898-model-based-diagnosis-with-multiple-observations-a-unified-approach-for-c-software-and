@@ -1,0 +1,60 @@
+{
+  "case": "weaker_one_observation",
+  "events": [
+    {
+      "command": [
+        "python",
+        "method/audit_variant.py",
+        "weaker_one_observation"
+      ],
+      "returncode": 0,
+      "wall_seconds": 0.4154414749937132
+    },
+    {
+      "command": [
+        "bash",
+        "scripts/evaluate_train.sh"
+      ],
+      "returncode": 0,
+      "wall_seconds": 0.5150387800240424
+    },
+    {
+      "command": [
+        "bash",
+        "scripts/evaluate_test.sh"
+      ],
+      "returncode": 0,
+      "wall_seconds": 0.5148208390164655
+    }
+  ],
+  "hidden_arguments": [],
+  "hidden_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "hidden_restored_after_method": true,
+  "manifest_instances": 27,
+  "result_files_on_disk": [
+    "checkpoints/cfaults_circuit/results.json",
+    "checkpoints/hsd_circuit/results.json"
+  ],
+  "scored_methods": {
+    "diagnosis_quality": [
+      "cfaults",
+      "hsd"
+    ],
+    "iscas85_localisation": [
+      "cfaults",
+      "hsd"
+    ],
+    "observation_scaling": [
+      "cfaults",
+      "hsd"
+    ],
+    "runtime_efficiency": [
+      "cfaults",
+      "hsd"
+    ]
+  },
+  "visible_data_only": true
+}

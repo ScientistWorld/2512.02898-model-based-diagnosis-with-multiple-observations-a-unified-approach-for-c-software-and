@@ -1,0 +1,720 @@
+{
+  "method": "weaker_one_observation",
+  "seed": 0,
+  "instances": [
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_sum"
+        ],
+        [
+          "g1_axb"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 95,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.09033872600411996,
+      "id": "three_bit_adder_logic_f1_o4_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g_ctrl"
+        ],
+        [
+          "g_any_ab"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 96,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.0008465209975838661,
+      "id": "three_bit_adder_logic_f1_o4_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_sum"
+        ],
+        [
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 95,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.0008369220013264567,
+      "id": "three_bit_adder_logic_f1_o4_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_carry"
+        ],
+        [
+          "g1_sum"
+        ],
+        [
+          "g1_axb"
+        ]
+      ],
+      "diagnosis_count": 3,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 96,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 4,
+      "elapsed_sec": 0.001296242990065366,
+      "id": "three_bit_adder_logic_f1_o8_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g2_sum"
+        ]
+      ],
+      "diagnosis_count": 1,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 95,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 2,
+      "elapsed_sec": 0.0007420309993904084,
+      "id": "three_bit_adder_logic_f1_o8_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_carry_tmp"
+        ],
+        [
+          "g0_carry"
+        ],
+        [
+          "g1_axb"
+        ],
+        [
+          "g0_bc"
+        ],
+        [
+          "g1_sum"
+        ],
+        [
+          "g0_ab"
+        ],
+        [
+          "g0_ac"
+        ]
+      ],
+      "diagnosis_count": 7,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 95,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 8,
+      "elapsed_sec": 0.0019527039839886129,
+      "id": "three_bit_adder_logic_f1_o8_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_carry"
+        ],
+        [
+          "g2_sum"
+        ],
+        [
+          "g2_axb"
+        ]
+      ],
+      "diagnosis_count": 3,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 96,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 4,
+      "elapsed_sec": 0.0011671020183712244,
+      "id": "three_bit_adder_logic_f1_o16_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_carry"
+        ],
+        [
+          "g0_bc"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 97,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.0009596720046829432,
+      "id": "three_bit_adder_logic_f1_o16_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_carry"
+        ],
+        [
+          "g0_bc"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 96,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.0008638519793748856,
+      "id": "three_bit_adder_logic_f1_o16_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_sum"
+        ],
+        [
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 96,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.0007372419931925833,
+      "id": "three_bit_adder_logic_f2_o4_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_sum"
+        ],
+        [
+          "g1_axb"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 95,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.0008839910151436925,
+      "id": "three_bit_adder_logic_f2_o4_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_sum",
+          "g2_carry"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_carry"
+        ],
+        [
+          "g0_bc",
+          "g2_carry"
+        ],
+        [
+          "g0_ac",
+          "g2_carry"
+        ],
+        [
+          "g0_ab",
+          "g2_carry"
+        ],
+        [
+          "g0_carry",
+          "g2_carry"
+        ],
+        [
+          "g1_axb",
+          "g2_carry"
+        ],
+        [
+          "g0_bc",
+          "g2_bc"
+        ],
+        [
+          "g0_carry_tmp",
+          "g2_bc"
+        ],
+        [
+          "g0_ac",
+          "g2_bc"
+        ],
+        [
+          "g0_ab",
+          "g2_bc"
+        ],
+        [
+          "g0_carry",
+          "g2_bc"
+        ],
+        [
+          "g1_sum",
+          "g2_bc"
+        ],
+        [
+          "g1_axb",
+          "g2_bc"
+        ]
+      ],
+      "diagnosis_count": 14,
+      "optimum_cost": 2,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 95,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 15,
+      "elapsed_sec": 0.00501167998299934,
+      "id": "three_bit_adder_logic_f2_o4_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_carry_tmp"
+        ],
+        [
+          "g0_carry"
+        ],
+        [
+          "g0_ab"
+        ],
+        [
+          "g1_sum"
+        ],
+        [
+          "g1_axb"
+        ]
+      ],
+      "diagnosis_count": 5,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 95,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 6,
+      "elapsed_sec": 0.0015501230082008988,
+      "id": "three_bit_adder_logic_f2_o8_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g2_sum"
+        ]
+      ],
+      "diagnosis_count": 1,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 94,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 2,
+      "elapsed_sec": 0.00067717200727202,
+      "id": "three_bit_adder_logic_f2_o8_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_carry"
+        ],
+        [
+          "g1_sum"
+        ],
+        [
+          "g1_axb"
+        ]
+      ],
+      "diagnosis_count": 3,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 96,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 4,
+      "elapsed_sec": 0.0010116219928022474,
+      "id": "three_bit_adder_logic_f2_o8_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_carry"
+        ],
+        [
+          "g0_bc"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 96,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.000814041995909065,
+      "id": "three_bit_adder_logic_f2_o16_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_carry"
+        ],
+        [
+          "g2_sum"
+        ],
+        [
+          "g2_axb"
+        ],
+        [
+          "g1_bc"
+        ],
+        [
+          "g1_carry_tmp"
+        ]
+      ],
+      "diagnosis_count": 5,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 97,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 6,
+      "elapsed_sec": 0.0016474929871037602,
+      "id": "three_bit_adder_logic_f2_o16_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_sum"
+        ],
+        [
+          "g1_axb"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 96,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.000774962012656033,
+      "id": "three_bit_adder_logic_f2_o16_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_bc"
+        ],
+        [
+          "g0_carry"
+        ],
+        [
+          "g1_sum"
+        ],
+        [
+          "g1_axb"
+        ]
+      ],
+      "diagnosis_count": 4,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 97,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 5,
+      "elapsed_sec": 0.0011378519993741065,
+      "id": "three_bit_adder_logic_f3_o4_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g_ctrl",
+          "g_parity"
+        ],
+        [
+          "g_ctrl",
+          "g_parity_01"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 2,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 94,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.0007026719977147877,
+      "id": "three_bit_adder_logic_f3_o4_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_sum"
+        ],
+        [
+          "g0_axb"
+        ]
+      ],
+      "diagnosis_count": 2,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 95,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 3,
+      "elapsed_sec": 0.0006627709954045713,
+      "id": "three_bit_adder_logic_f3_o4_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_carry"
+        ],
+        [
+          "g2_sum"
+        ],
+        [
+          "g2_axb"
+        ],
+        [
+          "g1_bc"
+        ],
+        [
+          "g1_carry_tmp"
+        ],
+        [
+          "g1_ab"
+        ],
+        [
+          "g1_ac"
+        ]
+      ],
+      "diagnosis_count": 7,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 96,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 8,
+      "elapsed_sec": 0.0020285240025259554,
+      "id": "three_bit_adder_logic_f3_o8_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_carry",
+          "g2_sum",
+          "g_parity"
+        ],
+        [
+          "g1_carry",
+          "g2_axb",
+          "g_parity"
+        ],
+        [
+          "g2_ab",
+          "g2_sum",
+          "g_parity"
+        ],
+        [
+          "g2_carry_tmp",
+          "g2_sum",
+          "g_parity"
+        ],
+        [
+          "g2_ac",
+          "g2_sum",
+          "g_parity"
+        ],
+        [
+          "g2_carry",
+          "g2_sum",
+          "g_parity"
+        ],
+        [
+          "g2_bc",
+          "g2_sum",
+          "g_parity"
+        ]
+      ],
+      "diagnosis_count": 7,
+      "optimum_cost": 3,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 95,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 8,
+      "elapsed_sec": 0.0024046850157901645,
+      "id": "three_bit_adder_logic_f3_o8_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g0_sum",
+          "g2_sum"
+        ],
+        [
+          "g0_axb",
+          "g2_sum"
+        ],
+        [
+          "g0_sum",
+          "g2_axb"
+        ],
+        [
+          "g0_axb",
+          "g2_axb"
+        ]
+      ],
+      "diagnosis_count": 4,
+      "optimum_cost": 2,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 95,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 5,
+      "elapsed_sec": 0.0014988429902587086,
+      "id": "three_bit_adder_logic_f3_o8_002"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_carry",
+          "g_ctrl"
+        ],
+        [
+          "g2_sum",
+          "g_ctrl"
+        ],
+        [
+          "g2_axb",
+          "g_ctrl"
+        ],
+        [
+          "g1_bc",
+          "g_ctrl"
+        ],
+        [
+          "g1_carry_tmp",
+          "g_ctrl"
+        ]
+      ],
+      "diagnosis_count": 5,
+      "optimum_cost": 2,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 98,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 6,
+      "elapsed_sec": 0.0016001639887690544,
+      "id": "three_bit_adder_logic_f3_o16_000"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g_parity"
+        ]
+      ],
+      "diagnosis_count": 1,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 96,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 2,
+      "elapsed_sec": 0.0004307609924580902,
+      "id": "three_bit_adder_logic_f3_o16_001"
+    },
+    {
+      "solver": "pysat_rc2stratified",
+      "diagnoses": [
+        [
+          "g1_carry"
+        ],
+        [
+          "g2_sum"
+        ],
+        [
+          "g2_axb"
+        ],
+        [
+          "g1_bc"
+        ],
+        [
+          "g1_carry_tmp"
+        ],
+        [
+          "g1_ab"
+        ],
+        [
+          "g1_ac"
+        ]
+      ],
+      "diagnosis_count": 7,
+      "optimum_cost": 1,
+      "num_observations": 1,
+      "num_gates": 25,
+      "num_hard_clauses": 97,
+      "num_soft_clauses": 25,
+      "solver_oracle_calls": 8,
+      "elapsed_sec": 0.0021168640232644975,
+      "id": "three_bit_adder_logic_f3_o16_002"
+    }
+  ]
+}
