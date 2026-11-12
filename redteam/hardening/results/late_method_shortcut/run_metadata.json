@@ -1,0 +1,32 @@
+{
+  "case": "late_method_shortcut",
+  "env": {},
+  "hidden_arguments": [],
+  "hidden_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "pre_step": "late",
+  "registrations": {
+    "cfaults_circuit": [
+      "python",
+      "method/audit_shortcuts.py",
+      "constant_gate",
+      "--instance",
+      "{instance}",
+      "--output",
+      "{output}"
+    ],
+    "late_method": [
+      "python",
+      "method/audit_shortcuts.py",
+      "empty_output",
+      "--instance",
+      "{instance}",
+      "--output",
+      "{output}"
+    ]
+  },
+  "returncode": 0,
+  "wall_seconds": 28.038597345352173
+}
