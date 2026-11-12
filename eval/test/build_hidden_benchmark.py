@@ -28,8 +28,10 @@ import argparse
 import json
 import os
 import random
+import resource
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -166,6 +168,25 @@ def exact_answer(instance: dict, cpu_budget: float = 150.0) -> dict:
     return {"optimum": k, "diagnoses": diagnoses, "status": status, "cpu_seconds": time.process_time() - t0}
 
 
+def exact_answer_limited(instance: dict, cpu_budget: float) -> dict:
+    """exact_answer in a child process with a hard CPU limit on EVERY step
+    (MaxSAT optimum, lower-bound proof, enumeration); a kill means too_slow."""
+    hard = int(cpu_budget) + 30
+    with tempfile.TemporaryDirectory() as tmp:
+        inp, out = Path(tmp) / "instance.json", Path(tmp) / "answer.json"
+        inp.write_text(json.dumps(instance))
+
+        def limit() -> None:
+            resource.setrlimit(resource.RLIMIT_CPU, (hard, hard + 1))
+
+        proc = subprocess.run([sys.executable, str(Path(__file__).resolve()), "exact", "--instance", str(inp),
+                               "--answer", str(out), "--budget", str(cpu_budget)],
+                              cwd=REPO_ROOT, preexec_fn=limit, capture_output=True, text=True)
+        if proc.returncode != 0 or not out.exists():
+            return {"optimum": None, "diagnoses": [], "status": "too_slow", "cpu_seconds": float(hard)}
+        return json.loads(out.read_text())
+
+
 def verify_answer(instance: dict, answer: dict, rng: random.Random) -> None:
     circuit = circuit_from_json(instance["circuit"])
     obs = instance["observations"]
@@ -192,7 +213,7 @@ def build_cells(split: str, seed_text: str, cells: list[tuple[str, str, int, int
             if inst is None:
                 rejected.append({"cell": key, "attempt": attempt, "reason": "no_failing_observations"})
                 continue
-            answer = exact_answer(inst, GT_CPU_BUDGET[tier])
+            answer = exact_answer_limited(inst, GT_CPU_BUDGET[tier])
             if answer["status"] != "complete":
                 rejected.append({"cell": key, "attempt": attempt, "reason": answer["status"],
                                  "optimum": answer["optimum"], "partial_count": len(answer["diagnoses"])})
@@ -368,9 +389,16 @@ def phase_baselines() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("phase", choices=["build", "calibrate", "limit", "baselines", "all"])
+    parser.add_argument("phase", choices=["build", "calibrate", "limit", "baselines", "all", "exact"])
+    parser.add_argument("--instance", type=Path)
+    parser.add_argument("--answer", type=Path)
+    parser.add_argument("--budget", type=float, default=150.0)
     args = parser.parse_args()
     os.chdir(REPO_ROOT)
+    if args.phase == "exact":  # internal: one bounded exact computation (see exact_answer_limited)
+        answer = exact_answer(json.loads(args.instance.read_text()), args.budget)
+        args.answer.write_text(json.dumps(answer))
+        return
     phases = ["build", "calibrate", "limit", "baselines"] if args.phase == "all" else [args.phase]
     for phase in phases:
         log(f"phase {phase}")
