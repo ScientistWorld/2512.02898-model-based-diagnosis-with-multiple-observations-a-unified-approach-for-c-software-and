@@ -1,0 +1,32 @@
+{
+  "all_nonminimal_padding_outranks_reference": true,
+  "cases_completed": 25,
+  "empty_shortlist_has_no_results_in_all_experiments": true,
+  "every_hidden_command_no_arguments_and_returned_zero": true,
+  "fresh_reference_matches_original_test_experiments": true,
+  "full_27_instance_diagnosis_sets_equal_reference": {
+    "brute_force": true,
+    "hsd_honest_alternative": true,
+    "incremental": true,
+    "trained_tiebreak": true
+  },
+  "late_method_on_disk_omitted_from_all_experiments": true,
+  "prewritten_hidden_scores_overwritten": true,
+  "ranked_metric_count": 13,
+  "scored_reference_best_bound_metrics": [],
+  "scored_seed_spreads": {
+    "diagnosis_quality/avg_extra_gate_count": 0.0,
+    "diagnosis_quality/avg_missing_fault_count": 0.0,
+    "diagnosis_quality/selected_fault_f1": 0.0,
+    "diagnosis_quality/selected_fault_precision": 0.0,
+    "diagnosis_quality/selected_fault_recall": 0.0,
+    "iscas85_localisation/selected_fault_f1": 0.0,
+    "observation_scaling/selected_fault_f1_obs10": 0.0,
+    "observation_scaling/selected_fault_f1_obs20": 0.0,
+    "observation_scaling/selected_fault_f1_obs30": 0.0,
+    "observation_scaling/selected_fault_f1_obs40": 0.0,
+    "observation_scaling/selected_fault_f1_obs50": 0.0,
+    "runtime_efficiency/avg_solver_oracle_calls_per_instance": 0.0,
+    "runtime_efficiency/max_solver_oracle_calls_per_instance": 0
+  }
+}

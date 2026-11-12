@@ -3,6 +3,7 @@
 Run `bash redteam/run_all.sh` in the supplied gym container as a CPU job.
 Each scenario also has an independent `run.sh`; reuse scenarios require the
 freshly generated `reference_seed_0` outputs first.
+The nonminimal-padding shortcut also reuses the genuine `trained_tiebreak` run.
 
 `harness.py` makes an isolated workspace containing only scientist-visible
 source/data. Honest variants use the original joint MaxSAT method; shortcut
@@ -30,3 +31,6 @@ Complete per-run hidden scores and method outputs are saved in each folder.
 Generated scratch workspaces and verbose logs are ignored by this directory's
 `.gitignore`. Small score, provenance, and result JSON files are intentional
 audit evidence and tracked.
+
+`python redteam/check_evidence.py` checks the saved JSON evidence without
+rerunning any method or solver and writes `checks.json`.

@@ -1,4 +1,8 @@
-action: submit
+# Once you set action to 'submit' or 'done', STOP immediately.
+# Do NOT sleep, poll, or wait for jobs. The system reads this file
+# only after your turn ends.
+action: pending
 gpus: 0
 test: false
-notes: "Run the nonminimal-padding shortcut from saved genuine outputs through the unchanged hidden test, then refresh the audit-cohort rank summary."
+milestone: core_claim
+notes: ""
