@@ -1,2 +1,8 @@
-action: done
-notes: "Committed audit b7fdc5e: 25 scored runs show genuine quality sensitivity but major label, constraint, work-reporting, and missing-result shortcuts."
+# Once you set action to 'submit' or 'done', STOP immediately.
+# Do NOT sleep, poll, or wait for jobs. The system reads this file
+# only after your turn ends.
+action: pending
+gpus: 0
+test: false
+milestone: core_claim
+notes: ""
