@@ -5,4 +5,4 @@ action: submit
 gpus: 0
 test: false
 milestone: core_claim
-notes: "Hardening job: smoke cross-check, build hidden ISCAS85 test + train split with exact answers, calibrate, choose CPU budget from train, store HSD/BugAssist baselines, run reference train+hidden test, run all audit cases (variants, brute force, shortcuts, seeds) through scripts/evaluate_test.sh, summarise, validate."
+notes: "Hardening job 2 (resumed): finish scale-stress tier for hidden test + train with hard-limited exact enumeration, regenerate evaluator-owned baselines, rerun reference train+hidden test and all audit cases through scripts/evaluate_test.sh, summarise, validate."
