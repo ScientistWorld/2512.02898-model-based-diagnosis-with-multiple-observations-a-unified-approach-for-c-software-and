@@ -49,6 +49,8 @@ OBSERVATION_COUNTS = (10, 20, 30, 40, 50)
 STRESS_CIRCUITS = ("c2670", "c3540", "c5315", "c7552")
 STRESS_FAULT_COUNTS = (3, 5)
 STRESS_OBSERVATION_COUNTS = (10, 30, 50)
+STRESS_SLOTS = {"train": 1, "test": 2}  # instances per stress cell
+STRESS_ATTEMPT_STRIDE = 100  # slot s uses attempt indices s*100, s*100+1, ...
 TRAIN_SEED = "cfaults-iscas85-public-train-v2"
 
 ISCAS85_URL = "https://pld.ttu.ee/~maksim/benchmarks/iscas85/bench/{name}.bench"
@@ -416,12 +418,17 @@ def grid() -> list[tuple[str, int, int]]:
     return [(c, k, m) for c in CIRCUITS for k in FAULT_COUNTS for m in OBSERVATION_COUNTS]
 
 
-def stress_grid() -> list[tuple[str, int, int]]:
-    return [(c, k, m) for c in STRESS_CIRCUITS for k in STRESS_FAULT_COUNTS for m in STRESS_OBSERVATION_COUNTS]
+def stress_grid(slots: int = 1) -> list[tuple[str, int, int, int]]:
+    return [(c, k, m, s) for c in STRESS_CIRCUITS for k in STRESS_FAULT_COUNTS for m in STRESS_OBSERVATION_COUNTS
+            for s in range(slots)]
 
 
-def cell_key(tier: str, circuit: str, k: int, m: int) -> str:
-    return f"{circuit}|{k}|{m}" if tier == "base" else f"{tier}|{circuit}|{k}|{m}"
+def cell_key(tier: str, circuit: str, k: int, m: int, slot: int = 0) -> str:
+    return f"{circuit}|{k}|{m}" if tier == "base" else f"{tier}|{circuit}|{k}|{m}|{slot}"
+
+
+def split_cells(split: str) -> list[tuple[str, str, int, int, int]]:
+    return [("base", c, k, m, 0) for c, k, m in grid()] + [("stress", *c) for c in stress_grid(STRESS_SLOTS.get(split, 1))]
 
 
 def read_jsonl(path: Path) -> list[dict]:
@@ -445,12 +452,11 @@ def generate_split(bench_dir: Path, split: str, seed_text: str, accepted: dict[s
     """
     circuits = {name: load_iscas85(bench_dir, name) for name in CIRCUITS + STRESS_CIRCUITS}
     rows = []
-    cells = [("base", *c) for c in grid()] + [("stress", *c) for c in stress_grid()]
-    for tier, circuit_name, k, m in cells:
-        key = cell_key(tier, circuit_name, k, m)
+    for tier, circuit_name, k, m, slot in split_cells(split):
+        key = cell_key(tier, circuit_name, k, m, slot)
         if accepted is not None and key not in accepted:
             continue
-        attempt = (accepted or {}).get(key, 0)
+        attempt = (accepted or {}).get(key, slot * STRESS_ATTEMPT_STRIDE)
         while True:
             inst = make_instance(circuits[circuit_name], split, seed_text, k, m, attempt, tier)
             if inst is not None:

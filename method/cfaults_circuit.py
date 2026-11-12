@@ -11,7 +11,10 @@ Implements the circuit side of the paper (Sections 4.2 and 5.2, Algorithm 5):
 * RC2Stratified (PySAT) is the MaxSAT oracle;
 * all optimum solutions are enumerated by adding the blocking clause
   ``OR_{g in Delta} h_g`` to the hard clauses and re-solving until the cost
-  exceeds the optimum.
+  exceeds the optimum.  As in the authors' CFaults tool (``oracle.py``,
+  ``enumerate_MaxSATsolutions``), ONE RC2Stratified oracle is kept for the
+  whole enumeration: each blocking clause is added to it with
+  ``add_clause`` and ``compute`` is called again.
 
 Interface (used by the train and hidden-test evaluators):
 
@@ -100,50 +103,39 @@ def build_unified_formula(circuit: dict, observations: list[dict]) -> tuple[list
     return hard, list(healthy.values()), pool, healthy
 
 
-def solve_maxsat(hard: list[Clause], soft: list[int], top: int, block: list[Clause]) -> tuple[set[int] | None, int | None]:
-    """One SolveMaxSAT call of Algorithm 5 (fresh RC2Stratified oracle)."""
+def diagnose(circuit: dict, observations: list[dict], emit=None, enumerate_all: bool = True) -> list[list[str]]:
+    """Algorithm 5: enumerate all minimum-cardinality aggregated diagnoses."""
     from pysat.examples.rc2 import RC2Stratified
     from pysat.formula import WCNF
 
+    hard, soft, pool, healthy = build_unified_formula(circuit, observations)
+    names = {lit: name for name, lit in healthy.items()}
     wcnf = WCNF()
     for clause in hard:
         wcnf.append(clause)
-    for clause in block:
-        wcnf.append(clause)
     for lit in soft:
         wcnf.append([lit], weight=1)
-    wcnf.nv = max(top, wcnf.nv)
-    with RC2Stratified(wcnf) as solver:
-        model = solver.compute()
-        if model is None:
-            return None, None
-        assigned = set(model)
-        disabled = {lit for lit in soft if -lit in assigned}
-        return disabled, len(disabled)
-
-
-def diagnose(circuit: dict, observations: list[dict], emit=None, enumerate_all: bool = True) -> list[list[str]]:
-    """Algorithm 5: enumerate all minimum-cardinality aggregated diagnoses."""
-    hard, soft, pool, healthy = build_unified_formula(circuit, observations)
-    names = {lit: name for name, lit in healthy.items()}
-    block: list[Clause] = []
+    wcnf.nv = max(pool.top, wcnf.nv)
     optimum = None
     found: list[list[str]] = []
-    while True:
-        disabled, cost = solve_maxsat(hard, soft, pool.top, block)
-        if disabled is None or cost is None:
-            break
-        if optimum is None:
-            optimum = cost
-        if cost > optimum:
-            break  # all optimum MaxSAT solutions enumerated
-        diagnosis = sorted(names[lit] for lit in disabled)
-        found.append(diagnosis)
-        if emit is not None:
-            emit(diagnosis)
-        if not enumerate_all or not disabled:
-            break
-        block.append(sorted(disabled))  # blocking clause: OR_{g in Delta} h_g
+    with RC2Stratified(wcnf) as solver:
+        while True:
+            model = solver.compute()  # SolveMaxSAT(phi_H, phi_S)
+            if model is None:
+                break
+            assigned = set(model)
+            disabled = [lit for lit in soft if -lit in assigned]
+            if optimum is None:
+                optimum = len(disabled)
+            if len(disabled) > optimum:
+                break  # all optimum MaxSAT solutions enumerated
+            diagnosis = sorted(names[lit] for lit in disabled)
+            found.append(diagnosis)
+            if emit is not None:
+                emit(diagnosis)
+            if not enumerate_all or not disabled:
+                break
+            solver.add_clause(sorted(disabled))  # blocking clause: OR_{g in Delta} h_g added to phi_H
     return found
 
 

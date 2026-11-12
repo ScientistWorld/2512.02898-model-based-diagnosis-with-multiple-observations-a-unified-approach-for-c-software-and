@@ -4,8 +4,14 @@
 Each variant follows the evaluator interface (``--instance``/``--output``) and
 uses only what a scientist sees: the method code and the public instance.
 
-  incremental             CFaults (same unified MaxSAT, same Algorithm 5) but one
-                          RC2Stratified oracle reused across blocked optima.
+  fresh_solver            the previous gym reference: CFaults with a NEW
+                          RC2Stratified oracle for every blocked optimum (the
+                          authors' tool reuses one oracle; see method/).
+  lazy_observations       CFaults-family improvement: the unified MaxSAT is built
+                          lazily, starting from one observation; every candidate
+                          optimum is checked against the remaining observations
+                          with per-observation SAT calls and the first violated
+                          observation's replica is added to the unified formula.
   satenum                 optimum k* from the unified MaxSAT, then all k*-subsets
                           enumerated by an incremental SAT solver under an
                           at-most-k* cardinality constraint (one SAT call each).
@@ -25,36 +31,103 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path.cwd()))
-from method.cfaults_circuit import build_unified_formula, diagnose  # noqa: E402
+from method.cfaults_circuit import build_unified_formula, diagnose, guarded_equiv_clauses  # noqa: E402
 
 
-def incremental(circuit, observations, emit):
+def fresh_solver(circuit, observations, emit):
     from pysat.examples.rc2 import RC2Stratified
     from pysat.formula import WCNF
 
     hard, soft, pool, healthy = build_unified_formula(circuit, observations)
     names = {v: k for k, v in healthy.items()}
-    wcnf = WCNF()
-    for clause in hard:
-        wcnf.append(clause)
-    for lit in soft:
-        wcnf.append([lit], weight=1)
-    optimum = None
-    with RC2Stratified(wcnf) as solver:
-        while True:
+    block, optimum = [], None
+    while True:
+        wcnf = WCNF()
+        for clause in hard + block:
+            wcnf.append(clause)
+        for lit in soft:
+            wcnf.append([lit], weight=1)
+        wcnf.nv = max(pool.top, wcnf.nv)
+        with RC2Stratified(wcnf) as solver:
             model = solver.compute()
-            if model is None:
-                break
-            assigned = set(model)
-            disabled = [v for v in soft if -v in assigned]
-            if optimum is None:
-                optimum = len(disabled)
-            if len(disabled) > optimum:
-                break
-            emit(sorted(names[v] for v in disabled))
-            if not disabled:
-                break
-            solver.add_clause(disabled)
+        if model is None:
+            break
+        assigned = set(model)
+        disabled = [v for v in soft if -v in assigned]
+        if optimum is None:
+            optimum = len(disabled)
+        if len(disabled) > optimum:
+            break
+        emit(sorted(names[v] for v in disabled))
+        if not disabled:
+            break
+        block.append(sorted(disabled))
+
+
+def _replica(circuit, obs, health, offset):
+    var, clauses, nv = {}, [], offset
+    for name in circuit["inputs"]:
+        nv += 1
+        var[name] = nv
+        clauses.append([nv if obs["inputs"][name] else -nv])
+    for gate in circuit["gates"]:
+        nv += 1
+        var[gate["name"]] = nv
+    for gate in circuit["gates"]:
+        clauses.extend(guarded_equiv_clauses(gate["op"], var[gate["name"]], [var[x] for x in gate["inputs"]], health[gate["name"]]))
+    for name, value in obs["expected_outputs"].items():
+        clauses.append([var[name] if value else -var[name]])
+    return clauses
+
+
+def lazy_observations(circuit, observations, emit):
+    from pysat.examples.rc2 import RC2Stratified
+    from pysat.formula import WCNF
+    from pysat.solvers import Solver
+
+    gates = [g["name"] for g in circuit["gates"]]
+    health = {name: i + 1 for i, name in enumerate(gates)}
+    names = {v: k for k, v in health.items()}
+    width = len(circuit["inputs"]) + len(gates)
+    n = len(gates)
+    replicas = [_replica(circuit, obs, health, n + i * width) for i, obs in enumerate(observations)]
+    checkers = [Solver(name="g3", bootstrap_with=_replica(circuit, obs, health, n)) for obs in observations]
+    wcnf = WCNF()
+    for clause in replicas[0]:
+        wcnf.append(clause)
+    for lit in health.values():
+        wcnf.append([lit], weight=1)
+    wcnf.nv = n + len(observations) * width  # reserve ids of every replica before RC2 allocates its own
+    used = {0}
+    optimum = None
+    try:
+        with RC2Stratified(wcnf) as rc2:
+            while True:
+                model = rc2.compute()
+                if model is None:
+                    break
+                assigned = set(model)
+                disabled = [v for v in health.values() if -v in assigned]
+                if optimum is not None and len(disabled) > optimum:
+                    break
+                off = set(disabled)
+                assumptions = [v for v in health.values() if v not in off]
+                bad = next((i for i in range(len(observations)) if i not in used
+                            and not checkers[i].solve(assumptions=assumptions)), None)
+                if bad is not None:
+                    used.add(bad)
+                    for clause in replicas[bad]:
+                        rc2.add_clause(clause)
+                    continue
+                if optimum is None:
+                    optimum = len(disabled)
+                emit(sorted(names[v] for v in disabled))
+                if not disabled:
+                    break
+                rc2.add_clause(sorted(disabled))
+    finally:
+        for c in checkers:
+            c.delete()
 
 
 def satenum(circuit, observations, emit):
@@ -108,7 +181,7 @@ def brute_force(circuit, observations, emit):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("variant", choices=["incremental", "satenum", "weaker_one_observation", "first_only", "brute_force"])
+    parser.add_argument("variant", choices=["fresh_solver", "lazy_observations", "satenum", "weaker_one_observation", "first_only", "brute_force"])
     parser.add_argument("--instance", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
@@ -120,8 +193,10 @@ def main():
             out.write(json.dumps(diagnosis) + "\n")
             out.flush()
 
-        if args.variant == "incremental":
-            incremental(circuit, observations, emit)
+        if args.variant == "fresh_solver":
+            fresh_solver(circuit, observations, emit)
+        elif args.variant == "lazy_observations":
+            lazy_observations(circuit, observations, emit)
         elif args.variant == "satenum":
             satenum(circuit, observations, emit)
         elif args.variant == "weaker_one_observation":

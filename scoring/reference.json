@@ -2,7 +2,7 @@
   "experiments": {
     "iscas85_localisation": {
       "description": "Main circuit result (paper Table 5 'All'), base tier (c432, c499, c880, c1355, c1908; 1/3/5 faults; 10-50 observations): share of hidden ISCAS85-derived instances whose complete set of minimum-cardinality diagnoses the method localises within the fixed per-instance CPU budget. The method is run by the hidden test on instances it has never seen.",
-      "weight": 0.35,
+      "weight": 0.25,
       "primary_metric": "localized_rate",
       "metrics": {
         "localized_rate": {
@@ -158,7 +158,7 @@
     },
     "observation_scaling": {
       "description": "Paper Table 5 rows on the base tier: localisation rate for 10, 20, 30, 40 and 50 failing observations (each bucket is a distinct set of hidden instances).",
-      "weight": 0.15,
+      "weight": 0.1,
       "primary_metric": "localized_rate_obs50",
       "metrics": {
         "localized_rate_obs10": {
@@ -291,7 +291,7 @@
     },
     "fault_scaling": {
       "description": "Base-tier localisation rate by number of injected faults (1, 3, 5). Multi-fault instances are where the number of minimum diagnoses grows and exhaustive candidate search fails.",
-      "weight": 0.15,
+      "weight": 0.1,
       "primary_metric": "localized_rate_f3",
       "metrics": {
         "localized_rate_f1": {
@@ -357,8 +357,8 @@
       }
     },
     "scale_stress": {
-      "description": "Where the paper's method falls short: scale. The larger ISCAS85 circuits (c2670, c3540, c5315, c7552; 1.2k-3.5k gates) with 3 or 5 injected faults and 10/30/50 observations, same budget and scoring as the main experiment. The paper reports CFaults timing out on 26% of its circuits; at gym scale the base tier is solved almost completely by stronger exact methods, so this tier keeps room above them.",
-      "weight": 0.2,
+      "description": "Where the paper's method falls short: scale. The larger ISCAS85 circuits (c2670, c3540, c5315, c7552; 1.2k-3.5k gates) with 3 or 5 injected faults and 10/30/50 observations (two hidden instances per cell; up to 6,000 minimum diagnoses per instance), same budget and scoring as the main experiment. On the base tier the paper's method and HSD localise nearly every instance at gym scale, so this tier carries most of the weight: it is where methods still differ.",
+      "weight": 0.4,
       "primary_metric": "localized_rate_stress",
       "metrics": {
         "localized_rate_stress": {

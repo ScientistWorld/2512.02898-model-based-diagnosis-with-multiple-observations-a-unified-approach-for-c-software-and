@@ -41,7 +41,9 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from data.circuit_benchmark import (  # noqa: E402
     CIRCUITS,
+    STRESS_ATTEMPT_STRIDE,
     STRESS_CIRCUITS,
+    STRESS_SLOTS,
     TRAIN_SEED,
     cell_key,
     circuit_from_json,
@@ -49,6 +51,7 @@ from data.circuit_benchmark import (  # noqa: E402
     grid,
     load_iscas85,
     make_instance,
+    split_cells,
     stress_grid,
     write_jsonl,
 )
@@ -59,9 +62,11 @@ TEST_FILE = HERE / "hidden_benchmark.json"
 TRAIN_DIR = REPO_ROOT / "data" / "iscas85_train"
 TEST_CONFIG = HERE / "config.json"
 TRAIN_CONFIG = REPO_ROOT / "eval" / "train" / "config.json"
-MAX_DIAGNOSES = 3000
-GT_CPU_BUDGET = {"base": 150.0, "stress": 120.0}
+MAX_DIAGNOSES = {"base": 3000, "stress": 6000}
+GT_CPU_BUDGET = {"base": 150.0, "stress": 180.0}
 MAX_ATTEMPTS = {"base": 12, "stress": 2}
+STRESS_VERSION = 2
+STRESS_BUILD_DEADLINE_SECONDS = 75 * 60  # per split; remaining stress slots are skipped after it
 LIMIT_CANDIDATES = (2.5, 5.0, 10.0)
 LIMIT_PROBE_CAP = 10.0
 TARGET_MAX_TRAIN_COVERAGE = 75.0
@@ -119,7 +124,7 @@ def encode(circuit: dict, observations: list[dict]) -> tuple[list[list[int]], di
     return clauses, health, nv
 
 
-def exact_answer(instance: dict, cpu_budget: float = 150.0) -> dict:
+def exact_answer(instance: dict, cpu_budget: float = 150.0, max_diagnoses: int = 3000) -> dict:
     from pysat.card import CardEnc, EncType
     from pysat.examples.rc2 import RC2
     from pysat.formula import WCNF
@@ -158,7 +163,7 @@ def exact_answer(instance: dict, cpu_budget: float = 150.0) -> dict:
             if len(diag) != k:
                 raise RuntimeError("enumerated diagnosis of the wrong size")
             diagnoses.append(diag)
-            if len(diagnoses) > MAX_DIAGNOSES:
+            if len(diagnoses) > max_diagnoses:
                 status = "too_many"
                 break
             if time.process_time() - t0 > cpu_budget:
@@ -168,7 +173,7 @@ def exact_answer(instance: dict, cpu_budget: float = 150.0) -> dict:
     return {"optimum": k, "diagnoses": diagnoses, "status": status, "cpu_seconds": time.process_time() - t0}
 
 
-def exact_answer_limited(instance: dict, cpu_budget: float) -> dict:
+def exact_answer_limited(instance: dict, cpu_budget: float, max_diagnoses: int) -> dict:
     """exact_answer in a child process with a hard CPU limit on EVERY step
     (MaxSAT optimum, lower-bound proof, enumeration); a kill means too_slow."""
     hard = int(cpu_budget) + 30
@@ -180,7 +185,7 @@ def exact_answer_limited(instance: dict, cpu_budget: float) -> dict:
             resource.setrlimit(resource.RLIMIT_CPU, (hard, hard + 1))
 
         proc = subprocess.run([sys.executable, str(Path(__file__).resolve()), "exact", "--instance", str(inp),
-                               "--answer", str(out), "--budget", str(cpu_budget)],
+                               "--answer", str(out), "--budget", str(cpu_budget), "--max-diagnoses", str(max_diagnoses)],
                               cwd=REPO_ROOT, preexec_fn=limit, capture_output=True, text=True)
         if proc.returncode != 0 or not out.exists():
             return {"optimum": None, "diagnoses": [], "status": "too_slow", "cpu_seconds": float(hard)}
@@ -202,18 +207,23 @@ def verify_answer(instance: dict, answer: dict, rng: random.Random) -> None:
         raise RuntimeError("duplicate diagnoses in answer")
 
 
-def build_cells(split: str, seed_text: str, cells: list[tuple[str, str, int, int]]):
+def build_cells(split: str, seed_text: str, cells: list[tuple[str, str, int, int, int]], deadline: float | None = None):
     circuits = {name: load_iscas85(BENCH_DIR, name) for name in CIRCUITS + STRESS_CIRCUITS}
     instances, truth, accepted, rejected, skipped = [], {}, {}, [], []
     rng = random.Random(f"verify|{seed_text}")
-    for tier, circuit_name, k, m in cells:
-        key = cell_key(tier, circuit_name, k, m)
-        for attempt in range(MAX_ATTEMPTS[tier]):
+    for tier, circuit_name, k, m, slot in cells:
+        key = cell_key(tier, circuit_name, k, m, slot)
+        if tier == "stress" and deadline is not None and time.monotonic() > deadline:
+            skipped.append(key)
+            log(f"{split} {key}: skipped (stress build deadline)")
+            continue
+        first = slot * STRESS_ATTEMPT_STRIDE if tier == "stress" else 0
+        for attempt in range(first, first + MAX_ATTEMPTS[tier]):
             inst = make_instance(circuits[circuit_name], split, seed_text, k, m, attempt, tier)
             if inst is None:
                 rejected.append({"cell": key, "attempt": attempt, "reason": "no_failing_observations"})
                 continue
-            answer = exact_answer_limited(inst, GT_CPU_BUDGET[tier])
+            answer = exact_answer_limited(inst, GT_CPU_BUDGET[tier], MAX_DIAGNOSES[tier])
             if answer["status"] != "complete":
                 rejected.append({"cell": key, "attempt": attempt, "reason": answer["status"],
                                  "optimum": answer["optimum"], "partial_count": len(answer["diagnoses"])})
@@ -235,8 +245,19 @@ def build_cells(split: str, seed_text: str, cells: list[tuple[str, str, int, int
     return instances, truth, accepted, rejected, skipped
 
 
-def all_cells() -> list[tuple[str, str, int, int]]:
-    return [("base", *c) for c in grid()] + [("stress", *c) for c in stress_grid()]
+def drop_old_stress(instances: list[dict], truth: dict, meta: dict) -> list[dict]:
+    """Remove a stress tier built with an older STRESS_VERSION (it is rebuilt)."""
+    if meta.get("stress_version") == STRESS_VERSION:
+        return instances
+    kept = [inst for inst in instances if inst.get("tier", "base") != "stress"]
+    for inst in instances:
+        if inst.get("tier") == "stress":
+            truth.pop(inst["id"], None)
+    meta["accepted_attempts"] = {k: v for k, v in meta.get("accepted_attempts", {}).items() if not k.startswith("stress|")}
+    meta["rejected_attempts"] = [r for r in meta.get("rejected_attempts", []) if not str(r.get("cell", "")).startswith("stress|")]
+    meta["skipped_cells"] = [c for c in meta.get("skipped_cells", []) if not c.startswith("stress|")]
+    meta["stress_version"] = STRESS_VERSION
+    return kept
 
 
 def phase_build() -> None:
@@ -246,16 +267,19 @@ def phase_build() -> None:
     state.setdefault("skipped_cells", [])
     for inst in state["instances"]:
         inst.setdefault("tier", "base")
-    todo = [c for c in all_cells() if cell_key(*c) not in state["accepted_attempts"]
+    state["instances"] = drop_old_stress(state["instances"], state["ground_truth"], state)
+    todo = [c for c in split_cells("test") if cell_key(*c) not in state["accepted_attempts"]
             and cell_key(*c) not in state["skipped_cells"]]
+    deadline = time.monotonic() + STRESS_BUILD_DEADLINE_SECONDS
     for cell in todo:  # one cell at a time, saved after each (resumable)
-        instances, truth, accepted, rejected, skipped = build_cells("test", HIDDEN_SEED, [cell])
+        instances, truth, accepted, rejected, skipped = build_cells("test", HIDDEN_SEED, [cell], deadline)
         state["instances"] += instances
         state["ground_truth"].update(truth)
         state["accepted_attempts"].update(accepted)
         state["rejected_attempts"] += rejected
         state["skipped_cells"] += skipped
         TEST_FILE.write_text(json.dumps(state, sort_keys=True, separators=(",", ":")) + "\n")
+    TEST_FILE.write_text(json.dumps(state, sort_keys=True, separators=(",", ":")) + "\n")
     log(f"hidden test has {len(state['instances'])} instances")
     # public train split
     manifest_path = TRAIN_DIR / "manifest.json"
@@ -268,11 +292,13 @@ def phase_build() -> None:
     manifest.setdefault("skipped_cells", [])
     for row in rows:
         row.setdefault("tier", "base")
-    todo = [c for c in all_cells() if cell_key(*c) not in manifest["accepted_attempts"]
+    rows = drop_old_stress(rows, truth_all, manifest)
+    todo = [c for c in split_cells("train") if cell_key(*c) not in manifest["accepted_attempts"]
             and cell_key(*c) not in manifest["skipped_cells"]]
+    deadline = time.monotonic() + STRESS_BUILD_DEADLINE_SECONDS
     for cell in todo or [None]:
         if cell is not None:
-            instances, truth, accepted, rejected, skipped = build_cells("train", TRAIN_SEED, [cell])
+            instances, truth, accepted, rejected, skipped = build_cells("train", TRAIN_SEED, [cell], deadline)
             rows += instances
             truth_all.update(truth)
             manifest["accepted_attempts"].update(accepted)
@@ -289,7 +315,7 @@ def save_train(rows, truth_all, manifest, manifest_path) -> None:
         "name": "iscas85_multi_observation_diagnosis_train",
         "source": "ISCAS85 .bench netlists (scripts/download.sh), gate-type fault injection",
         "circuits": list(CIRCUITS), "stress_circuits": list(STRESS_CIRCUITS),
-        "grid": [list(cell) for cell in grid()], "stress_grid": [list(cell) for cell in stress_grid()],
+        "grid": [list(cell) for cell in grid()], "stress_grid": [list(cell) for cell in stress_grid(STRESS_SLOTS["train"])],
         "seed": TRAIN_SEED,
         "files": {"instances": "instances.jsonl", "ground_truth": "ground_truth.json"},
     })
@@ -297,7 +323,8 @@ def save_train(rows, truth_all, manifest, manifest_path) -> None:
 
 
 def default_config(instances: list[dict]) -> dict:
-    ids = sorted(inst["id"] for inst in instances if inst["source_circuit"] == "c880" and inst["observation_count"] == 50)
+    ids = sorted(inst["id"] for inst in instances if inst.get("tier", "base") == "base"
+                 and inst["source_circuit"] in ("c880", "c1908") and inst["observation_count"] == 50)
     return {"cpu_limit_seconds": 10.0, "required_methods": ["cfaults"],
             "calibration": {"instance_ids": ids, "reference_cpu_seconds": None}}
 
@@ -393,10 +420,11 @@ def main() -> None:
     parser.add_argument("--instance", type=Path)
     parser.add_argument("--answer", type=Path)
     parser.add_argument("--budget", type=float, default=150.0)
+    parser.add_argument("--max-diagnoses", type=int, default=3000)
     args = parser.parse_args()
     os.chdir(REPO_ROOT)
     if args.phase == "exact":  # internal: one bounded exact computation (see exact_answer_limited)
-        answer = exact_answer(json.loads(args.instance.read_text()), args.budget)
+        answer = exact_answer(json.loads(args.instance.read_text()), args.budget, args.max_diagnoses)
         args.answer.write_text(json.dumps(answer))
         return
     phases = ["build", "calibrate", "limit", "baselines"] if args.phase == "all" else [args.phase]

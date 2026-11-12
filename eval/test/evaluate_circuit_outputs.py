@@ -110,7 +110,7 @@ def _guarded(op: str, out: int, ins: list[int], h: int) -> list[list[int]]:
 
 
 def _calibration_once(instances: list[dict]) -> float:
-    from pysat.examples.rc2 import RC2
+    from pysat.examples.rc2 import RC2  # imported (and cached) before timing starts
     from pysat.formula import WCNF
 
     start = time.process_time()
@@ -143,15 +143,21 @@ def _calibration_once(instances: list[dict]) -> float:
     return time.process_time() - start
 
 
-def measure_calibration(instances: list[dict], ids: list[str], repeats: int = 3) -> float | None:
+def measure_calibration(instances: list[dict], ids: list[str], repeats: int = 5) -> float | None:
+    """Fastest of several runs of a fixed workload: robust to transient interference."""
     chosen = [inst for inst in instances if inst["id"] in set(ids)]
     if not chosen:
         return None
     try:
+        import gc
+
+        import pysat.examples.rc2  # noqa: F401  warm import outside the timed region
+        _calibration_once(chosen[:1])  # warm-up
+        gc.collect()
         times = [_calibration_once(chosen) for _ in range(repeats)]
     except Exception:  # PySAT missing or broken: fall back to the nominal budget
         return None
-    return statistics.median(times)
+    return min(times)
 
 
 def cpu_budget(config: dict, instances: list[dict]) -> dict:
@@ -160,7 +166,7 @@ def cpu_budget(config: dict, instances: list[dict]) -> dict:
     ref = calib.get("reference_cpu_seconds")
     measured = measure_calibration(instances, calib.get("instance_ids", [])) if ref else None
     if measured and ref:
-        factor = min(max(measured / float(ref), 0.5), 2.0)
+        factor = min(max(measured / float(ref), 0.67), 1.5)
     else:
         factor = 1.0
     return {
@@ -538,7 +544,7 @@ def main() -> None:
 
     if args.calibrate_only:
         ids = config.get("calibration", {}).get("instance_ids", [])
-        print(json.dumps({"cpu_seconds": measure_calibration(instances, ids, repeats=5)}))
+        print(json.dumps({"cpu_seconds": measure_calibration(instances, ids, repeats=7)}))
         return
 
     budget = cpu_budget(config, instances)

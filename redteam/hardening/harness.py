@@ -40,11 +40,12 @@ HSD = ["python", "baseline/hsd_circuit.py", "--instance", "{instance}", "--outpu
 
 # name -> (registrations {checkpoint_dir: command}, env overrides, pre-step)
 CASES = {
-    "incremental": ({"cfaults_circuit": var("incremental")}, {}, None),
+    "lazy_observations": ({"cfaults_circuit": var("lazy_observations")}, {}, None),
+    "fresh_solver_previous_reference": ({"cfaults_circuit": var("fresh_solver")}, {}, None),
     "satenum": ({"cfaults_circuit": var("satenum")}, {}, None),
+    "hsd_as_method": ({"cfaults_circuit": HSD}, {}, None),
     "weaker_one_observation": ({"cfaults_circuit": var("weaker_one_observation")}, {}, None),
     "first_only": ({"cfaults_circuit": var("first_only")}, {}, None),
-    "brute_force": ({"cfaults_circuit": var("brute_force")}, {}, None),
     "hidden_file_read_shortcut": ({"cfaults_circuit": cut("hidden_file_read")}, {}, None),
     "golden_diff_shortcut": ({"cfaults_circuit": cut("golden_diff")}, {}, None),
     "train_answer_lookup_shortcut": ({"cfaults_circuit": cut("train_answer_lookup")}, {}, None),
@@ -59,11 +60,11 @@ CASES = {
     "replace_baseline_shortcut": ({"cfaults_circuit": cut("constant_gate"), "hsd_circuit": cut("empty_output"),
                                    "bugassist_vote": cut("empty_output")}, {}, None),
     "prewrite_scores_shortcut": ({"cfaults_circuit": cut("constant_gate")}, {}, "prewrite"),
+    "brute_force": ({"cfaults_circuit": var("brute_force")}, {}, None),
     "nonminimal_padding_shortcut": ({"cfaults_circuit": cut("nonminimal_padding")}, {}, None),
     "duplicate_diagnosis_shortcut": ({"cfaults_circuit": cut("duplicate_diagnosis")}, {}, None),
     "reference_seed_1": ({"cfaults_circuit": ref()}, {"PYTHONHASHSEED": "1"}, None),
     "reference_seed_2": ({"cfaults_circuit": ref()}, {"PYTHONHASHSEED": "2"}, None),
-    "hsd_as_method": ({"cfaults_circuit": HSD}, {}, None),
 }
 
 
