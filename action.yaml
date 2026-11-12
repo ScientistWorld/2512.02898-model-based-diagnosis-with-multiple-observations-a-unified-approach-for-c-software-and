@@ -1,4 +1,8 @@
-# Final verification complete after packaged CPU rerun d04c15ff-130.
-action: done
+# Once you set action to 'submit' or 'done', STOP immediately.
+# Do NOT sleep, poll, or wait for jobs. The system reads this file
+# only after your turn ends.
+action: pending
+gpus: 0
+test: false
 milestone: core_claim
-notes: "Verified scaled CFaults circuit reproduction with HSD baseline, solver-oracle-call scoring, and passing train/test validation."
+notes: ""
