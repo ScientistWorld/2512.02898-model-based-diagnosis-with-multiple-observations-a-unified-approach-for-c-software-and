@@ -16,6 +16,8 @@ The paper studies exact fault localisation for systems with multiple failing obs
 - HSD localises 9,735 circuits (80.14%), so CFaults is about 6 percentage points lower while preserving minimum-diagnosis quality.
 - This gym (scaled ISCAS85, hidden test, ~10 CPU-s per instance): the reproduced CFaults localises 97.3% of the base-tier instances (c432-c1908) and 67.4% of the scale-stress tier (c2670-c7552), with no unsound output; HSD localises 100% / 90.7% and is faster on every instance both solve; a BugAssist-style per-observation voting baseline localises 10.7% / 2.3% and reports non-diagnoses on 43% of instances.
 
+---
+
 # Problem Definition
 
 ## Research Question
@@ -39,6 +41,8 @@ Formula-based fault localisation gives exact, verifiable explanations of failure
 
 An instance counts as **localised** when the method reports, within the per-instance CPU budget, exactly the complete set of minimum-cardinality diagnoses and nothing else: every reported diagnosis must be a diagnosis for all observations, of minimum size, well formed and reported once. Coverage is measured on smaller circuits (c432 to c1908) and on larger ones (c2670 to c7552), across 10 to 50 observations and 1, 3 or 5 injected faults. Reporting anything that is not a minimum diagnosis fails the instance, and is tracked as a constraint violation.
 
+---
+
 # Paper's Method
 
 ## Key Contribution
@@ -60,6 +64,8 @@ The primary circuit-side claim is that this unified diagnosis formulation remain
 The paper reports that on augmented ISCAS85, CFaults localises 8,969 of 12,147 faulty circuits (73.84%) within 1800 seconds, compared with 9,735 (80.14%) for HSD and 9,678 (79.67%) for HSD-CM. The gap is about 6 percentage points overall and is smaller for the 10- and 20-observation groups.
 
 The broader claim is that jointly reasoning over observations avoids redundant or inconsistent aggregation behaviour seen in some one-observation-at-a-time diagnosis workflows, while still producing subset-minimal diagnoses.
+
+---
 
 # Evaluation
 
@@ -109,6 +115,8 @@ Every other field (counts, CPU seconds, injected-fault overlap of the first diag
 The baselines' outputs are stored with each evaluator and scored like any method; registrations named `hsd` or `bugassist_vote` are ignored. Because the budget depends on the measured machine speed, repeated runs of the same method differ by a few points on the stress tier: three runs of the reference spanned 65.1 to 67.4%.
 
 In the paper (augmented ISCAS85, 12,147 instances, 1800 s per circuit), the method localises 73.84% and HSD 80.14%. HSD is faster on circuits, and the paper's method returns only minimal diagnoses, unlike per-observation aggregation. Those numbers are context only; the gym's instances and budget are scaled down.
+
+---
 
 # Reproduction Log
 
@@ -453,6 +461,69 @@ In the paper (augmented ISCAS85, 12,147 instances, 1800 s per circuit), the meth
 
 </details>
 
+### Iteration 11: claude-opus-5-5 (hardener)
+- **Milestone**: `core_claim` | **Status**: done
+- **Working time**: 31m | **GPU**: 0.0h
+- **Jobs**: 14 total (12 completed, 1 failed)
+
+<details>
+<summary>Progress Log</summary>
+
+### [2026-11-13 00:30] - core_claim
+- Hardening iteration 11 (part 2): the reproduced CFaults circuit method (unified multi-observation MaxSAT, RC2Stratified, incremental Algorithm 5 enumeration) localises 97.3% of the hidden base-tier and 67.4% of the hidden scale-stress ISCAS85 instances with no unsound output; HSD 100% / 90.7% and faster, per-observation voting 10.7% / 2.3% with 43% unsound, matching the paper's circuit claims in direction.
+- Closed CPU-escape, chmod-and-read and evaluator-memory loopholes; every shortcut now ranks below the reference (HARDENING.md).
+
+### [2026-06-02 12:05] - method_runs
+- Patched the top-level reusable evaluator to emit the selected-fault overlap, output-completeness, and diagnosis-volume metrics already expected by `reference.json`.
+- Reset the active milestone to `method_runs` pending a fresh packaged CPU validation job, because `scoring/scores.json` must be regenerated after the evaluator change.
+- Updated `scripts/run.sh` to run the full reproduce/evaluate/validate pipeline in the compute container.
+
+### [2026-06-02 12:28] - method_runs
+- Final verification found a critical Boolean-gate encoding bug: the CNF clauses for binary gates did not match the data generator's circuit semantics.
+- Corrected `AND`, `OR`, `NAND`, and `NOR` encodings in method, baseline, and evaluator code.
+- Verified the corrected encodings by truth table locally; fresh packaged scoring is pending a CPU test job before `core_claim` can be restored.
+
+### [2026-06-02 12:49] - core_claim
+- CPU job `e9807e81-d04` completed successfully after the Boolean-gate repair and regenerated root, train, and test score artifacts.
+- Restored `core_claim`: the corrected CFaults implementation localizes all 27 scaled synthetic circuit instances, and every counted diagnosis is valid, minimum-cardinality, and consistent with all observations.
+- Verified the final scoring contract with `python validate.py --compare`; all checks passed.
+
+### [2026-06-02 12:52] - core_claim
+- Fixed `reference.json` for the gym-only runtime-efficiency proxy: the paper does not report diagnosis-output volume, so the reference now labels the value as a corrected scaled-gym reference from job `e9807e81-d04`.
+- Re-ran both `python validate.py` and `python validate.py --compare`; all checks passed.
+
+### [2026-06-02 12:07] - core_claim
+- CPU job `f183bdd9-60a` ran the expanded CFaults/HSD pipeline but failed validation because `avg_reported_diagnoses_per_instance` tied across methods on the train slice.
+- Replaced the runtime-efficiency primary metric with `avg_solver_oracle_calls_per_instance`, added explicit solver-oracle-call fields to CFaults and HSD outputs, and kept diagnosis-output volume as audit-only.
+- Local `python validate.py --compare` now passes; a packaged CPU rerun is pending to regenerate the score artifacts from scratch.
+
+### [2026-06-02 12:14] - core_claim
+- CPU job `d04c15ff-130` completed successfully after the runtime-efficiency scoring repair.
+- Regenerated CFaults/HSD root, train, and test score artifacts with explicit solver-oracle-call metrics.
+- `python validate.py --compare` passes for scoring, train/test consistency, output-reading evaluation, import separation, and shared-path checks.
+
+### [2026-06-02 11:56] - core_claim
+- Added an HSD-style circuit baseline that follows the paper's multiple-observation hitting-set dualisation comparison path.
+- Wired the HSD artifact into the reusable root, train, and test evaluators while keeping BugAssist voting as an unscored sanity baseline.
+- Kept the milestone at `core_claim` because the expanded scored comparison still needs a packaged CPU verification job.
+
+### [2026-06-02 11:10] - core_claim
+- Implemented the paper's Boolean-circuit multi-observation MBD algorithm as a unified partial MaxSAT encoding with shared gate health variables.
+- Verified the scaled synthetic circuit benchmark result: CFaults produced valid minimum-cardinality diagnoses for all 27 tracked instances.
+- Kept diagnosis quality as a constraint metric: invalid and non-minimal diagnoses are counted as failures.
+
+### [2026-06-02 11:25] - method_runs
+- Continuation audit reset the current milestone to `method_runs` pending fresh verification.
+- Confirmed the method code is a real scaled implementation of the paper's circuit-side unified multi-observation MaxSAT diagnosis algorithm.
+- Found that `scoring/scores.json` is stale after adding the explicit all-observations consistency metric, so a CPU test job is required to regenerate scores before restoring `core_claim`.
+
+### [2026-06-02 11:42] - core_claim
+- CPU job `06041b2e-9e9` completed successfully inside the packaged container and regenerated `scoring/scores.json`.
+- Restored `core_claim`: CFaults localized 27 / 27 scaled synthetic circuit instances and every counted diagnosis was valid, minimum-cardinality, and consistent with all observations.
+- Verified the scoring contract with `python validate.py --compare`; all checks passed.
+
+</details>
+
 
 ---
 
@@ -462,10 +533,3 @@ In the paper (augmented ISCAS85, 12,147 instances, 1800 s per circuit), the meth
 
 ## Stop Justification
 - Completed at milestone `core_claim`.
-
-### Iteration 11: hardener (part 2)
-
-### [2026-11-13 00:30] - core_claim
-- Closed three loopholes in the hidden test: process-tree CPU accounting (subreaper + /proc sampling; detached or auto-reaped workers are counted and killed), tamper detection on `eval/test` (a method that chmods it back to read the answers fails its whole run), and a non-dumpable evaluator (answers in memory not readable via /proc/<ppid>/mem).
-- Reran baselines, the reference (hidden test 97.3% base / 67.4% stress; train 96.0% / 66.7%) and 30 audit cases through the final evaluator; see HARDENING.md.
-- Restored the build-time train calibration reference after a same-node check; rewrote briefing/ and scoring/*.md for the final gym.

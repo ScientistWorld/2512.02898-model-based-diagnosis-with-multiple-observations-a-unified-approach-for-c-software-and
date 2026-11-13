@@ -1,8 +1,6 @@
 # Once you set action to 'submit' or 'done', STOP immediately.
 # Do NOT sleep, poll, or wait for jobs. The system reads this file
 # only after your turn ends.
-action: submit
-gpus: 0
-test: false
+action: done
 milestone: core_claim
-notes: "Hardening part 2b: rerun train side only (train baselines + reference train evaluation) with the restored build-time train calibration reference; audit cases and hidden-test reference are reused."
+notes: "Hardened: process-tree CPU budget, hidden-dir tamper detection, non-dumpable evaluator; reference 97.3% base / 67.4% stress on hidden ISCAS85 test, HSD +0.33 above, every shortcut below the reference; see HARDENING.md."
