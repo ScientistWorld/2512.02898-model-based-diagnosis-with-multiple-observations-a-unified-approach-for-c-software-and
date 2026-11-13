@@ -5,4 +5,4 @@ action: submit
 gpus: 0
 test: false
 milestone: core_claim
-notes: "Hardening part 2: final evaluators (process-tree CPU budget, tamper detection), aligned train calibration, regenerate baselines + reference, rerun every audit case incl. before/after of the newly closed shortcuts."
+notes: "Hardening part 2b: rerun train side only (train baselines + reference train evaluation) with the restored build-time train calibration reference; audit cases and hidden-test reference are reused."

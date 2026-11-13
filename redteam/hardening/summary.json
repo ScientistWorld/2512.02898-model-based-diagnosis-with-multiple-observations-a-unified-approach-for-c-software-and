@@ -66,19 +66,19 @@
     },
     "fault_scaling/localized_rate_f3": {
       "test": 96.0,
-      "train": 96.0
+      "train": 100.0
     },
     "fault_scaling/localized_rate_f5": {
       "test": 96.0,
-      "train": 72.0
+      "train": 88.0
     },
     "iscas85_localisation/localized_rate": {
       "test": 97.33333333333333,
-      "train": 89.33333333333333
+      "train": 96.0
     },
     "iscas85_localisation/min_diagnosis_recall": {
       "test": 99.23643928794142,
-      "train": 95.67362256770859
+      "train": 99.01595589962552
     },
     "observation_scaling/localized_rate_obs10": {
       "test": 100.0,
@@ -86,27 +86,27 @@
     },
     "observation_scaling/localized_rate_obs20": {
       "test": 100.0,
-      "train": 93.33333333333333
+      "train": 100.0
     },
     "observation_scaling/localized_rate_obs30": {
       "test": 100.0,
-      "train": 86.66666666666667
+      "train": 93.33333333333333
     },
     "observation_scaling/localized_rate_obs40": {
       "test": 86.66666666666667,
-      "train": 80.0
+      "train": 86.66666666666667
     },
     "observation_scaling/localized_rate_obs50": {
       "test": 100.0,
-      "train": 86.66666666666667
+      "train": 100.0
     },
     "scale_stress/localized_rate_stress": {
       "test": 67.44186046511628,
-      "train": 47.61904761904762
+      "train": 66.66666666666667
     },
     "scale_stress/min_diagnosis_recall_stress": {
       "test": 76.52275387138552,
-      "train": 65.20138120800891
+      "train": 75.38266184943299
     }
   },
   "runs": {
