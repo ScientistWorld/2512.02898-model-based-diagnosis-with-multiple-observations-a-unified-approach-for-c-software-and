@@ -14,26 +14,30 @@ The paper studies exact fault localisation for systems with multiple failing obs
 - Augmented ISCAS85 contains 12,147 faulty circuit instances with 10-50 failing observations and 1-50 injected faults.
 - CFaults localises 8,969 circuits (73.84%) within 1800 seconds.
 - HSD localises 9,735 circuits (80.14%), so CFaults is about 6 percentage points lower while preserving minimum-diagnosis quality.
-
----
+- This gym (scaled ISCAS85, hidden test, ~10 CPU-s per instance): the reproduced CFaults localises 97.3% of the base-tier instances (c432-c1908) and 67.4% of the scale-stress tier (c2670-c7552), with no unsound output; HSD localises 100% / 90.7% and is faster on every instance both solve; a BugAssist-style per-observation voting baseline localises 10.7% / 2.3% and reports non-diagnoses on 43% of instances.
 
 # Problem Definition
 
 ## Research Question
 
-Given a faulty combinational Boolean circuit and a set of failing input-output observations, identify a smallest set of circuit components whose behaviour can explain all observed failures. The target setting is multi-fault circuit diagnosis: each benchmark instance may contain one or many injected faults, and the observations must be explained jointly rather than one at a time.
+Given a faulty combinational Boolean circuit and a set of failing input/output observations, find **every minimum-cardinality diagnosis**: every smallest set of gates which, if declared faulty, makes the circuit consistent with *all* observations at once. Each benchmark instance can contain one or several injected faults, and the observations must be explained jointly: a faulty gate is the same gate in every observation.
 
-The reproduction should focus on the Boolean-circuit side of the paper. C-program fault localisation is useful context but is outside the primary benchmark scope here.
+The benchmark is built from the ISCAS85 combinational circuits (the circuit benchmark of the paper). C-program fault localisation, which the paper also studies, is out of scope here.
+
+## Formal setting
+
+- A circuit has primary inputs, primary outputs and gates (AND, NAND, OR, NOR with two or more inputs; XOR with two inputs; NOT; BUF), listed in topological order. Signal names are obfuscated and the gate order is shuffled, so instances cannot be matched to the public netlists by name.
+- An observation is one primary-input vector together with the *expected* (correct-design) value of every primary output. On each observation the faulty circuit disagrees with at least one expected output.
+- Fault model (weak fault model, as in model-based diagnosis): a gate declared faulty may output any value, independently in each observation; every other gate computes its function. A set of gates D is a **diagnosis** if, with the gates in D faulty, there is an assignment to the circuit's wires that satisfies every gate outside D and reproduces the inputs and expected outputs of every observation.
+- A **minimum-cardinality diagnosis** is a diagnosis of the smallest possible size k*. Instances usually have several (up to a few thousand) minimum diagnoses; the injected fault set is one explanation but is not necessarily minimum, and it is not the target.
 
 ## Why It Matters
 
-Circuit debugging is expensive when failures arise from multiple interacting faults. A useful diagnostic system should narrow the search to a small, valid set of gates/components while scaling to standard circuit benchmarks and many failing observations.
+Formula-based fault localisation gives exact, verifiable explanations of failures, but its cost grows quickly with circuit size, the number of observations and the number of faults. Methods that reason about observations one at a time can return explanations that are not consistent with all failures, or redundant non-minimal ones. A useful method returns only valid minimum diagnoses, all of them, quickly enough to scale to larger circuits and more observations.
 
 ## Success Criteria
 
-A successful system returns valid minimum diagnoses for many faulty ISCAS85-derived circuit instances within the evaluation timeout. Its diagnoses must be consistent with every failing observation for the instance and must be minimum-cardinality or otherwise demonstrably subset-minimal under the benchmark fault model. Runtime and timeout behaviour matter because exact circuit diagnosis can become impractical even when the returned diagnoses are correct.
-
----
+An instance counts as **localised** when the method reports, within the per-instance CPU budget, exactly the complete set of minimum-cardinality diagnoses and nothing else: every reported diagnosis must be a diagnosis for all observations, of minimum size, well formed and reported once. Coverage is measured on smaller circuits (c432 to c1908) and on larger ones (c2670 to c7552), across 10 to 50 observations and 1, 3 or 5 injected faults. Reporting anything that is not a minimum diagnosis fails the instance, and is tracked as a constraint violation.
 
 # Paper's Method
 
@@ -47,7 +51,7 @@ For Boolean circuits, CFaults first replicates the faulty circuit once per faili
 
 The replicated and instrumented circuit is encoded as an unweighted partial MaxSAT instance. Hard clauses encode the circuit replicas and the failing input-output observations. Soft unit clauses prefer every circuit component to remain healthy. Solving the MaxSAT instance minimises the number of disabled components, so the false health variables identify a minimum-cardinality diagnosis that is consistent with all observations at once.
 
-The paper contrasts this with HSD, which reasons through multiple per-observation oracle calls and hitting sets. CFaults instead uses a unified MaxSAT formulation for all observations, then enumerates optimal solutions when multiple minimum diagnoses exist.
+The paper contrasts this with HSD, which reasons through multiple per-observation oracle calls and hitting sets. CFaults instead uses a unified MaxSAT formulation for all observations, then enumerates optimal solutions when multiple minimum diagnoses exist (Algorithm 5): after each optimum, a blocking clause over the disabled health variables is added to the hard clauses and the MaxSAT oracle (RC2Stratified from PySAT, as in the paper) is called again, until the optimum cost increases. As in the authors' public CFaults tool, one oracle is kept for the whole enumeration and each blocking clause is added to it incrementally (`method/cfaults_circuit.py`).
 
 ## Main Claims
 
@@ -57,31 +61,54 @@ The paper reports that on augmented ISCAS85, CFaults localises 8,969 of 12,147 f
 
 The broader claim is that jointly reasoning over observations avoids redundant or inconsistent aggregation behaviour seen in some one-observation-at-a-time diagnosis workflows, while still producing subset-minimal diagnoses.
 
----
-
 # Evaluation
 
-## Metrics
+## How a method is run
 
-The main metric is `localized_count`: the number of benchmark instances for which a method returns a valid minimum diagnosis before the timeout. `localized_rate` is the same count divided by the number of instances in the evaluated split. Higher is better for both.
+A method is a command registered in `checkpoints/<name>/solver.json`:
 
-The paper reports CPU time per circuit and aggregate timeout count. In this packaged gym, wall-clock time is recorded only as audit context because hardware varies across runs. Scored efficiency uses machine-independent proxies: whether the method completed within the fixed timeout/memory limits, reported solver-oracle-call counts, and audit-only diagnosis-output volume.
+```json
+{"command": ["python", "method/my_solver.py", "--instance", "{instance}", "--output", "{output}"]}
+```
 
-Diagnosis quality is a constraint metric. A submitted diagnosis must be consistent with all failing input-output observations for that circuit and must be minimum-cardinality under the reproduced benchmark oracle. Invalid, non-minimal, or observation-inconsistent diagnoses should not count as successfully localised instances.
+The evaluator itself runs the command once per instance, in a fresh process started from the repository root, after replacing `{instance}` with a JSON file holding the instance (`id`, `circuit` with `inputs`, `outputs` and topologically ordered `gates`, and `observations` with `inputs` and `expected_outputs`) and `{output}` with the path to write. The method writes one diagnosis per line as a JSON list of gate names (JSON Lines), and should flush each line as soon as it is found: lines already written when the budget runs out still earn partial credit. Nothing else the method writes (validity flags, counters, timings) is read.
 
-## Baselines and Targets
+- **Budget.** Each instance gets a nominal 10 CPU-seconds, scaled by a machine-speed factor that the evaluator measures with a fixed workload at the start of every evaluation (clamped to [0.67, 1.5]). The budget covers the CPU time of the **whole process tree** the method starts: threads, subprocesses, and detached or orphaned workers all count, and the whole tree is stopped when it reaches the budget. Memory is limited to 8 GB per process, and a wall-clock guard of twice the budget plus 10 s stops processes that sleep or block.
+- **Hidden test.** `bash scripts/evaluate_test.sh` (no arguments) runs every method registered on disk on 118 hidden instances that only the evaluator holds. While method code runs, the hidden-test directory is unreadable; a method that changes its permissions, owner, location or contents is scored as a failed run.
+- **Public train split.** `bash scripts/evaluate_train.sh` (or `scripts/evaluate.sh`) applies the identical protocol to the 96 public instances in `data/iscas85_train/` (instances in `instances.jsonl`, exact answers in `ground_truth.json`).
 
-The primary benchmark is the augmented ISCAS85 Boolean-circuit benchmark used in the paper: 12,147 faulty circuit instances, generated with 10, 20, 30, 40, or 50 failing observations and 1, 2, 3, 4, 5, 10, 20, 30, 40, or 50 injected faults.
+Both splits come from the same generator: an ISCAS85 netlist, 1, 3 or 5 random gate-type changes as faults, and 10 to 50 random input vectors on which the faulty circuit's outputs differ from the correct design. Exact answers were computed offline by exhaustive enumeration and independently checked. The **base tier** (c432, c499, c880, c1355 and c1908: 160 to 880 gates; 1, 3 or 5 faults; 10, 20, 30, 40 or 50 observations) has 75 instances in each split. The **scale-stress tier** (c2670, c3540, c5315 and c7552: 1.2k to 3.5k gates; 3 or 5 faults; 10, 30 or 50 observations; up to about 6,000 minimum diagnoses per instance) has 43 hidden and 21 public instances.
 
-The paper compares the proposed circuit diagnosis system against HSD and HSD with core minimisation. Reported all-instance localisation rates are 73.84% for the paper method, 80.14% for HSD, and 79.67% for HSD-CM under an 1800 second timeout per circuit. A strong reproduction should recover the same qualitative result: competitive localisation coverage against HSD while preserving diagnosis validity/minimality, with HSD generally faster on circuits.
+## Scoring an instance
 
-## Evaluation Protocol
+- **Localised**: the reported lines are exactly the complete set of minimum-cardinality diagnoses, and the tree stayed within the budget.
+- **Recall**: the fraction of the instance's minimum diagnoses that were reported.
+- **Unsound**: any reported line is not a minimum diagnosis. This covers diagnoses inconsistent with some observation, larger than the minimum, malformed, naming unknown gates, or repeated. An unsound instance scores 0 on localisation and recall. Exceeding the budget also scores 0.
+- **Failed run**: a method that produces no output on any instance, or that tampers with the hidden test, receives the worst value of every metric.
 
-Run each method on the same augmented ISCAS85 instances, grouped by the number of failing observations. Use the same input-output observations and injected-fault configurations for all methods. Use an 1800 second timeout per buggy circuit and record success, timeout, memory failure, and wall-clock time as non-scored audit fields.
+## Metrics and experiments
 
-For each returned diagnosis, independently validate that deactivating or repairing the reported components can satisfy all failing observations for that instance. Compute success counts and rates for each observation-count group and for the full benchmark. If the reproduction must scale down, keep the same procedure and include multiple observation-count groups plus multi-fault cases so the task remains non-trivial.
+| Experiment | Ranked metrics (better direction) | Weight |
+|---|---|---:|
+| `iscas85_localisation` (base tier) | `localized_rate` ↑ (coef. 1.0), `min_diagnosis_recall` ↑ (0.5) | 0.25 |
+| `diagnosis_quality` (both tiers) | `unsound_output_rate` ↓ (1.0) | 0.15 |
+| `observation_scaling` (base tier) | `localized_rate_obs{10,20,30,40,50}` ↑ (0.2 each) | 0.10 |
+| `fault_scaling` (base tier) | `localized_rate_f1` ↑ (0.2), `localized_rate_f3` ↑ (0.4), `localized_rate_f5` ↑ (0.4) | 0.10 |
+| `scale_stress` (stress tier) | `localized_rate_stress` ↑ (1.0), `min_diagnosis_recall_stress` ↑ (0.5) | 0.40 |
 
----
+Every other field (counts, CPU seconds, injected-fault overlap of the first diagnosis, statuses) is audit-only. A method is ranked against the reference by summing, over the ranked metrics, weight × |coefficient| × its improvement in the better direction, with each improvement divided by that metric's spread across the attempts being compared.
+
+## Reference and baselines (hidden test / public train)
+
+| Method | Base `localized_rate` | Stress `localized_rate_stress` | `unsound_output_rate` |
+|---|---:|---:|---:|
+| Reference (the paper's method) | 97.3 / 96.0 | 67.4 / 66.7 | 0.0 / 0.0 |
+| HSD baseline (hitting-set dualisation, the paper's circuit competitor) | 100.0 / 100.0 | 90.7 / 76.2 | 0.0 / 0.0 |
+| BugAssist-style per-observation voting baseline | 10.7 / 9.3 | 2.3 / 0.0 | 43.2 / 44.8 |
+
+The baselines' outputs are stored with each evaluator and scored like any method; registrations named `hsd` or `bugassist_vote` are ignored. Because the budget depends on the measured machine speed, repeated runs of the same method differ by a few points on the stress tier: three runs of the reference spanned 65.1 to 67.4%.
+
+In the paper (augmented ISCAS85, 12,147 instances, 1800 s per circuit), the method localises 73.84% and HSD 80.14%. HSD is faster on circuits, and the paper's method returns only minimal diagnoses, unlike per-observation aggregation. Those numbers are context only; the gym's instances and budget are scaled down.
 
 # Reproduction Log
 
@@ -435,3 +462,10 @@ For each returned diagnosis, independently validate that deactivating or repairi
 
 ## Stop Justification
 - Completed at milestone `core_claim`.
+
+### Iteration 11: hardener (part 2)
+
+### [2026-11-13 00:30] - core_claim
+- Closed three loopholes in the hidden test: process-tree CPU accounting (subreaper + /proc sampling; detached or auto-reaped workers are counted and killed), tamper detection on `eval/test` (a method that chmods it back to read the answers fails its whole run), and a non-dumpable evaluator (answers in memory not readable via /proc/<ppid>/mem).
+- Reran baselines, the reference (hidden test 97.3% base / 67.4% stress; train 96.0% / 66.7%) and 30 audit cases through the final evaluator; see HARDENING.md.
+- Restored the build-time train calibration reference after a same-node check; rewrote briefing/ and scoring/*.md for the final gym.

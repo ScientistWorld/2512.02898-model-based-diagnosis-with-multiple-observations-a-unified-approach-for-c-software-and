@@ -1,17 +1,23 @@
 # Experiment Overview
 
+All experiments are measured on the same hidden ISCAS85-derived test instances (and identically on the public train split). The evaluator runs each method itself, instance by instance, under a fixed per-instance CPU budget covering the method's whole process tree. An instance counts as localised only if the method reports exactly the complete set of minimum-cardinality diagnoses within that budget.
+
 ## iscas85_localisation
 
-Tests the central benchmark question: how many faulty Boolean-circuit instances can be diagnosed successfully under the paper's main augmented ISCAS85 setting. This experiment establishes overall task coverage across the full set of generated circuit faults and failing observations.
+The central question of the paper's circuit study: on how many faulty circuits does a method find all minimum diagnoses within the time limit? Measured on the base tier, the five smaller ISCAS85 circuits with 1, 3 or 5 injected faults and 10 to 50 failing observations. The paper's own reported measure is the share of instances successfully localised. Mean recall of the minimum-diagnosis sets gives partial credit when a method runs out of budget mid-way.
 
 ## diagnosis_quality
 
-Tests whether counted successes are real diagnoses rather than merely plausible fault hints. The purpose is to ensure that a method's reported components explain every failing observation for the circuit and meet the required minimality standard.
+The constraint side of the paper's claim. A method must return only genuine minimum diagnoses: explanations consistent with every observation, of the smallest size, each reported once. One-observation-at-a-time aggregation tends to violate this. The experiment counts the instances, over both tiers, on which a method reported anything else. Such instances also earn nothing in the other experiments, so the constraint cannot be traded for coverage.
 
 ## observation_scaling
 
-Tests whether performance remains robust as the number of failing observations increases. This separates methods that work only on small observation sets from methods that can handle the multi-observation setting emphasized by the paper.
+Whether coverage holds up as the number of failing observations grows from 10 to 50, mirroring the per-observation-count rows of the paper's circuit table. Each bucket is a distinct set of base-tier instances.
 
-## runtime_efficiency
+## fault_scaling
 
-Tests whether diagnoses are obtained within the benchmark timeout without excessive solver search work. Wall-clock runtime is not a scored gym metric because hardware varies across agents; scored metrics use timeout/memory outcomes, solver-oracle-call counts, and audit-only output-volume fields.
+Whether coverage holds up as the number of injected faults grows from 1 to 3 to 5. More faults mean larger diagnoses and many more minimum diagnoses, which is where exhaustive candidate search stops working.
+
+## scale_stress
+
+Where the paper's method falls short: scale. The four larger ISCAS85 circuits (1.2k to 3.5k gates), with 3 or 5 faults and 10, 30 or 50 observations, often have hundreds to thousands of minimum diagnoses. At this gym's budget the reference localises about two thirds of these instances while the strongest baseline localises about 90%. The base tier is close to saturated for strong methods, so this tier carries the largest weight: it is where better methods can still separate themselves.

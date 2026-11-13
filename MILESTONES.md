@@ -4,6 +4,10 @@
 
 ## Progress Log
 
+### [2026-11-13 00:30] - core_claim
+- Hardening iteration 11 (part 2): the reproduced CFaults circuit method (unified multi-observation MaxSAT, RC2Stratified, incremental Algorithm 5 enumeration) localises 97.3% of the hidden base-tier and 67.4% of the hidden scale-stress ISCAS85 instances with no unsound output; HSD 100% / 90.7% and faster, per-observation voting 10.7% / 2.3% with 43% unsound, matching the paper's circuit claims in direction.
+- Closed CPU-escape, chmod-and-read and evaluator-memory loopholes; every shortcut now ranks below the reference (HARDENING.md).
+
 ### [2026-06-02 12:05] - method_runs
 - Patched the top-level reusable evaluator to emit the selected-fault overlap, output-completeness, and diagnosis-volume metrics already expected by `reference.json`.
 - Reset the active milestone to `method_runs` pending a fresh packaged CPU validation job, because `scoring/scores.json` must be regenerated after the evaluator change.

@@ -1,0 +1,17 @@
+## check_memory_read.py
+parent dumpable (default):
+secret found in parent memory: True
+parent non-dumpable:
+blocked: [Errno 13] Permission denied: '/proc/590301/maps'
+## check_guard.py
+plain_read           rc=1 tampered=False PermissionError: [Errno 13] Permission denied: '<tmp>
+chmod_read_restore   rc=0 tampered=True 
+rename_replace       rc=0 tampered=True 
+nothing              rc=0 tampered=False 
+0o700 secret
+## check_tree.py (budget 2 CPU-s)
+honest_0.5s                status=ok         cpu=0.51 wall=0.53 procs=1 lines=1 over=False
+detached_escape_2x1.5s     status=cpu_limit  cpu=2.06 wall=1.07 procs=3 lines=0 over=False
+joined_pool_4x1s           status=cpu_limit  cpu=2.08 wall=0.58 procs=5 lines=0 over=False
+lingering_daemon           status=ok         cpu=0.02 wall=0.07 procs=2 lines=1 over=False
+no leftover processes

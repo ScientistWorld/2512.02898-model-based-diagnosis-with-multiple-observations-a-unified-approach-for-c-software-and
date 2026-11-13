@@ -14,3 +14,4 @@ The paper studies exact fault localisation for systems with multiple failing obs
 - Augmented ISCAS85 contains 12,147 faulty circuit instances with 10-50 failing observations and 1-50 injected faults.
 - CFaults localises 8,969 circuits (73.84%) within 1800 seconds.
 - HSD localises 9,735 circuits (80.14%), so CFaults is about 6 percentage points lower while preserving minimum-diagnosis quality.
+- This gym (scaled ISCAS85, hidden test, ~10 CPU-s per instance): the reproduced CFaults localises 97.3% of the base-tier instances (c432-c1908) and 67.4% of the scale-stress tier (c2670-c7552), with no unsound output; HSD localises 100% / 90.7% and is faster on every instance both solve; a BugAssist-style per-observation voting baseline localises 10.7% / 2.3% and reports non-diagnoses on 43% of instances.

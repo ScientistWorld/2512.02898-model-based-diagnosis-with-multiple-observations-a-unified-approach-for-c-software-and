@@ -10,7 +10,7 @@ For Boolean circuits, CFaults first replicates the faulty circuit once per faili
 
 The replicated and instrumented circuit is encoded as an unweighted partial MaxSAT instance. Hard clauses encode the circuit replicas and the failing input-output observations. Soft unit clauses prefer every circuit component to remain healthy. Solving the MaxSAT instance minimises the number of disabled components, so the false health variables identify a minimum-cardinality diagnosis that is consistent with all observations at once.
 
-The paper contrasts this with HSD, which reasons through multiple per-observation oracle calls and hitting sets. CFaults instead uses a unified MaxSAT formulation for all observations, then enumerates optimal solutions when multiple minimum diagnoses exist.
+The paper contrasts this with HSD, which reasons through multiple per-observation oracle calls and hitting sets. CFaults instead uses a unified MaxSAT formulation for all observations, then enumerates optimal solutions when multiple minimum diagnoses exist (Algorithm 5): after each optimum, a blocking clause over the disabled health variables is added to the hard clauses and the MaxSAT oracle (RC2Stratified from PySAT, as in the paper) is called again, until the optimum cost increases. As in the authors' public CFaults tool, one oracle is kept for the whole enumeration and each blocking clause is added to it incrementally (`method/cfaults_circuit.py`).
 
 ## Main Claims
 

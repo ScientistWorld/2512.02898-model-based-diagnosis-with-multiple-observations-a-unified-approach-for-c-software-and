@@ -1,11 +1,12 @@
 #!/bin/bash
-# Hardening job (iteration 11, part 2).  Builds (or reuses) the hidden ISCAS85
-# test, regenerates the evaluator-owned baselines and the reference with the FINAL evaluators
-# (process-tree CPU accounting, tamper detection), then runs every audit case
-# (better/weaker variants, brute force, shortcuts, and the newly closed
-# shortcuts against the previous evaluator) through the real
-# scripts/evaluate_test.sh and summarises.  Every phase is resumable: the job
-# may be preempted and restarted from the top.
+# End-to-end job (hardening iteration 11).  Builds (or reuses) the hidden
+# ISCAS85 test and the fixed per-instance budget, stores the evaluator-owned
+# baselines when missing, runs the reference through the train split and the
+# hidden test, then runs every audit case (better/weaker variants, brute
+# force, shortcuts, and the closed shortcuts against the previous evaluator)
+# through the real scripts/evaluate_test.sh and summarises (HARDENING.md).
+# Every phase is resumable (markers in tmp/, finished cases are skipped): the
+# job may be preempted and restarted from the top.
 #
 # For a plain end-to-end reproduction of the reference only, use
 # scripts/reproduce.sh.
@@ -20,34 +21,13 @@ mkdir -p tmp logs
 echo "== python / pysat"; python --version; python -c "import pysat; print('pysat', pysat.__version__)"
 echo "== nproc $(nproc)"; date
 
-# One-time reset for part 2: the previous audit (job d3e44907, previous
-# evaluator) is archived as evidence; baselines and the reference are rerun
-# with the final evaluator.
-if [ ! -f tmp/hardening_v4_init ]; then
-  if [ -d redteam/hardening/results ] && [ ! -d redteam/hardening/results_v3_prefix ]; then
-    mv redteam/hardening/results redteam/hardening/results_v3_prefix
-    mv redteam/hardening/summary.json redteam/hardening/results_v3_prefix/summary.json || true
-    mv redteam/hardening/summary.txt redteam/hardening/results_v3_prefix/summary.txt || true
-    cp scoring/scores_test.json redteam/hardening/results_v3_prefix/reference_scores_test.json || true
-    cp scoring/scores_train.json redteam/hardening/results_v3_prefix/reference_scores_train.json || true
-  fi
-  rm -rf eval/test/baseline_outputs eval/train/baseline_outputs tmp/reference_done tmp/reference_train_done
-  touch tmp/hardening_v4_init
-fi
-# Part 2b: the train calibration reference was restored to its build-time value
-# (see eval/train/config.json "alignment_check"): rerun the train side only.
-if [ ! -f tmp/hardening_v5_train_init ]; then
-  rm -rf eval/train/baseline_outputs tmp/reference_train_done
-  touch tmp/hardening_v5_train_init
-fi
-
 echo "== smoke"; python redteam/hardening/smoke.py
 
 echo "== build hidden benchmark + train split (reused when present)"; python eval/test/build_hidden_benchmark.py build
 echo "== calibrate (fixed once)"; python eval/test/build_hidden_benchmark.py calibrate
 echo "== budget (fixed once)"; python eval/test/build_hidden_benchmark.py limit
 cat eval/train/config.json
-echo "== baselines (final evaluator)"; python eval/test/build_hidden_benchmark.py baselines
+echo "== baselines (stored once, evaluator-owned)"; python eval/test/build_hidden_benchmark.py baselines
 date
 
 echo "== reference: register + train + hidden test (final evaluator)"
