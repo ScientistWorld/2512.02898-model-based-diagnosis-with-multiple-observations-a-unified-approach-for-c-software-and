@@ -1,9 +1,7 @@
 {
   "calibration": {
-    "aligned_to_test": {
-      "previous_reference_cpu_seconds": 1.1876700180000004,
-      "rule": "train reference = test reference * min(train samples) / min(test samples), measured alternately on one node",
-      "same_node_samples_cpu_seconds": {
+    "alignment_check": {
+      "alignment_phase_samples_cpu_seconds": {
         "test": [
           1.5572991060000003,
           2.161989322,
@@ -15,7 +13,17 @@
           1.821888889
         ]
       },
-      "train_over_test_workload_ratio": 1.169902995500724
+      "decision": "kept the original train reference (measured at build time); no re-alignment",
+      "evidence_train_over_test_workload_ratio_same_node": {
+        "hardening job 9deb4bfa (alignment phase, min of 3 alternating measurements)": 1.17,
+        "hardening job 9deb4bfa (baselines phase, HSD then BugAssist, back to back)": [
+          0.802,
+          0.811
+        ],
+        "hardening job 9deb4bfa (official reference run, train then test)": 0.848,
+        "original references (test 1.4286, train 1.1877)": 0.831
+      },
+      "note": "A single calibration measurement varies by up to ~25% within a minute on the cluster nodes; the alignment phase's min-based ratio (1.17) was driven by one fast test sample (1.56 vs 2.16, 2.00). Three back-to-back pairs give 0.80-0.85, matching the original references' 0.83, so the original train reference already puts train and test budgets on the same machine scale."
     },
     "instance_ids": [
       "inst_0fea1ac90275739c",
@@ -26,7 +34,7 @@
       "inst_c6513f53afad810e"
     ],
     "method": "min over 5 runs of building the unified CNF and solving it with RC2 for these instances; factor clamped to [0.67, 1.5]",
-    "reference_cpu_seconds": 1.6712674090965212
+    "reference_cpu_seconds": 1.1876700180000004
   },
   "cpu_limit_seconds": 10.0,
   "limit_selection": {

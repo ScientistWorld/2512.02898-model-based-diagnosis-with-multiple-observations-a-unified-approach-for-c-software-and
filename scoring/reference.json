@@ -54,18 +54,55 @@
           "higher_is_better": false,
           "coefficient": 0.0,
           "description": "1 if the method produced no output on any instance (then every ranked metric is set to its worst value)."
+        },
+        "tamper_detected": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Audit: 1 if the method changed the permissions, owner, location or contents of the hidden test directory while it ran; the run is then scored as failed (worst value of every metric)."
         }
       },
       "results": {
         "cfaults": {
           "type": "proposed",
-          "localized_rate": 0.0
+          "localized_rate": 97.3333,
+          "min_diagnosis_recall": 99.2364,
+          "localized_count": 73,
+          "total_instances": 75,
+          "cpu_limit_count": 2,
+          "error_count": 0,
+          "selected_fault_f1": 26.2212,
+          "exact_fault_set_rate": 13.3333,
+          "audit_avg_cpu_seconds": 1.713,
+          "failed_run": 0,
+          "tamper_detected": 0
         },
         "hsd": {
-          "type": "baseline"
+          "type": "baseline",
+          "localized_rate": 100.0,
+          "min_diagnosis_recall": 100.0,
+          "localized_count": 75,
+          "total_instances": 75,
+          "cpu_limit_count": 0,
+          "error_count": 0,
+          "selected_fault_f1": 28.7175,
+          "exact_fault_set_rate": 10.6667,
+          "audit_avg_cpu_seconds": 0.9132,
+          "failed_run": 0,
+          "tamper_detected": 0
         },
         "bugassist_vote": {
-          "type": "baseline"
+          "type": "baseline",
+          "localized_rate": 10.6667,
+          "min_diagnosis_recall": 19.0915,
+          "localized_count": 8,
+          "total_instances": 75,
+          "cpu_limit_count": 0,
+          "error_count": 0,
+          "selected_fault_f1": 21.2466,
+          "exact_fault_set_rate": 14.6667,
+          "audit_avg_cpu_seconds": 1.0009,
+          "failed_run": 0,
+          "tamper_detected": 0
         }
       },
       "_paper_reported": {
@@ -135,13 +172,36 @@
       "results": {
         "cfaults": {
           "type": "proposed",
-          "unsound_output_rate": 0.0
+          "unsound_output_rate": 0.0,
+          "sound_output_rate": 100.0,
+          "unsound_count": 0,
+          "invalid_count": 0,
+          "not_minimum_count": 0,
+          "malformed_count": 0,
+          "duplicate_count": 0,
+          "over_limit_count": 0
         },
         "hsd": {
-          "type": "baseline"
+          "type": "baseline",
+          "unsound_output_rate": 0.0,
+          "sound_output_rate": 100.0,
+          "unsound_count": 0,
+          "invalid_count": 0,
+          "not_minimum_count": 0,
+          "malformed_count": 0,
+          "duplicate_count": 0,
+          "over_limit_count": 0
         },
         "bugassist_vote": {
-          "type": "baseline"
+          "type": "baseline",
+          "unsound_output_rate": 43.2203,
+          "sound_output_rate": 55.9322,
+          "unsound_count": 51,
+          "invalid_count": 51,
+          "not_minimum_count": 0,
+          "malformed_count": 0,
+          "duplicate_count": 0,
+          "over_limit_count": 0
         }
       },
       "_paper_reported": {
@@ -240,13 +300,57 @@
       "results": {
         "cfaults": {
           "type": "proposed",
-          "localized_rate_obs50": 0.0
+          "localized_rate_obs10": 100.0,
+          "localized_rate_obs20": 100.0,
+          "localized_rate_obs30": 100.0,
+          "localized_rate_obs40": 86.6667,
+          "localized_rate_obs50": 100.0,
+          "min_diagnosis_recall_obs10": 100.0,
+          "localized_count_obs10": 15,
+          "min_diagnosis_recall_obs20": 100.0,
+          "localized_count_obs20": 15,
+          "min_diagnosis_recall_obs30": 100.0,
+          "localized_count_obs30": 15,
+          "min_diagnosis_recall_obs40": 96.1822,
+          "localized_count_obs40": 13,
+          "min_diagnosis_recall_obs50": 100.0,
+          "localized_count_obs50": 15
         },
         "hsd": {
-          "type": "baseline"
+          "type": "baseline",
+          "localized_rate_obs10": 100.0,
+          "localized_rate_obs20": 100.0,
+          "localized_rate_obs30": 100.0,
+          "localized_rate_obs40": 100.0,
+          "localized_rate_obs50": 100.0,
+          "min_diagnosis_recall_obs10": 100.0,
+          "localized_count_obs10": 15,
+          "min_diagnosis_recall_obs20": 100.0,
+          "localized_count_obs20": 15,
+          "min_diagnosis_recall_obs30": 100.0,
+          "localized_count_obs30": 15,
+          "min_diagnosis_recall_obs40": 100.0,
+          "localized_count_obs40": 15,
+          "min_diagnosis_recall_obs50": 100.0,
+          "localized_count_obs50": 15
         },
         "bugassist_vote": {
-          "type": "baseline"
+          "type": "baseline",
+          "localized_rate_obs10": 6.6667,
+          "localized_rate_obs20": 13.3333,
+          "localized_rate_obs30": 6.6667,
+          "localized_rate_obs40": 13.3333,
+          "localized_rate_obs50": 13.3333,
+          "min_diagnosis_recall_obs10": 17.2931,
+          "localized_count_obs10": 1,
+          "min_diagnosis_recall_obs20": 25.1525,
+          "localized_count_obs20": 2,
+          "min_diagnosis_recall_obs30": 13.4405,
+          "localized_count_obs30": 1,
+          "min_diagnosis_recall_obs40": 16.7608,
+          "localized_count_obs40": 2,
+          "min_diagnosis_recall_obs50": 22.8105,
+          "localized_count_obs50": 2
         }
       },
       "_paper_reported": {
@@ -343,13 +447,39 @@
       "results": {
         "cfaults": {
           "type": "proposed",
-          "localized_rate_f3": 0.0
+          "localized_rate_f1": 100.0,
+          "localized_rate_f3": 96.0,
+          "localized_rate_f5": 96.0,
+          "min_diagnosis_recall_f1": 100.0,
+          "localized_count_f1": 25,
+          "min_diagnosis_recall_f3": 99.4432,
+          "localized_count_f3": 24,
+          "min_diagnosis_recall_f5": 98.2661,
+          "localized_count_f5": 24
         },
         "hsd": {
-          "type": "baseline"
+          "type": "baseline",
+          "localized_rate_f1": 100.0,
+          "localized_rate_f3": 100.0,
+          "localized_rate_f5": 100.0,
+          "min_diagnosis_recall_f1": 100.0,
+          "localized_count_f1": 25,
+          "min_diagnosis_recall_f3": 100.0,
+          "localized_count_f3": 25,
+          "min_diagnosis_recall_f5": 100.0,
+          "localized_count_f5": 25
         },
         "bugassist_vote": {
-          "type": "baseline"
+          "type": "baseline",
+          "localized_rate_f1": 28.0,
+          "localized_rate_f3": 0.0,
+          "localized_rate_f5": 4.0,
+          "min_diagnosis_recall_f1": 46.1637,
+          "localized_count_f1": 7,
+          "min_diagnosis_recall_f3": 4.8593,
+          "localized_count_f3": 0,
+          "min_diagnosis_recall_f5": 6.2514,
+          "localized_count_f5": 1
         }
       },
       "_paper_reported": {
@@ -400,13 +530,33 @@
       "results": {
         "cfaults": {
           "type": "proposed",
-          "localized_rate_stress": 0.0
+          "localized_rate_stress": 67.4419,
+          "min_diagnosis_recall_stress": 76.5228,
+          "localized_count_stress": 29,
+          "total_instances_stress": 43,
+          "cpu_limit_count_stress": 14,
+          "localized_rate_stress_f3": 91.6667,
+          "localized_rate_stress_f5": 36.8421
         },
         "hsd": {
-          "type": "baseline"
+          "type": "baseline",
+          "localized_rate_stress": 90.6977,
+          "min_diagnosis_recall_stress": 97.1013,
+          "localized_count_stress": 39,
+          "total_instances_stress": 43,
+          "cpu_limit_count_stress": 4,
+          "localized_rate_stress_f3": 100.0,
+          "localized_rate_stress_f5": 78.9474
         },
         "bugassist_vote": {
-          "type": "baseline"
+          "type": "baseline",
+          "localized_rate_stress": 2.3256,
+          "min_diagnosis_recall_stress": 5.2557,
+          "localized_count_stress": 1,
+          "total_instances_stress": 43,
+          "cpu_limit_count_stress": 1,
+          "localized_rate_stress_f3": 4.1667,
+          "localized_rate_stress_f5": 0.0
         }
       },
       "_paper_reported": {
@@ -437,6 +587,6 @@
       },
       "known_minimal_faulty_lines": "{5,8,11}"
     },
-    "scale_note": "Gym results in 'results' are this gym's reference runs (hidden test, iteration 11); paper numbers live under each experiment's '_paper_reported'."
+    "scale_note": "'results' hold this gym's official hidden-test run (hardening iteration 11, final evaluator): the paper's method (cfaults) at a calibrated budget of 9.09 CPU-s per instance (speed factor 0.909), and the evaluator-owned baselines from eval/test/baseline_outputs. The paper's own numbers (10 ISCAS85 circuits, 12,147 instances, 1800 s per circuit) are not on this scale and live under each experiment's '_paper_reported'."
   }
 }
