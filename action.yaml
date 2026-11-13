@@ -5,4 +5,4 @@ action: submit
 gpus: 0
 test: false
 milestone: core_claim
-notes: "Hardening job 2 (resumed): finish scale-stress tier for hidden test + train with hard-limited exact enumeration, regenerate evaluator-owned baselines, rerun reference train+hidden test and all audit cases through scripts/evaluate_test.sh, summarise, validate."
+notes: "Hardening job 3: paper-faithful incremental CFaults reference, stress tier v2 (48 hidden / 24 train large-circuit instances), robust machine-speed calibration; regenerate baselines; rerun reference + all audit cases (lazy_observations, previous fresh-solver reference, satenum, HSD-as-method, weaker, brute force, shortcuts, seeds) through scripts/evaluate_test.sh."

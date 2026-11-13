@@ -1,0 +1,41 @@
+{
+  "case": "replace_baseline_shortcut",
+  "env": {},
+  "hidden_arguments": [],
+  "hidden_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "pre_step": null,
+  "registrations": {
+    "bugassist_vote": [
+      "python",
+      "method/audit_shortcuts.py",
+      "empty_output",
+      "--instance",
+      "{instance}",
+      "--output",
+      "{output}"
+    ],
+    "cfaults_circuit": [
+      "python",
+      "method/audit_shortcuts.py",
+      "constant_gate",
+      "--instance",
+      "{instance}",
+      "--output",
+      "{output}"
+    ],
+    "hsd_circuit": [
+      "python",
+      "method/audit_shortcuts.py",
+      "empty_output",
+      "--instance",
+      "{instance}",
+      "--output",
+      "{output}"
+    ]
+  },
+  "returncode": 0,
+  "wall_seconds": 14.59110713005066
+}

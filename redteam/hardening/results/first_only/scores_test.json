@@ -2,13 +2,13 @@
   "_evaluation": {
     "baselines_from": "eval/test/baseline_outputs (evaluator-owned, fixed)",
     "budget": {
-      "calibration_measured_cpu_seconds": 0.319878895,
-      "calibration_reference_cpu_seconds": 0.2688178669999999,
-      "cpu_limit_seconds": 11.89946555896153,
+      "calibration_measured_cpu_seconds": 1.772294075,
+      "calibration_reference_cpu_seconds": 1.4285521239999994,
+      "cpu_limit_seconds": 12.406226172815524,
       "nominal_cpu_limit_seconds": 10.0,
-      "speed_factor": 1.189946555896153
+      "speed_factor": 1.2406226172815524
     },
-    "instance_count": 97,
+    "instance_count": 118,
     "methods_run": [
       "cfaults"
     ],
@@ -19,13 +19,13 @@
       "results": {
         "bugassist_vote": {
           "duplicate_count": 0,
-          "invalid_count": 37,
+          "invalid_count": 52,
           "malformed_count": 0,
           "not_minimum_count": 0,
           "over_limit_count": 0,
-          "sound_output_rate": 61.855670103092784,
-          "unsound_count": 37,
-          "unsound_output_rate": 38.144329896907216
+          "sound_output_rate": 55.08474576271186,
+          "unsound_count": 52,
+          "unsound_output_rate": 44.067796610169495
         },
         "cfaults": {
           "duplicate_count": 0,
@@ -89,7 +89,7 @@
     "iscas85_localisation": {
       "results": {
         "bugassist_vote": {
-          "audit_avg_cpu_seconds": 0.6500580133333332,
+          "audit_avg_cpu_seconds": 0.6712848800000001,
           "cpu_limit_count": 0,
           "error_count": 0,
           "exact_fault_set_rate": 14.666666666666666,
@@ -101,7 +101,7 @@
           "total_instances": 75
         },
         "cfaults": {
-          "audit_avg_cpu_seconds": 0.30018012000000005,
+          "audit_avg_cpu_seconds": 0.4459855600000002,
           "cpu_limit_count": 0,
           "error_count": 0,
           "exact_fault_set_rate": 13.333333333333334,
@@ -113,7 +113,7 @@
           "total_instances": 75
         },
         "hsd": {
-          "audit_avg_cpu_seconds": 0.71969008,
+          "audit_avg_cpu_seconds": 0.6967252933333333,
           "cpu_limit_count": 0,
           "error_count": 0,
           "exact_fault_set_rate": 10.666666666666666,
@@ -184,31 +184,31 @@
     "scale_stress": {
       "results": {
         "bugassist_vote": {
-          "cpu_limit_count_stress": 0,
+          "cpu_limit_count_stress": 1,
           "localized_count_stress": 1,
-          "localized_rate_stress": 4.545454545454546,
-          "localized_rate_stress_f3": 8.333333333333334,
+          "localized_rate_stress": 2.3255813953488373,
+          "localized_rate_stress_f3": 4.166666666666667,
           "localized_rate_stress_f5": 0.0,
-          "min_diagnosis_recall_stress": 8.217924233620154,
-          "total_instances_stress": 22
+          "min_diagnosis_recall_stress": 5.20286595674971,
+          "total_instances_stress": 43
         },
         "cfaults": {
           "cpu_limit_count_stress": 0,
           "localized_count_stress": 1,
-          "localized_rate_stress": 4.545454545454546,
-          "localized_rate_stress_f3": 8.333333333333334,
+          "localized_rate_stress": 2.3255813953488373,
+          "localized_rate_stress_f3": 4.166666666666667,
           "localized_rate_stress_f5": 0.0,
-          "min_diagnosis_recall_stress": 12.144740316371479,
-          "total_instances_stress": 22
+          "min_diagnosis_recall_stress": 7.75891630796919,
+          "total_instances_stress": 43
         },
         "hsd": {
-          "cpu_limit_count_stress": 2,
-          "localized_count_stress": 21,
-          "localized_rate_stress": 95.45454545454545,
+          "cpu_limit_count_stress": 6,
+          "localized_count_stress": 37,
+          "localized_rate_stress": 86.04651162790698,
           "localized_rate_stress_f3": 100.0,
-          "localized_rate_stress_f5": 90.0,
-          "min_diagnosis_recall_stress": 99.79901051329624,
-          "total_instances_stress": 22
+          "localized_rate_stress_f5": 68.42105263157895,
+          "min_diagnosis_recall_stress": 94.92172012751213,
+          "total_instances_stress": 43
         }
       }
     }

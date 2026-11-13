@@ -1,3 +1,6 @@
 {
-  "brute_force": "PermissionError(13, 'Permission denied')"
+  "fresh_solver_previous_reference": "PermissionError(13, 'Permission denied')",
+  "hsd_as_method": "PermissionError(13, 'Permission denied')",
+  "brute_force": "PermissionError(13, 'Permission denied')",
+  "reference_seed_2": "PermissionError(13, 'Permission denied')"
 }
