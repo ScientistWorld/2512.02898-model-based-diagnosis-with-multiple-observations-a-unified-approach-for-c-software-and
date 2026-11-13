@@ -22,6 +22,38 @@ ROOT = Path(__file__).resolve().parents[2]
 HARD = ROOT / "redteam" / "hardening"
 RESULTS = HARD / "results"
 WORK = HARD / "workspaces"
+# Cases named "<case>__before" are scored by the hidden-test evaluator as it was
+# before this hardening iteration (process-tree CPU accounting and tamper
+# detection absent), to measure what the fixed shortcuts paid.
+BEFORE_EVALUATOR = HARD / "before" / "evaluate_test_before.py"
+
+
+def force_rmtree(path: Path) -> None:
+    """rmtree that also handles directories left at mode 0 by an interrupted hidden test."""
+    if not path.exists():
+        return
+    for root, dirs, _ in os.walk(path):
+        for d in dirs:
+            try:
+                os.chmod(os.path.join(root, d), 0o700)
+            except OSError:
+                pass
+    # os.walk cannot list a mode-0 directory before it is chmod-ed: repeat until clean
+    for _ in range(10):
+        stuck = []
+        for root, dirs, _ in os.walk(path):
+            for d in dirs:
+                full = os.path.join(root, d)
+                if not os.access(full, os.R_OK | os.X_OK):
+                    stuck.append(full)
+        if not stuck:
+            break
+        for d in stuck:
+            try:
+                os.chmod(d, 0o700)
+            except OSError:
+                pass
+    shutil.rmtree(path, ignore_errors=True)
 
 
 def ref():
@@ -65,13 +97,17 @@ CASES = {
     "duplicate_diagnosis_shortcut": ({"cfaults_circuit": cut("duplicate_diagnosis")}, {}, None),
     "reference_seed_1": ({"cfaults_circuit": ref()}, {"PYTHONHASHSEED": "1"}, None),
     "reference_seed_2": ({"cfaults_circuit": ref()}, {"PYTHONHASHSEED": "2"}, None),
+    # Shortcuts closed in hardening iteration 11 (part 2), each also run against the previous evaluator.
+    "chmod_hidden_read_shortcut": ({"cfaults_circuit": cut("chmod_hidden_read")}, {}, None),
+    "chmod_hidden_read_shortcut__before": ({"cfaults_circuit": cut("chmod_hidden_read")}, {}, None),
+    "cpu_escape_relay_shortcut": ({"cfaults_circuit": cut("cpu_escape_relay")}, {}, None),
+    "cpu_escape_relay_shortcut__before": ({"cfaults_circuit": cut("cpu_escape_relay")}, {}, None),
 }
 
 
 def stage(case: str, registrations: dict, pre: str | None) -> Path:
     work = WORK / case
-    if work.exists():
-        shutil.rmtree(work)
+    force_rmtree(work)
     work.mkdir(parents=True)
     ignore = shutil.ignore_patterns("__pycache__", "runs", "*.pyc")
     for name in ("data", "method", "baseline", "scripts", "eval"):
@@ -82,6 +118,8 @@ def stage(case: str, registrations: dict, pre: str | None) -> Path:
             shutil.copy2(ROOT / "scoring" / doc, work / "scoring" / doc)
     shutil.copy2(HARD / "audit_variants.py", work / "method" / "audit_variants.py")
     shutil.copy2(HARD / "audit_shortcuts.py", work / "method" / "audit_shortcuts.py")
+    if case.endswith("__before"):
+        shutil.copy2(BEFORE_EVALUATOR, work / "eval" / "test" / "evaluate_circuit_outputs.py")
     (work / "checkpoints").mkdir()
     for directory, command in registrations.items():
         if pre == "late" and directory == "late_method":
@@ -126,7 +164,7 @@ def execute(case: str) -> None:
     (out / "run_metadata.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n")
     if (out / "scores_test.json.tmp").exists():
         (out / "scores_test.json.tmp").rename(out / "scores_test.json")
-    shutil.rmtree(work, ignore_errors=True)
+    force_rmtree(work)
     print(f"finished {case} rc={proc.returncode} in {meta['wall_seconds']:.0f}s", flush=True)
 
 

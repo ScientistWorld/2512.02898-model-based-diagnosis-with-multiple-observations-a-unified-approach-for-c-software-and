@@ -14,6 +14,8 @@ Not used for scoring.  Run once (by scripts/run.sh during packaging) to:
               Instances whose answer cannot be enumerated within the offline
               budget are resampled (next attempt index of the same grid cell).
   calibrate   measure the evaluators' fixed calibration workload on this node.
+  align       re-express the train calibration reference on the test one's
+              machine scale (both workloads measured alternately on one node).
   limit       choose the per-instance CPU budget from the reference method's
               behaviour on the PUBLIC train split only.
   baselines   run the HSD and BugAssist-vote baselines through both evaluators
@@ -360,6 +362,39 @@ def phase_calibrate() -> None:
         log(f"{split} calibration workload: {value:.3f} cpu-s")
 
 
+def phase_align() -> None:
+    """Put the train calibration reference on the same machine scale as the test one.
+
+    The two references were first measured at different times (on different
+    nodes), so on one machine the train budget came out ~1.4x the test budget.
+    Both workloads are measured alternately on one node; the train reference
+    becomes test_reference * (train workload / test workload), so a given
+    machine gives both splits the same per-instance budget.
+    """
+    train_cfg = json.loads(TRAIN_CONFIG.read_text())
+    if train_cfg["calibration"].get("aligned_to_test"):
+        return
+    test_cfg = json.loads(TEST_CONFIG.read_text())
+    samples: dict[str, list[float]] = {"test": [], "train": []}
+    for _ in range(3):
+        for split in ("test", "train"):
+            out = subprocess.run([sys.executable, "-I", evaluator(split), "--calibrate-only"], cwd=REPO_ROOT,
+                                 capture_output=True, text=True, check=True)
+            samples[split].append(json.loads(out.stdout.strip().splitlines()[-1])["cpu_seconds"])
+    ratio = min(samples["train"]) / min(samples["test"])
+    previous = train_cfg["calibration"]["reference_cpu_seconds"]
+    train_cfg["calibration"]["reference_cpu_seconds"] = test_cfg["calibration"]["reference_cpu_seconds"] * ratio
+    train_cfg["calibration"]["aligned_to_test"] = {
+        "previous_reference_cpu_seconds": previous,
+        "same_node_samples_cpu_seconds": samples,
+        "train_over_test_workload_ratio": ratio,
+        "rule": "train reference = test reference * min(train samples) / min(test samples), measured alternately on one node",
+    }
+    TRAIN_CONFIG.write_text(json.dumps(train_cfg, indent=2, sort_keys=True) + "\n")
+    log(f"train calibration aligned to test: ratio {ratio:.3f}, reference {previous:.3f} -> "
+        f"{train_cfg['calibration']['reference_cpu_seconds']:.3f}")
+
+
 def phase_limit() -> None:
     cfg = json.loads(TRAIN_CONFIG.read_text())
     if cfg.get("limit_selection"):
@@ -416,7 +451,7 @@ def phase_baselines() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("phase", choices=["build", "calibrate", "limit", "baselines", "all", "exact"])
+    parser.add_argument("phase", choices=["build", "calibrate", "align", "limit", "baselines", "all", "exact"])
     parser.add_argument("--instance", type=Path)
     parser.add_argument("--answer", type=Path)
     parser.add_argument("--budget", type=float, default=150.0)
@@ -427,10 +462,11 @@ def main() -> None:
         answer = exact_answer(json.loads(args.instance.read_text()), args.budget, args.max_diagnoses)
         args.answer.write_text(json.dumps(answer))
         return
-    phases = ["build", "calibrate", "limit", "baselines"] if args.phase == "all" else [args.phase]
+    phases = ["build", "calibrate", "align", "limit", "baselines"] if args.phase == "all" else [args.phase]
     for phase in phases:
         log(f"phase {phase}")
-        {"build": phase_build, "calibrate": phase_calibrate, "limit": phase_limit, "baselines": phase_baselines}[phase]()
+        {"build": phase_build, "calibrate": phase_calibrate, "align": phase_align, "limit": phase_limit,
+         "baselines": phase_baselines}[phase]()
 
 
 if __name__ == "__main__":

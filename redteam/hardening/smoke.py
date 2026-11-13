@@ -96,6 +96,35 @@ def main() -> None:
         print(f"   spin: status={rec['status']} cpu={rec['cpu_seconds']:.2f} wall={rec['wall_seconds']:.2f} lines={len(rec['diagnoses'])}")
         if rec["status"] not in ("cpu_limit", "wall_limit") or rec["cpu_seconds"] > 4.5:
             failures.append("cpu limit not enforced")
+    # Process-tree CPU accounting: CPU of detached, auto-reaped workers in their own
+    # sessions must be counted against the budget and the tree killed at the budget.
+    test_eval._prctl(test_eval.PR_SET_CHILD_SUBREAPER, 1)
+    with tempfile.TemporaryDirectory() as tmp:
+        prog = Path(tmp) / "detached.py"
+        prog.write_text(
+            "import os, sys, time, signal\n"
+            "signal.signal(signal.SIGCHLD, signal.SIG_IGN)\n"
+            "for i in range(2):\n"
+            "    if os.fork() == 0:\n"
+            "        os.setsid()\n"
+            "        if os.fork() == 0:\n"
+            "            t = time.process_time()\n"
+            "            while time.process_time() - t < 1.5: pass\n"
+            "            open(sys.argv[1] + f'.{i}', 'w').write('x'); os._exit(0)\n"
+            "        os._exit(0)\n"
+            "while not all(os.path.exists(sys.argv[1] + f'.{i}') for i in range(2)): time.sleep(0.01)\n"
+            "open(sys.argv[1], 'w').write('[\"x\"]\\n'); os._exit(0)\n")
+        for budget, want in ((5.0, "ok"), (2.0, "cpu_limit")):
+            rec = test_eval.run_command_on_instance(["python", str(prog), "{output}", "{instance}"], inst, budget)
+            print(f"   detached workers (2 x 1.5 s) budget={budget}: status={rec['status']} cpu={rec['cpu_seconds']:.2f} "
+                  f"procs={rec.get('tree_processes')}", flush=True)
+            if rec["status"] != want or (want == "ok" and rec["cpu_seconds"] < 2.5):
+                failures.append(f"process-tree accounting: budget {budget} gave {rec['status']} cpu={rec['cpu_seconds']:.2f}")
+    relay = ["python", "redteam/hardening/audit_shortcuts.py", "cpu_escape_relay", "--instance", "{instance}", "--output", "{output}"]
+    rec = test_eval.run_command_on_instance(relay, inst, 30.0)
+    scored = test_eval.score_instance(rec, inst, truth, 30.0)
+    print(f"   relay shortcut (generous budget): status={rec['status']} cpu={rec['cpu_seconds']:.2f} "
+          f"procs={rec.get('tree_processes')} localized={scored['localized']} {rec.get('stderr_tail', '')[-200:]}", flush=True)
     if failures:
         print("SMOKE FAILURES:\n" + "\n".join(failures), flush=True)
         raise SystemExit(1)

@@ -13,6 +13,14 @@ Run with no arguments (``bash scripts/evaluate_test.sh``).  It
 4. scores the raw diagnoses the method wrote.  Nothing the method reports
    about itself (validity flags, work counters, timings) is read.
 
+The CPU budget covers every process the method starts: the evaluator is a
+child subreaper and samples the CPU time of the whole process tree from
+/proc, so detached or auto-reaped workers are counted (and killed) too.
+While method code runs, ``eval/test`` is unreadable and the evaluator's own
+memory is not readable by other processes; a method that changes the
+permissions, owner, location or contents of ``eval/test`` is recorded as
+tampering and its whole run is scored as failed.
+
 The evaluator is deliberately a single self-contained file: it imports only
 the standard library (and PySAT for the calibration workload), never code
 from ``data/``, ``method/`` or ``baseline/``.
@@ -27,6 +35,7 @@ produces no output at all, it receives the worst value of every metric.
 from __future__ import annotations
 
 import argparse
+import ctypes
 import json
 import math
 import os
@@ -56,6 +65,26 @@ DIR_ALIASES = {"cfaults_circuit": "cfaults", "hsd_circuit": "hsd"}
 RESERVED_KEYS = ("hsd", "bugassist_vote")
 MAX_OUTPUT_BYTES = 64 * 1024 * 1024
 MEMORY_LIMIT_BYTES = 8 * 1024 ** 3
+POLL_SECONDS = 0.02
+PR_SET_DUMPABLE = 4
+PR_SET_CHILD_SUBREAPER = 36
+try:
+    CLK_TCK = float(os.sysconf("SC_CLK_TCK"))
+except (ValueError, OSError, AttributeError):
+    CLK_TCK = 100.0
+
+
+def over_budget(cpu_seconds: float, cpu_limit: float) -> bool:
+    """The single budget rule: measured CPU of the whole process tree."""
+    return cpu_seconds > 1.1 * cpu_limit + 1.0
+
+
+def _prctl(option: int, value: int) -> bool:
+    try:
+        libc = ctypes.CDLL(None, use_errno=True)
+        return libc.prctl(option, value, 0, 0, 0) == 0
+    except (OSError, AttributeError):
+        return False
 
 
 # --------------------------------------------------------------------------
@@ -199,7 +228,124 @@ def _parse_output(raw: bytes) -> tuple[list, bool]:
     return parsed, truncated
 
 
+def _read_stat(pid: int):
+    """(ppid, own user+system CPU seconds, start time) of a process, or None."""
+    try:
+        raw = Path(f"/proc/{pid}/stat").read_bytes()
+        rest = raw[raw.rindex(b")") + 2:].split()
+        return int(rest[1]), (int(rest[11]) + int(rest[12])) / CLK_TCK, int(rest[19])
+    except (OSError, ValueError, IndexError):
+        return None
+
+
+class ProcessTree:
+    """Every process a method starts, however it detaches, and its CPU time.
+
+    The evaluator is a child subreaper, so processes orphaned inside the tree
+    are re-parented to it (not to init) and stay in the tree.  Membership is
+    found by following parent links in /proc; each member's own CPU time is
+    sampled at every poll and the last sample is kept after it exits, so CPU
+    spent in detached or auto-reaped workers is counted.
+    """
+
+    def __init__(self) -> None:
+        self.me = os.getpid()
+        self.others: dict[int, int] = {}  # pid -> ppid for processes outside the tree
+        self.reset()
+
+    def reset(self) -> None:
+        self.members: dict[int, int] = {}  # live members: pid -> start time
+        self.cpu: dict[tuple[int, int], float] = {}
+
+    def poll(self) -> None:
+        try:
+            listing = {int(p) for p in os.listdir("/proc") if p.isdigit()}
+        except OSError:
+            return
+        for pid in [p for p in self.others if p not in listing]:
+            del self.others[pid]
+        fresh = {}
+        for pid in listing:
+            if pid == self.me or pid in self.members:
+                continue
+            if pid in self.others and self.others[pid] in listing:
+                continue  # outside the tree and its parent is unchanged
+            st = _read_stat(pid)
+            if st is not None:
+                fresh[pid] = st
+        added = set()
+        changed = True
+        while changed:
+            changed = False
+            for pid, (ppid, cpu, start) in list(fresh.items()):
+                if ppid == self.me or ppid in self.members:
+                    self.members[pid] = start
+                    self.cpu[(pid, start)] = max(self.cpu.get((pid, start), 0.0), cpu)
+                    self.others.pop(pid, None)
+                    added.add(pid)
+                    del fresh[pid]
+                    changed = True
+        for pid, (ppid, _, _) in fresh.items():
+            self.others[pid] = ppid
+        for pid, start in list(self.members.items()):
+            if pid in added:
+                continue
+            st = _read_stat(pid) if pid in listing else None
+            if st is None or st[2] != start:
+                del self.members[pid]
+                continue
+            self.cpu[(pid, start)] = max(self.cpu.get((pid, start), 0.0), st[1])
+
+    def cpu_seconds(self) -> float:
+        return sum(self.cpu.values())
+
+
+def _reap(root_pid: int, state: dict) -> None:
+    """Reap every exited child of the evaluator (the method and adopted orphans)."""
+    while True:
+        try:
+            pid, status, usage = os.wait4(-1, os.WNOHANG)
+        except ChildProcessError:
+            return
+        if not pid:
+            return
+        cpu = usage.ru_utime + usage.ru_stime
+        if pid == root_pid:
+            state["root_status"] = status
+            state["root_cpu"] = cpu
+        else:
+            state["orphan_cpu"] += cpu
+
+
+def _kill_tree(tree: ProcessTree, root_pid: int, state: dict) -> None:
+    try:
+        os.killpg(root_pid, signal.SIGKILL)
+    except OSError:
+        pass
+    for _ in range(300):
+        tree.poll()
+        live = list(tree.members)
+        if not live and state.get("root_status") is not None:
+            break
+        for pid in live:
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except OSError:
+                pass
+        _reap(root_pid, state)
+        time.sleep(0.01)
+    _reap(root_pid, state)
+
+
+_TREE: ProcessTree | None = None
+
+
 def run_command_on_instance(command: list[str], instance: dict, cpu_limit: float) -> dict:
+    global _TREE
+    if _TREE is None:
+        _TREE = ProcessTree()
+    tree = _TREE
+    tree.reset()
     tmp = Path(tempfile.mkdtemp(prefix="diag_eval_"))
     inst_path = tmp / "instance.json"
     out_path = tmp / "diagnoses.jsonl"
@@ -221,6 +367,10 @@ def run_command_on_instance(command: list[str], instance: dict, cpu_limit: float
             resource.setrlimit(resource.RLIMIT_AS, (MEMORY_LIMIT_BYTES, MEMORY_LIMIT_BYTES))
         except (ValueError, OSError):
             pass
+        try:
+            resource.setrlimit(resource.RLIMIT_CORE, (0, 0))  # no core files from killed methods
+        except (ValueError, OSError):
+            pass
 
     record = {"id": instance["id"], "status": "ok", "cpu_seconds": 0.0, "wall_seconds": 0.0}
     start = time.monotonic()
@@ -234,29 +384,34 @@ def run_command_on_instance(command: list[str], instance: dict, cpu_limit: float
                 stderr=err,
                 preexec_fn=limit_child,
             )
-            timed_out = False
+            state = {"root_status": None, "root_cpu": 0.0, "orphan_cpu": 0.0}
+            stopped = None
             while True:
-                pid, status, usage = os.wait4(proc.pid, os.WNOHANG)
-                if pid:
+                tree.poll()
+                _reap(proc.pid, state)
+                if state["root_status"] is not None:
+                    break
+                if tree.cpu_seconds() > soft:
+                    stopped = "cpu_limit"  # the whole tree used the per-process CPU allowance
                     break
                 if time.monotonic() - start > wall_limit:
-                    try:
-                        os.killpg(proc.pid, signal.SIGKILL)
-                    except OSError:
-                        pass
-                    pid, status, usage = os.wait4(proc.pid, 0)
-                    timed_out = True
+                    stopped = "wall_limit"
                     break
-                time.sleep(0.02)
+                time.sleep(POLL_SECONDS)
+            _kill_tree(tree, proc.pid, state)  # stray helpers of the method, however detached
+            if state["root_status"] is None:
+                try:
+                    _, status, usage = os.wait4(proc.pid, 0)
+                    state["root_status"], state["root_cpu"] = status, usage.ru_utime + usage.ru_stime
+                except ChildProcessError:
+                    state["root_status"] = 0
             proc.returncode = 0  # already reaped with wait4
-            try:
-                os.killpg(proc.pid, signal.SIGKILL)  # stray helpers of the method
-            except OSError:
-                pass
+        status = state["root_status"]
         record["wall_seconds"] = time.monotonic() - start
-        record["cpu_seconds"] = usage.ru_utime + usage.ru_stime
-        if timed_out:
-            record["status"] = "wall_limit"
+        record["cpu_seconds"] = max(state["root_cpu"] + state["orphan_cpu"], tree.cpu_seconds())
+        record["tree_processes"] = len(tree.cpu)
+        if stopped:
+            record["status"] = stopped
         elif os.WIFSIGNALED(status):
             sig = os.WTERMSIG(status)
             record["status"] = "cpu_limit" if sig in (signal.SIGXCPU, signal.SIGKILL) else f"signal_{sig}"
@@ -298,16 +453,46 @@ def discover_methods(result_root: Path) -> dict[str, list[str] | None]:
 
 
 class HiddenDataGuard:
-    """Make eval/test unreadable while third-party method code runs."""
+    """Make eval/test unreadable while third-party method code runs.
+
+    Method code runs as the same user, so it could chmod the directory back.
+    Any change to the directory's permissions, owner, inode or contents changes
+    its (inode, device, mode, ctime) fingerprint, which no unprivileged process
+    can restore; ``tampered()`` is checked after every method process.
+    """
 
     def __init__(self, path: Path) -> None:
         self.path = path
         self.mode = None
+        self.fingerprint = None
+
+    def _fingerprint(self):
+        try:
+            st = os.stat(self.path)
+            return (st.st_ino, st.st_dev, st.st_mode & 0o7777, st.st_ctime_ns, st.st_uid, st.st_gid)
+        except OSError:
+            return None
+
+    def _lock(self) -> None:
+        try:
+            os.chmod(self.path, 0)
+        except OSError:
+            pass
+        self.fingerprint = self._fingerprint()
+
+    def tampered(self) -> bool:
+        """True if the directory changed since it was locked; it is then locked again."""
+        if self.mode is None:
+            return False
+        if self._fingerprint() == self.fingerprint:
+            return False
+        self._lock()
+        return True
 
     def __enter__(self):
         try:
             self.mode = self.path.stat().st_mode & 0o7777
-            os.chmod(self.path, 0)
+            self._lock()
         except OSError:
             self.mode = None
         self._old = {}
@@ -340,14 +525,21 @@ class HiddenDataGuard:
         return False
 
 
-def run_method(command: list[str] | None, instances: list[dict], cpu_limit: float, log_name: str) -> list[dict]:
+def run_method(command: list[str] | None, instances: list[dict], cpu_limit: float, log_name: str,
+               guard: HiddenDataGuard | None = None) -> list[dict]:
     records = []
+    tampered = False
     for idx, inst in enumerate(instances):
-        if command is None:
-            records.append({"id": inst["id"], "status": "not_registered", "cpu_seconds": 0.0, "wall_seconds": 0.0,
-                            "diagnoses": [], "truncated": False})
+        if command is None or tampered:
+            records.append({"id": inst["id"], "status": "tampered" if tampered else "not_registered",
+                            "cpu_seconds": 0.0, "wall_seconds": 0.0, "diagnoses": [], "truncated": False})
             continue
         rec = run_command_on_instance(command, inst, cpu_limit)
+        if guard is not None and guard.tampered():
+            # The method touched the hidden directory: its whole run is failed.
+            tampered = True
+            rec = {"id": inst["id"], "status": "tampered", "cpu_seconds": rec["cpu_seconds"],
+                   "wall_seconds": rec["wall_seconds"], "diagnoses": [], "truncated": False}
         records.append(rec)
         print(f"[{SLICE}] {log_name} {idx + 1}/{len(instances)} {rec['status']} cpu={rec['cpu_seconds']:.2f}s "
               f"lines={len(rec['diagnoses'])}", file=sys.stderr, flush=True)
@@ -387,7 +579,7 @@ def score_instance(record: dict, inst: dict, truth_entry: dict, cpu_limit: float
             kinds["not_minimum"] += 1
         else:
             kinds["invalid"] += 1
-    over_limit = bool(record.get("truncated")) or float(record.get("cpu_seconds", 0.0)) > 1.1 * cpu_limit + 1.0
+    over_limit = bool(record.get("truncated")) or over_budget(float(record.get("cpu_seconds", 0.0)), cpu_limit)
     if over_limit:
         kinds["over_limit"] += 1
     unsound = sum(v for k, v in kinds.items() if k != "over_limit") > 0
@@ -501,13 +693,16 @@ def aggregate(records: list[dict], instances: list[dict], truth: dict, cpu_limit
         "fault_scaling": faults,
         "scale_stress": scale,
     }
-    if not produced_any:
-        # A run that produced nothing at all is a failed run: worst values.
+    tampered = any(r.get("status") == "tampered" for r in records)
+    if tampered or not produced_any:
+        # A run that produced nothing at all, or that touched the hidden test
+        # directory, is a failed run: worst value of every metric.
         for exp, metrics in worst_values().items():
             result[exp].update(metrics)
         result["iscas85_localisation"]["failed_run"] = 1
     else:
         result["iscas85_localisation"]["failed_run"] = 0
+    result["iscas85_localisation"]["tamper_detected"] = int(tampered)
     return result
 
 
@@ -539,6 +734,12 @@ def main() -> None:
     parser.add_argument("--command-json", default=None)
     args = parser.parse_args()
 
+    # The answers are held in this process's memory while method code runs:
+    # make it non-dumpable so other processes of the same user cannot read it
+    # (/proc/<pid>/mem), and adopt every orphan the method leaves behind.
+    _prctl(PR_SET_DUMPABLE, 0)
+    _prctl(PR_SET_CHILD_SUBREAPER, 1)
+
     instances, truth = load_benchmark()
     config = json.loads(CONFIG_FILE.read_text())
 
@@ -553,8 +754,8 @@ def main() -> None:
 
     if args.store_baseline:
         command = valid_registration({"command": json.loads(args.command_json)})
-        with HiddenDataGuard(HERE):
-            records = run_method(command, instances, cpu_limit, args.store_baseline)
+        with HiddenDataGuard(HERE) as guard:
+            records = run_method(command, instances, cpu_limit, args.store_baseline, guard)
         BASELINE_DIR.mkdir(parents=True, exist_ok=True)
         (BASELINE_DIR / f"{args.store_baseline}.json").write_text(
             json.dumps({"method": args.store_baseline, "budget": budget, "records": records}, sort_keys=True) + "\n"
@@ -567,9 +768,9 @@ def main() -> None:
 
     per_method: dict[str, dict] = {}
     run_payloads: dict[str, dict] = {}
-    with HiddenDataGuard(HERE):
+    with HiddenDataGuard(HERE) as guard:
         for key, command in sorted(registered.items()):
-            records = run_method(command, instances, cpu_limit, key)
+            records = run_method(command, instances, cpu_limit, key, guard)
             per_method[key] = aggregate(records, instances, truth, cpu_limit)
             run_payloads[key] = {"method": key, "budget": budget, "command": command, "records": records}
     for key, payload in run_payloads.items():

@@ -59,8 +59,11 @@ def main() -> None:
         entries["late_method_shortcut[late_method]"] = (cases["late_method_shortcut"], "late_method")
 
     sds = {}
+    # Cases scored by the pre-fix evaluator ("__before") are evidence, not attempts
+    # this gym will rank: they are kept out of the normalisation cohort.
+    cohort = {n: v for n, v in entries.items() if not n.endswith("__before")}
     for e, m, w, high in metrics:
-        vals = [get(s, e, m, k) for s, k in entries.values()]
+        vals = [get(s, e, m, k) for s, k in cohort.values()]
         vals = [v for v in vals if isinstance(v, (int, float))]
         sds[f"{e}/{m}"] = statistics.pstdev(vals) if len(vals) > 1 else 0.0
 
@@ -135,7 +138,9 @@ def main() -> None:
                                    min(rows[s]["rank_vs_reference"] for s in seeds)) if seeds else None
     train = load(ROOT / "scoring" / "scores_train.json")
     doc = {
-        "rank_convention": "sum(weight*|coefficient|*direction*(value-reference)/population_sd_over_audit_cohort); missing skipped",
+        "rank_convention": "sum(weight*|coefficient|*direction*(value-reference)/population_sd_over_audit_cohort); missing skipped; "
+                           "cohort = every case scored by the final evaluator plus the evaluator-owned baselines",
+        "cohort": sorted(cohort),
         "reference": "scoring/scores_test.json (official reference run, cfaults)",
         "budget": main_scores.get("_evaluation", {}).get("budget"),
         "metric_sd": sds,
