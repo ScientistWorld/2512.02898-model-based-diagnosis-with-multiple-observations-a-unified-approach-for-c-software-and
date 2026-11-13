@@ -1,5 +1,7 @@
 # Verification Report
 
+> **Historical (iterations 1-9).** This note describes the earlier synthetic-circuit gym (artifact-based scoring, solver-call counts, injected-fault F1). It is superseded: the current benchmark, protocol and scores are in `briefing/`, `scoring/` and `HARDENING.md`.
+
 ## Initial Assessment
 
 The workspace claimed `core_claim`, and CPU job `e9807e81-d04` verified the corrected CFaults implementation after the Boolean-gate encoding repair. A later expansion added the HSD circuit baseline; CPU job `f183bdd9-60a` ran the expanded pipeline but failed validation because the runtime-efficiency primary metric tied across CFaults and HSD on the train slice. CPU job `d04c15ff-130` then reran the patched scoring contract successfully.

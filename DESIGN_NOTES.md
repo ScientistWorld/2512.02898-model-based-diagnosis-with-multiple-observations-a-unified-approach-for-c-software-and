@@ -1,5 +1,7 @@
 # Train/Test Evaluation Design Notes
 
+> **Historical (iterations 1-9).** This note describes the earlier synthetic-circuit gym (artifact-based scoring, solver-call counts, injected-fault F1). It is superseded: the current benchmark, protocol and scores are in `briefing/`, `scoring/` and `HARDENING.md`.
+
 Checked the train/test split scripts side by side. `scripts/evaluate_train.sh` invokes `eval/train/` and writes `scoring/scores_train.json`; `scripts/evaluate_test.sh` invokes `eval/test/` and writes `scoring/scores_test.json`. Both scripts enumerate result artifacts from the result root rather than hardcoding a method name. `bash -n` passes for both scripts, and no `scoring/scores_train.json` or `scoring/scores_test.json` stubs are present.
 
 Checked evaluator attachment to methods. Both slices read method-produced `checkpoints/*/results.json` artifacts and do not import from `method/`, so future methods can change scores by changing their artifacts. The test evaluator optionally restricts to method names already scored on the train slice, which keeps final train/test comparisons aligned.

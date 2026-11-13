@@ -1,5 +1,7 @@
 # Progress
 
+> **Historical (iterations 1-9).** This note describes the earlier synthetic-circuit gym (artifact-based scoring, solver-call counts, injected-fault F1). It is superseded: the current benchmark, protocol and scores are in `briefing/`, `scoring/` and `HARDENING.md`.
+
 ## What Works
 
 - The Boolean-circuit CFaults algorithm from the paper is implemented in `method/cfaults_circuit.py`.
