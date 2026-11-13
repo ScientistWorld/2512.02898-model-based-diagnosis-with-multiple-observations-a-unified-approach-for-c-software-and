@@ -1,0 +1,23 @@
+{
+  "case": "constant_gate_shortcut",
+  "env": {},
+  "hidden_arguments": [],
+  "hidden_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "pre_step": null,
+  "registrations": {
+    "cfaults_circuit": [
+      "python",
+      "method/audit_shortcuts.py",
+      "constant_gate",
+      "--instance",
+      "{instance}",
+      "--output",
+      "{output}"
+    ]
+  },
+  "returncode": 0,
+  "wall_seconds": 31.18160367012024
+}

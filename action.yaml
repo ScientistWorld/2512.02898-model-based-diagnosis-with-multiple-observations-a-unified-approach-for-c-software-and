@@ -1,8 +1,8 @@
 # Once you set action to 'submit' or 'done', STOP immediately.
 # Do NOT sleep, poll, or wait for jobs. The system reads this file
 # only after your turn ends.
-action: pending
+action: submit
 gpus: 0
 test: false
 milestone: core_claim
-notes: ""
+notes: "Hardening part 2: final evaluators (process-tree CPU budget, tamper detection), aligned train calibration, regenerate baselines + reference, rerun every audit case incl. before/after of the newly closed shortcuts."

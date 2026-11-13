@@ -1,0 +1,216 @@
+{
+  "_evaluation": {
+    "baselines_from": "eval/test/baseline_outputs (evaluator-owned, fixed)",
+    "budget": {
+      "calibration_measured_cpu_seconds": 1.138261839,
+      "calibration_reference_cpu_seconds": 1.4285521239999994,
+      "cpu_limit_seconds": 7.967940545374182,
+      "nominal_cpu_limit_seconds": 10.0,
+      "speed_factor": 0.7967940545374181
+    },
+    "instance_count": 118,
+    "methods_run": [
+      "cfaults"
+    ],
+    "slice": "test"
+  },
+  "experiments": {
+    "diagnosis_quality": {
+      "results": {
+        "bugassist_vote": {
+          "duplicate_count": 0,
+          "invalid_count": 52,
+          "malformed_count": 0,
+          "not_minimum_count": 0,
+          "over_limit_count": 0,
+          "sound_output_rate": 55.08474576271186,
+          "unsound_count": 52,
+          "unsound_output_rate": 44.067796610169495
+        },
+        "cfaults": {
+          "duplicate_count": 0,
+          "invalid_count": 118,
+          "malformed_count": 0,
+          "not_minimum_count": 0,
+          "over_limit_count": 0,
+          "sound_output_rate": 0.0,
+          "unsound_count": 118,
+          "unsound_output_rate": 100.0
+        },
+        "hsd": {
+          "duplicate_count": 0,
+          "invalid_count": 0,
+          "malformed_count": 0,
+          "not_minimum_count": 0,
+          "over_limit_count": 0,
+          "sound_output_rate": 100.0,
+          "unsound_count": 0,
+          "unsound_output_rate": 0.0
+        }
+      }
+    },
+    "fault_scaling": {
+      "results": {
+        "bugassist_vote": {
+          "localized_count_f1": 7,
+          "localized_count_f3": 0,
+          "localized_count_f5": 1,
+          "localized_rate_f1": 28.0,
+          "localized_rate_f3": 0.0,
+          "localized_rate_f5": 4.0,
+          "min_diagnosis_recall_f1": 46.16369238604532,
+          "min_diagnosis_recall_f3": 4.859291055141174,
+          "min_diagnosis_recall_f5": 6.251426641233508
+        },
+        "cfaults": {
+          "localized_count_f1": 0,
+          "localized_count_f3": 0,
+          "localized_count_f5": 0,
+          "localized_rate_f1": 0.0,
+          "localized_rate_f3": 0.0,
+          "localized_rate_f5": 0.0,
+          "min_diagnosis_recall_f1": 0.0,
+          "min_diagnosis_recall_f3": 0.0,
+          "min_diagnosis_recall_f5": 0.0
+        },
+        "hsd": {
+          "localized_count_f1": 25,
+          "localized_count_f3": 25,
+          "localized_count_f5": 25,
+          "localized_rate_f1": 100.0,
+          "localized_rate_f3": 100.0,
+          "localized_rate_f5": 100.0,
+          "min_diagnosis_recall_f1": 100.0,
+          "min_diagnosis_recall_f3": 100.0,
+          "min_diagnosis_recall_f5": 100.0
+        }
+      }
+    },
+    "iscas85_localisation": {
+      "results": {
+        "bugassist_vote": {
+          "audit_avg_cpu_seconds": 0.6712848800000001,
+          "cpu_limit_count": 0,
+          "error_count": 0,
+          "exact_fault_set_rate": 14.666666666666666,
+          "failed_run": 0,
+          "localized_count": 8,
+          "localized_rate": 10.666666666666666,
+          "min_diagnosis_recall": 19.091470027473335,
+          "selected_fault_f1": 21.246560846560843,
+          "total_instances": 75
+        },
+        "cfaults": {
+          "audit_avg_cpu_seconds": 0.12440525333333338,
+          "cpu_limit_count": 0,
+          "error_count": 0,
+          "exact_fault_set_rate": 0.0,
+          "failed_run": 0,
+          "localized_count": 0,
+          "localized_rate": 0.0,
+          "min_diagnosis_recall": 0.0,
+          "selected_fault_f1": 0.0,
+          "total_instances": 75
+        },
+        "hsd": {
+          "audit_avg_cpu_seconds": 0.6967252933333333,
+          "cpu_limit_count": 0,
+          "error_count": 0,
+          "exact_fault_set_rate": 10.666666666666666,
+          "failed_run": 0,
+          "localized_count": 75,
+          "localized_rate": 100.0,
+          "min_diagnosis_recall": 100.0,
+          "selected_fault_f1": 28.717460317460304,
+          "total_instances": 75
+        }
+      }
+    },
+    "observation_scaling": {
+      "results": {
+        "bugassist_vote": {
+          "localized_count_obs10": 1,
+          "localized_count_obs20": 2,
+          "localized_count_obs30": 1,
+          "localized_count_obs40": 2,
+          "localized_count_obs50": 2,
+          "localized_rate_obs10": 6.666666666666667,
+          "localized_rate_obs20": 13.333333333333334,
+          "localized_rate_obs30": 6.666666666666667,
+          "localized_rate_obs40": 13.333333333333334,
+          "localized_rate_obs50": 13.333333333333334,
+          "min_diagnosis_recall_obs10": 17.29312169312169,
+          "min_diagnosis_recall_obs20": 25.152460679857935,
+          "min_diagnosis_recall_obs30": 13.440461891610592,
+          "min_diagnosis_recall_obs40": 16.76084835643659,
+          "min_diagnosis_recall_obs50": 22.81045751633987
+        },
+        "cfaults": {
+          "localized_count_obs10": 0,
+          "localized_count_obs20": 0,
+          "localized_count_obs30": 0,
+          "localized_count_obs40": 0,
+          "localized_count_obs50": 0,
+          "localized_rate_obs10": 0.0,
+          "localized_rate_obs20": 0.0,
+          "localized_rate_obs30": 0.0,
+          "localized_rate_obs40": 0.0,
+          "localized_rate_obs50": 0.0,
+          "min_diagnosis_recall_obs10": 0.0,
+          "min_diagnosis_recall_obs20": 0.0,
+          "min_diagnosis_recall_obs30": 0.0,
+          "min_diagnosis_recall_obs40": 0.0,
+          "min_diagnosis_recall_obs50": 0.0
+        },
+        "hsd": {
+          "localized_count_obs10": 15,
+          "localized_count_obs20": 15,
+          "localized_count_obs30": 15,
+          "localized_count_obs40": 15,
+          "localized_count_obs50": 15,
+          "localized_rate_obs10": 100.0,
+          "localized_rate_obs20": 100.0,
+          "localized_rate_obs30": 100.0,
+          "localized_rate_obs40": 100.0,
+          "localized_rate_obs50": 100.0,
+          "min_diagnosis_recall_obs10": 100.0,
+          "min_diagnosis_recall_obs20": 100.0,
+          "min_diagnosis_recall_obs30": 100.0,
+          "min_diagnosis_recall_obs40": 100.0,
+          "min_diagnosis_recall_obs50": 100.0
+        }
+      }
+    },
+    "scale_stress": {
+      "results": {
+        "bugassist_vote": {
+          "cpu_limit_count_stress": 1,
+          "localized_count_stress": 1,
+          "localized_rate_stress": 2.3255813953488373,
+          "localized_rate_stress_f3": 4.166666666666667,
+          "localized_rate_stress_f5": 0.0,
+          "min_diagnosis_recall_stress": 5.20286595674971,
+          "total_instances_stress": 43
+        },
+        "cfaults": {
+          "cpu_limit_count_stress": 0,
+          "localized_count_stress": 0,
+          "localized_rate_stress": 0.0,
+          "localized_rate_stress_f3": 0.0,
+          "localized_rate_stress_f5": 0.0,
+          "min_diagnosis_recall_stress": 0.0,
+          "total_instances_stress": 43
+        },
+        "hsd": {
+          "cpu_limit_count_stress": 6,
+          "localized_count_stress": 37,
+          "localized_rate_stress": 86.04651162790698,
+          "localized_rate_stress_f3": 100.0,
+          "localized_rate_stress_f5": 68.42105263157895,
+          "min_diagnosis_recall_stress": 94.92172012751213,
+          "total_instances_stress": 43
+        }
+      }
+    }
+  }
+}

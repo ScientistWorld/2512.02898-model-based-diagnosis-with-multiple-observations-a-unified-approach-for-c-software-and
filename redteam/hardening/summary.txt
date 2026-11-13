@@ -1,26 +1,34 @@
 case                                           rank   loc%  recall% unsound%    f5% stress% paired(w/l,p)
-baseline_hsd                                  0.441  100.0    100.0      0.0  100.0    86.0 
-lazy_observations                             0.031   97.3     99.4      0.0   96.0    67.4 1/0,1
-reference_seed_1                              0.020   97.3     99.0      0.0   96.0    67.4 1/0,1
-reference_seed_0                              0.000   96.0     99.1      0.0   92.0    67.4 0/0,1
-satenum                                      -0.093   98.7     98.8      0.0   96.0    60.5 2/3,1
-first_only                                   -2.546   12.0     21.3      0.0    4.0     2.3 0/91,8.08e-28
-baseline_bugassist_vote                      -2.740   10.7     19.1     44.1    4.0     2.3 
-weaker_one_observation                       -3.048    8.0      8.0     94.9    4.0     0.0 0/95,5.05e-29
-nonminimal_padding_shortcut                  -3.116    0.0      0.0     83.1    0.0     0.0 0/101,7.89e-31
-duplicate_diagnosis_shortcut                 -3.125    0.0      0.0     85.6    0.0     0.0 0/101,7.89e-31
-all_gates_shortcut                           -3.176    0.0      0.0    100.0    0.0     0.0 0/101,7.89e-31
-claimed_success_shortcut                     -3.176    0.0      0.0    100.0    0.0     0.0 0/101,7.89e-31
-constant_gate_shortcut                       -3.176    0.0      0.0    100.0    0.0     0.0 0/101,7.89e-31
-crash_shortcut                               -3.176    0.0      0.0    100.0    0.0     0.0 0/101,7.89e-31
-empty_output_shortcut                        -3.176    0.0      0.0    100.0    0.0     0.0 0/101,7.89e-31
-golden_diff_shortcut                         -3.176    0.0      0.0    100.0    0.0     0.0 0/101,7.89e-31
-hidden_file_read_shortcut                    -3.176    0.0      0.0    100.0    0.0     0.0 0/101,7.89e-31
-late_method_shortcut                         -3.176    0.0      0.0    100.0    0.0     0.0 0/101,7.89e-31
-prewrite_scores_shortcut                     -3.176    0.0      0.0    100.0    0.0     0.0 0/101,7.89e-31
-replace_baseline_shortcut                    -3.176    0.0      0.0    100.0    0.0     0.0 0/101,7.89e-31
-singleton_spam_shortcut                      -3.176    0.0      0.0    100.0    0.0     0.0 0/101,7.89e-31
-train_answer_lookup_shortcut                 -3.176    0.0      0.0    100.0    0.0     0.0 0/101,7.89e-31
-unregistered_shortcut                        -3.176    0.0      0.0    100.0    0.0     0.0 0/101,7.89e-31
-late_method_shortcut[late_method]            -3.176    0.0      0.0    100.0    0.0     0.0 
-seed spread: {"iscas85_localisation/localized_rate": 1.3333333333333286, "iscas85_localisation/min_diagnosis_recall": 0.017764781713268007, "diagnosis_quality/unsound_output_rate": 0.0, "observation_scaling/localized_rate_obs10": 0.0, "observation_scaling/localized_rate_obs20": 0.0, "observation_scaling/localized_rate_obs30": 6.666666666666671, "observation_scaling/localized_rate_obs40": 0.0, "observation_scaling/localized_rate_obs50": 0.0, "fault_scaling/localized_rate_f1": 0.0, "fault_scaling/localized_rate_f3": 0.0, "fault_scaling/localized_rate_f5": 4.0, "scale_stress/localized_rate_stress": 0.0, "scale_stress/min_diagnosis_recall_stress": 0.7250472198974194, "rank_vs_reference": 0.02048418867194798}
+chmod_hidden_read_shortcut__before            0.564  100.0    100.0      0.0  100.0   100.0 16/0,3.05e-05
+cpu_escape_relay_shortcut__before             0.531  100.0    100.0      0.0  100.0    97.7 15/0,6.1e-05
+baseline_hsd                                  0.433  100.0    100.0      0.0  100.0    90.7 
+cpu_escape_relay_shortcut                     0.356  100.0    100.0      0.0  100.0    88.4 11/0,0.000977
+hsd_as_method                                 0.327  100.0    100.0      0.0  100.0    83.7 9/0,0.00391
+reference_seed_0                              0.000   97.3     99.2      0.0   96.0    67.4 0/0,1
+reference_seed_2                             -0.013   96.0     99.0      0.0   96.0    67.4 0/1,1
+lazy_observations                            -0.032   97.3     99.3      0.0   96.0    65.1 0/1,1
+reference_seed_1                             -0.040   97.3     98.9      0.0   96.0    65.1 0/1,1
+satenum                                      -0.185   97.3     98.4      0.0   96.0    55.8 0/5,0.0625
+fresh_solver_previous_reference              -1.003   70.7     79.1      0.0   36.0    27.9 0/37,1.46e-11
+brute_force                                  -1.787   44.0     45.4      0.0    8.0    11.6 0/64,1.08e-19
+first_only                                   -2.306   12.0     21.3      0.0    4.0     2.3 0/92,4.04e-28
+baseline_bugassist_vote                      -2.479   10.7     19.1     43.2    4.0     2.3 
+weaker_one_observation                       -2.759    8.0      8.0     94.9    4.0     0.0 0/96,2.52e-29
+duplicate_diagnosis_shortcut                 -2.824    0.0      0.0     83.9    0.0     0.0 0/102,3.94e-31
+nonminimal_padding_shortcut                  -2.827    0.0      0.0     84.7    0.0     0.0 0/102,3.94e-31
+all_gates_shortcut                           -2.876    0.0      0.0    100.0    0.0     0.0 0/102,3.94e-31
+chmod_hidden_read_shortcut                   -2.876    0.0      0.0    100.0    0.0     0.0 0/102,3.94e-31
+claimed_success_shortcut                     -2.876    0.0      0.0    100.0    0.0     0.0 0/102,3.94e-31
+constant_gate_shortcut                       -2.876    0.0      0.0    100.0    0.0     0.0 0/102,3.94e-31
+crash_shortcut                               -2.876    0.0      0.0    100.0    0.0     0.0 0/102,3.94e-31
+empty_output_shortcut                        -2.876    0.0      0.0    100.0    0.0     0.0 0/102,3.94e-31
+golden_diff_shortcut                         -2.876    0.0      0.0    100.0    0.0     0.0 0/102,3.94e-31
+hidden_file_read_shortcut                    -2.876    0.0      0.0    100.0    0.0     0.0 0/102,3.94e-31
+late_method_shortcut                         -2.876    0.0      0.0    100.0    0.0     0.0 0/102,3.94e-31
+prewrite_scores_shortcut                     -2.876    0.0      0.0    100.0    0.0     0.0 0/102,3.94e-31
+replace_baseline_shortcut                    -2.876    0.0      0.0    100.0    0.0     0.0 0/102,3.94e-31
+singleton_spam_shortcut                      -2.876    0.0      0.0    100.0    0.0     0.0 0/102,3.94e-31
+train_answer_lookup_shortcut                 -2.876    0.0      0.0    100.0    0.0     0.0 0/102,3.94e-31
+unregistered_shortcut                        -2.876    0.0      0.0    100.0    0.0     0.0 0/102,3.94e-31
+late_method_shortcut[late_method]            -2.876    0.0      0.0    100.0    0.0     0.0 
+seed spread: {"iscas85_localisation/localized_rate": 1.3333333333333286, "iscas85_localisation/min_diagnosis_recall": 0.3197765515362079, "diagnosis_quality/unsound_output_rate": 0.0, "observation_scaling/localized_rate_obs10": 0.0, "observation_scaling/localized_rate_obs20": 0.0, "observation_scaling/localized_rate_obs30": 6.666666666666671, "observation_scaling/localized_rate_obs40": 0.0, "observation_scaling/localized_rate_obs50": 0.0, "fault_scaling/localized_rate_f1": 0.0, "fault_scaling/localized_rate_f3": 4.0, "fault_scaling/localized_rate_f5": 0.0, "scale_stress/localized_rate_stress": 2.3255813953488342, "scale_stress/min_diagnosis_recall_stress": 2.2124463081179044, "rank_vs_reference": 0.0398904570239729}
