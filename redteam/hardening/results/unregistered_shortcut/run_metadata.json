@@ -1,0 +1,12 @@
+{
+  "case": "unregistered_shortcut",
+  "hidden_arguments": [],
+  "hidden_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "pre_step": null,
+  "registrations": {},
+  "returncode": 0,
+  "wall_seconds": 1.5182058811187744
+}

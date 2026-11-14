@@ -1,0 +1,119 @@
+{
+  "_evaluation": {
+    "baselines_from": "eval/test/baseline_outputs (evaluator-owned, fixed)",
+    "budget": {
+      "accounting": "perf",
+      "budget_fractions": {
+        "eighth_budget": 0.125,
+        "half_budget": 0.5,
+        "quarter_budget": 0.25
+      },
+      "instruction_budget": 60000000000,
+      "unit": "user-space instructions retired by the method's whole process tree",
+      "wall_limit_seconds": 240.0
+    },
+    "instance_count": 158,
+    "methods_run": [
+      "cfaults"
+    ],
+    "slice": "test"
+  },
+  "experiments": {
+    "diagnosis_quality": {
+      "results": {
+        "cfaults": {
+          "duplicate_count": 0,
+          "invalid_count": 0,
+          "malformed_count": 0,
+          "not_minimum_count": 0,
+          "over_limit_count": 0,
+          "sound_output_rate": 100.0,
+          "unsound_count": 0,
+          "unsound_output_rate": 0.0
+        }
+      }
+    },
+    "fault_scaling": {
+      "results": {
+        "cfaults": {
+          "localized_count_f3": 42,
+          "localized_count_f5": 25,
+          "localized_count_f7": 15,
+          "localized_rate_f3": 84.0,
+          "localized_rate_f5": 52.083333333333336,
+          "localized_rate_f7": 39.473684210526315,
+          "min_diagnosis_recall_f3": 92.74521470605272,
+          "min_diagnosis_recall_f5": 72.97119464666862,
+          "min_diagnosis_recall_f7": 68.82695794364375
+        }
+      }
+    },
+    "iscas85_localisation": {
+      "results": {
+        "cfaults": {
+          "audit_avg_cpu_seconds": 5.096574448529413,
+          "audit_mean_giga_instructions": 33.55129826683823,
+          "budget_stop_count": 54,
+          "error_count": 0,
+          "exact_fault_set_rate": 0.7352941176470589,
+          "failed_run": 0,
+          "localized_count": 82,
+          "localized_rate": 60.294117647058826,
+          "min_diagnosis_recall": 79.08310647206758,
+          "selected_fault_f1": 17.91316118522,
+          "tamper_detected": 0,
+          "total_instances": 136
+        }
+      }
+    },
+    "observation_scaling": {
+      "results": {
+        "cfaults": {
+          "localized_count_obs10": 22,
+          "localized_count_obs20": 19,
+          "localized_count_obs30": 17,
+          "localized_count_obs40": 15,
+          "localized_count_obs50": 9,
+          "localized_rate_obs10": 78.57142857142857,
+          "localized_rate_obs20": 70.37037037037037,
+          "localized_rate_obs30": 60.714285714285715,
+          "localized_rate_obs40": 53.57142857142857,
+          "localized_rate_obs50": 36.0,
+          "min_diagnosis_recall_obs10": 94.77267027053368,
+          "min_diagnosis_recall_obs20": 86.34671047552787,
+          "min_diagnosis_recall_obs30": 76.80015378648613,
+          "min_diagnosis_recall_obs40": 74.4445404129184,
+          "min_diagnosis_recall_obs50": 61.41820368814679
+        }
+      }
+    },
+    "runtime_profile": {
+      "results": {
+        "cfaults": {
+          "localized_count_eighth_budget": 36,
+          "localized_count_half_budget": 77,
+          "localized_count_quarter_budget": 62,
+          "localized_rate_eighth_budget": 22.78481012658228,
+          "localized_rate_full_budget": 59.49367088607595,
+          "localized_rate_half_budget": 48.734177215189874,
+          "localized_rate_quarter_budget": 39.24050632911393,
+          "total_instances_all": 158
+        }
+      }
+    },
+    "scale_stress": {
+      "results": {
+        "cfaults": {
+          "budget_stop_count_stress": 10,
+          "localized_count_stress": 12,
+          "localized_rate_stress": 54.54545454545455,
+          "localized_rate_stress_f3": 63.63636363636363,
+          "localized_rate_stress_f5": 28.571428571428573,
+          "localized_rate_stress_f7": 75.0,
+          "min_diagnosis_recall_stress": 68.00012665260425,
+          "total_instances_stress": 22
+        }
+      }
+    }
+  }
+}

@@ -4,8 +4,84 @@
     "half_budget": 0.5,
     "quarter_budget": 0.25
   },
-  "fallback_instructions_per_cpu_second": 5000000000.0,
-  "instruction_budget": 50000000000.0,
+  "budget_selection": {
+    "candidates_giga_instructions": [
+      5.0,
+      7.5,
+      10.0,
+      15.0,
+      20.0,
+      25.0,
+      30.0,
+      40.0,
+      50.0,
+      60.0
+    ],
+    "chosen_giga_instructions": 60.0,
+    "fallback_rate_note": "instructions per CPU-second of the reference on the train probe (used only if the hidden-test machine has no hardware instruction counter)",
+    "probe_cap_giga_instructions": 80.0,
+    "rule": "largest candidate budget at which the reference localises <= 75.0% of the public TRAIN base tier (at least a quarter of the main tier left unsolved: headroom); smallest candidate if none",
+    "train_reference_coverage_pct": {
+      "10G": {
+        "all": 28.205128205128204,
+        "base": 29.850746268656717,
+        "stress": 18.181818181818183
+      },
+      "15G": {
+        "all": 33.333333333333336,
+        "base": 32.83582089552239,
+        "stress": 36.36363636363637
+      },
+      "20G": {
+        "all": 37.17948717948718,
+        "base": 37.3134328358209,
+        "stress": 36.36363636363637
+      },
+      "25G": {
+        "all": 39.743589743589745,
+        "base": 38.80597014925373,
+        "stress": 45.45454545454545
+      },
+      "30G": {
+        "all": 41.02564102564103,
+        "base": 40.298507462686565,
+        "stress": 45.45454545454545
+      },
+      "40G": {
+        "all": 46.15384615384615,
+        "base": 46.26865671641791,
+        "stress": 45.45454545454545
+      },
+      "50G": {
+        "all": 53.84615384615385,
+        "base": 53.73134328358209,
+        "stress": 54.54545454545455
+      },
+      "5G": {
+        "all": 11.538461538461538,
+        "base": 11.940298507462687,
+        "stress": 9.090909090909092
+      },
+      "60G": {
+        "all": 57.69230769230769,
+        "base": 58.208955223880594,
+        "stress": 54.54545454545455
+      },
+      "7.5G": {
+        "all": 19.23076923076923,
+        "base": 20.895522388059703,
+        "stress": 9.090909090909092
+      },
+      "80G": {
+        "all": 65.38461538461539,
+        "base": 62.6865671641791,
+        "stress": 81.81818181818181
+      }
+    },
+    "version": 1
+  },
+  "fallback_instructions_per_cpu_second": 8656000000.0,
+  "instruction_budget": 60000000000.0,
   "required_methods": [
     "cfaults"
   ],

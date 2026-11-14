@@ -16,10 +16,12 @@
     "base|c1355|7|50|0": 0,
     "base|c1908|3|10|0": 0,
     "base|c1908|3|20|0": 0,
+    "base|c1908|3|30|0": 2,
     "base|c1908|3|40|0": 0,
     "base|c1908|3|50|0": 0,
     "base|c1908|5|10|0": 0,
     "base|c1908|5|20|0": 1,
+    "base|c1908|5|30|0": 2,
     "base|c1908|5|40|0": 1,
     "base|c1908|5|50|0": 0,
     "base|c1908|7|30|0": 1,
@@ -46,8 +48,10 @@
     "base|c3540|5|20|0": 0,
     "base|c3540|5|50|0": 1,
     "base|c3540|7|10|0": 0,
+    "base|c3540|7|20|0": 2,
     "base|c3540|7|30|0": 1,
     "base|c3540|7|40|0": 0,
+    "base|c3540|7|50|0": 0,
     "base|c880|3|10|0": 0,
     "base|c880|3|20|0": 0,
     "base|c880|3|30|0": 0,
@@ -464,7 +468,7 @@
       50
     ]
   ],
-  "instance_count": 74,
+  "instance_count": 78,
   "limits": {
     "attempts_per_cell": {
       "base": 3,
@@ -683,15 +687,249 @@
       "optimum": null,
       "partial_count": 0,
       "reason": "too_slow"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c1908|3|30|0",
+      "optimum": 3,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 1,
+      "cell": "base|c1908|3|30|0",
+      "optimum": 3,
+      "partial_count": 3557,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c3540|7|20|0",
+      "optimum": 4,
+      "partial_count": 2728,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 1,
+      "cell": "base|c3540|7|20|0",
+      "optimum": 6,
+      "partial_count": 1397,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c1908|7|20|0",
+      "optimum": 4,
+      "partial_count": 23,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 1,
+      "cell": "base|c1908|7|20|0",
+      "optimum": null,
+      "partial_count": 0,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 2,
+      "cell": "base|c1908|7|20|0",
+      "optimum": 5,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c1908|7|50|0",
+      "optimum": 5,
+      "partial_count": 2135,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 1,
+      "cell": "base|c1908|7|50|0",
+      "optimum": 5,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 2,
+      "cell": "base|c1908|7|50|0",
+      "optimum": 5,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c3540|5|40|0",
+      "optimum": 5,
+      "partial_count": 1559,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 1,
+      "cell": "base|c3540|5|40|0",
+      "optimum": 4,
+      "partial_count": 1166,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 2,
+      "cell": "base|c3540|5|40|0",
+      "optimum": 5,
+      "partial_count": 103,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 0,
+      "cell": "stress|c7552|5|50|0",
+      "optimum": null,
+      "partial_count": 0,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 1,
+      "cell": "stress|c7552|5|50|0",
+      "optimum": null,
+      "partial_count": 0,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c3540|5|30|0",
+      "optimum": null,
+      "partial_count": 0,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 1,
+      "cell": "base|c3540|5|30|0",
+      "optimum": 4,
+      "partial_count": 3358,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 2,
+      "cell": "base|c3540|5|30|0",
+      "optimum": 5,
+      "partial_count": 146,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c2670|7|20|0",
+      "optimum": 5,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 1,
+      "cell": "base|c2670|7|20|0",
+      "optimum": 4,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 2,
+      "cell": "base|c2670|7|20|0",
+      "optimum": 5,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 0,
+      "cell": "stress|c7552|7|50|0",
+      "optimum": null,
+      "partial_count": 0,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 1,
+      "cell": "stress|c7552|7|50|0",
+      "optimum": null,
+      "partial_count": 0,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c1908|5|30|0",
+      "optimum": 4,
+      "partial_count": 1192,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 1,
+      "cell": "base|c1908|5|30|0",
+      "optimum": 5,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 0,
+      "cell": "stress|c7552|5|30|0",
+      "optimum": null,
+      "partial_count": 0,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 1,
+      "cell": "stress|c7552|5|30|0",
+      "optimum": 4,
+      "partial_count": 1,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c2670|7|40|0",
+      "optimum": 3,
+      "partial_count": 1916,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 1,
+      "cell": "base|c2670|7|40|0",
+      "optimum": 6,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 2,
+      "cell": "base|c2670|7|40|0",
+      "optimum": 6,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 0,
+      "cell": "stress|c7552|7|10|0",
+      "optimum": null,
+      "partial_count": 0,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 1,
+      "cell": "stress|c7552|7|10|0",
+      "optimum": null,
+      "partial_count": 0,
+      "reason": "too_slow"
     }
   ],
   "seed": "cfaults-iscas85-public-train-v3",
   "skipped_cells": {
     "base|c1355|7|10|0": "no attempt enumerable offline",
     "base|c1908|7|10|0": "no attempt enumerable offline",
+    "base|c1908|7|20|0": "no attempt enumerable offline",
+    "base|c1908|7|50|0": "no attempt enumerable offline",
+    "base|c2670|7|20|0": "no attempt enumerable offline",
+    "base|c2670|7|40|0": "no attempt enumerable offline",
+    "base|c3540|5|30|0": "no attempt enumerable offline",
+    "base|c3540|5|40|0": "no attempt enumerable offline",
     "stress|c5315|5|50|0": "no attempt enumerable offline",
     "stress|c5315|7|10|0": "no attempt enumerable offline",
-    "stress|c5315|7|50|0": "no attempt enumerable offline"
+    "stress|c5315|7|50|0": "no attempt enumerable offline",
+    "stress|c7552|5|30|0": "no attempt enumerable offline",
+    "stress|c7552|5|50|0": "no attempt enumerable offline",
+    "stress|c7552|7|10|0": "no attempt enumerable offline",
+    "stress|c7552|7|50|0": "no attempt enumerable offline"
   },
   "source": "ISCAS85 .bench netlists (scripts/download.sh), gate-type fault injection",
   "stress_circuits": [

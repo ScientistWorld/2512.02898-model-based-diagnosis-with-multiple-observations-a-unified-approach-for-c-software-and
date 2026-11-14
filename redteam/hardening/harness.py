@@ -62,6 +62,7 @@ def cut(name):
 
 
 HSD = ["python", "baseline/hsd_circuit.py", "--instance", "{instance}", "--output", "{output}"]
+VOTE = ["python", "baseline/bugassist_vote_circuit.py", "--instance", "{instance}", "--output", "{output}"]
 
 # name -> (registrations {checkpoint_dir: command}, pre-step); heavy cases first
 CASES = {
@@ -74,6 +75,7 @@ CASES = {
     "lean": ({"cfaults_circuit": var("lean")}, None),
     "lean_exhaust_minz": ({"cfaults_circuit": var("lean_exhaust_minz")}, None),
     "hsd_as_method": ({"cfaults_circuit": HSD}, None),
+    "bugassist_vote_as_method": ({"cfaults_circuit": VOTE}, None),
     "cpu_escape_relay_shortcut": ({"cfaults_circuit": cut("cpu_escape_relay")}, None),
     "perf_disable_shortcut": ({"cfaults_circuit": cut("perf_disable")}, None),
     "placeholder_overwrite_shortcut": ({"cfaults_circuit": cut("placeholder_overwrite")}, None),
