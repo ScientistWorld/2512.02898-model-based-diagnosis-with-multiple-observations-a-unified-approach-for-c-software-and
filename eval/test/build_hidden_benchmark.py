@@ -514,7 +514,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("phase", choices=["build", "budget", "baselines", "exact"])
     parser.add_argument("--split", choices=["train", "test", "all"], default="all")
-    parser.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 2)))
+    parser.add_argument("--workers", type=int, default=max(1, len(os.sched_getaffinity(0))))
     parser.add_argument("--instance", type=Path)
     parser.add_argument("--answer", type=Path)
     parser.add_argument("--budget", type=float, default=150.0)

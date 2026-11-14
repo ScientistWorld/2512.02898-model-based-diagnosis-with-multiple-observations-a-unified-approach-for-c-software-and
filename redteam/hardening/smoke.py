@@ -162,7 +162,7 @@ def main() -> None:
 
         t = time.time(); subprocess.run([sys.executable, str(prog)]); one = time.time() - t
         t = time.time()
-        procs = [subprocess.Popen([sys.executable, str(prog)]) for _ in range(os.cpu_count() or 1)]
+        procs = [subprocess.Popen([sys.executable, str(prog)]) for _ in range(len(os.sched_getaffinity(0)) or 1)]
         for p in procs:
             p.wait()
         many = time.time() - t

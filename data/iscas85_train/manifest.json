@@ -1,290 +1,94 @@
 {
   "accepted_attempts": {
-    "c1355|1|10": 1,
-    "c1355|1|20": 0,
-    "c1355|1|30": 0,
-    "c1355|1|40": 0,
-    "c1355|1|50": 1,
-    "c1355|3|10": 0,
-    "c1355|3|20": 0,
-    "c1355|3|30": 0,
-    "c1355|3|40": 0,
-    "c1355|3|50": 0,
-    "c1355|5|10": 1,
-    "c1355|5|20": 0,
-    "c1355|5|30": 0,
-    "c1355|5|40": 1,
-    "c1355|5|50": 0,
-    "c1908|1|10": 0,
-    "c1908|1|20": 0,
-    "c1908|1|30": 0,
-    "c1908|1|40": 0,
-    "c1908|1|50": 0,
-    "c1908|3|10": 0,
-    "c1908|3|20": 0,
-    "c1908|3|30": 0,
-    "c1908|3|40": 0,
-    "c1908|3|50": 0,
-    "c1908|5|10": 1,
-    "c1908|5|20": 0,
-    "c1908|5|30": 0,
-    "c1908|5|40": 1,
-    "c1908|5|50": 1,
-    "c432|1|10": 0,
-    "c432|1|20": 0,
-    "c432|1|30": 1,
-    "c432|1|40": 0,
-    "c432|1|50": 0,
-    "c432|3|10": 0,
-    "c432|3|20": 0,
-    "c432|3|30": 0,
-    "c432|3|40": 0,
-    "c432|3|50": 0,
-    "c432|5|10": 0,
-    "c432|5|20": 0,
-    "c432|5|30": 0,
-    "c432|5|40": 0,
-    "c432|5|50": 0,
-    "c499|1|10": 0,
-    "c499|1|20": 0,
-    "c499|1|30": 0,
-    "c499|1|40": 0,
-    "c499|1|50": 0,
-    "c499|3|10": 0,
-    "c499|3|20": 0,
-    "c499|3|30": 0,
-    "c499|3|40": 0,
-    "c499|3|50": 0,
-    "c499|5|10": 0,
-    "c499|5|20": 0,
-    "c499|5|30": 0,
-    "c499|5|40": 0,
-    "c499|5|50": 0,
-    "c880|1|10": 0,
-    "c880|1|20": 0,
-    "c880|1|30": 0,
-    "c880|1|40": 0,
-    "c880|1|50": 0,
-    "c880|3|10": 0,
-    "c880|3|20": 0,
-    "c880|3|30": 0,
-    "c880|3|40": 0,
-    "c880|3|50": 0,
-    "c880|5|10": 0,
-    "c880|5|20": 0,
-    "c880|5|30": 1,
-    "c880|5|40": 0,
-    "c880|5|50": 0,
-    "stress|c2670|3|10|0": 0,
-    "stress|c2670|3|30|0": 0,
-    "stress|c2670|3|50|0": 0,
-    "stress|c2670|5|10|0": 0,
-    "stress|c2670|5|30|0": 0,
-    "stress|c2670|5|50|0": 0,
-    "stress|c3540|3|10|0": 0,
-    "stress|c3540|3|30|0": 0,
-    "stress|c3540|3|50|0": 0,
-    "stress|c3540|5|10|0": 1,
-    "stress|c3540|5|30|0": 0,
-    "stress|c3540|5|50|0": 0,
-    "stress|c5315|3|10|0": 1,
+    "base|c1355|3|10|0": 0,
+    "base|c1355|3|20|0": 0,
+    "base|c1355|3|30|0": 0,
+    "base|c1355|3|40|0": 0,
+    "base|c1355|3|50|0": 0,
+    "base|c1355|5|10|0": 1,
+    "base|c1355|5|20|0": 0,
+    "base|c1355|5|30|0": 0,
+    "base|c1355|5|40|0": 0,
+    "base|c1355|5|50|0": 0,
+    "base|c1355|7|20|0": 1,
+    "base|c1355|7|30|0": 0,
+    "base|c1355|7|40|0": 0,
+    "base|c1355|7|50|0": 0,
+    "base|c1908|3|10|0": 0,
+    "base|c1908|3|20|0": 0,
+    "base|c1908|3|40|0": 0,
+    "base|c1908|3|50|0": 0,
+    "base|c1908|5|10|0": 0,
+    "base|c1908|5|20|0": 1,
+    "base|c1908|5|40|0": 1,
+    "base|c1908|5|50|0": 0,
+    "base|c1908|7|30|0": 1,
+    "base|c1908|7|40|0": 1,
+    "base|c2670|3|10|0": 0,
+    "base|c2670|3|20|0": 0,
+    "base|c2670|3|30|0": 0,
+    "base|c2670|3|40|0": 0,
+    "base|c2670|3|50|0": 0,
+    "base|c2670|5|10|0": 1,
+    "base|c2670|5|20|0": 1,
+    "base|c2670|5|30|0": 0,
+    "base|c2670|5|40|0": 0,
+    "base|c2670|5|50|0": 1,
+    "base|c2670|7|10|0": 0,
+    "base|c2670|7|30|0": 0,
+    "base|c2670|7|50|0": 0,
+    "base|c3540|3|10|0": 0,
+    "base|c3540|3|20|0": 0,
+    "base|c3540|3|30|0": 0,
+    "base|c3540|3|40|0": 0,
+    "base|c3540|3|50|0": 0,
+    "base|c3540|5|10|0": 0,
+    "base|c3540|5|20|0": 0,
+    "base|c3540|5|50|0": 1,
+    "base|c3540|7|10|0": 0,
+    "base|c3540|7|30|0": 1,
+    "base|c3540|7|40|0": 0,
+    "base|c880|3|10|0": 0,
+    "base|c880|3|20|0": 0,
+    "base|c880|3|30|0": 0,
+    "base|c880|3|40|0": 0,
+    "base|c880|3|50|0": 0,
+    "base|c880|5|10|0": 0,
+    "base|c880|5|20|0": 0,
+    "base|c880|5|30|0": 0,
+    "base|c880|5|40|0": 1,
+    "base|c880|5|50|0": 0,
+    "base|c880|7|10|0": 1,
+    "base|c880|7|20|0": 1,
+    "base|c880|7|30|0": 0,
+    "base|c880|7|40|0": 2,
+    "base|c880|7|50|0": 0,
+    "stress|c5315|3|10|0": 0,
     "stress|c5315|3|30|0": 0,
     "stress|c5315|3|50|0": 0,
     "stress|c5315|5|10|0": 0,
     "stress|c5315|5|30|0": 0,
-    "stress|c5315|5|50|0": 0,
+    "stress|c5315|7|30|0": 1,
     "stress|c7552|3|10|0": 0,
     "stress|c7552|3|30|0": 0,
-    "stress|c7552|5|50|0": 1
+    "stress|c7552|3|50|0": 0,
+    "stress|c7552|5|10|0": 0,
+    "stress|c7552|7|30|0": 0
   },
+  "base_slots": 1,
   "circuits": [
-    "c432",
-    "c499",
     "c880",
     "c1355",
-    "c1908"
+    "c1908",
+    "c2670",
+    "c3540"
   ],
   "files": {
-    "ground_truth": "ground_truth.json",
-    "instances": "instances.jsonl"
+    "ground_truth": "ground_truth.json.gz",
+    "instances": "instances.jsonl.gz"
   },
   "grid": [
     [
-      "c432",
-      1,
-      10
-    ],
-    [
-      "c432",
-      1,
-      20
-    ],
-    [
-      "c432",
-      1,
-      30
-    ],
-    [
-      "c432",
-      1,
-      40
-    ],
-    [
-      "c432",
-      1,
-      50
-    ],
-    [
-      "c432",
-      3,
-      10
-    ],
-    [
-      "c432",
-      3,
-      20
-    ],
-    [
-      "c432",
-      3,
-      30
-    ],
-    [
-      "c432",
-      3,
-      40
-    ],
-    [
-      "c432",
-      3,
-      50
-    ],
-    [
-      "c432",
-      5,
-      10
-    ],
-    [
-      "c432",
-      5,
-      20
-    ],
-    [
-      "c432",
-      5,
-      30
-    ],
-    [
-      "c432",
-      5,
-      40
-    ],
-    [
-      "c432",
-      5,
-      50
-    ],
-    [
-      "c499",
-      1,
-      10
-    ],
-    [
-      "c499",
-      1,
-      20
-    ],
-    [
-      "c499",
-      1,
-      30
-    ],
-    [
-      "c499",
-      1,
-      40
-    ],
-    [
-      "c499",
-      1,
-      50
-    ],
-    [
-      "c499",
-      3,
-      10
-    ],
-    [
-      "c499",
-      3,
-      20
-    ],
-    [
-      "c499",
-      3,
-      30
-    ],
-    [
-      "c499",
-      3,
-      40
-    ],
-    [
-      "c499",
-      3,
-      50
-    ],
-    [
-      "c499",
-      5,
-      10
-    ],
-    [
-      "c499",
-      5,
-      20
-    ],
-    [
-      "c499",
-      5,
-      30
-    ],
-    [
-      "c499",
-      5,
-      40
-    ],
-    [
-      "c499",
-      5,
-      50
-    ],
-    [
-      "c880",
-      1,
-      10
-    ],
-    [
-      "c880",
-      1,
-      20
-    ],
-    [
-      "c880",
-      1,
-      30
-    ],
-    [
-      "c880",
-      1,
-      40
-    ],
-    [
-      "c880",
-      1,
-      50
-    ],
-    [
       "c880",
       3,
       10
@@ -335,28 +139,28 @@
       50
     ],
     [
-      "c1355",
-      1,
+      "c880",
+      7,
       10
     ],
     [
-      "c1355",
-      1,
+      "c880",
+      7,
       20
     ],
     [
-      "c1355",
-      1,
+      "c880",
+      7,
       30
     ],
     [
-      "c1355",
-      1,
+      "c880",
+      7,
       40
     ],
     [
-      "c1355",
-      1,
+      "c880",
+      7,
       50
     ],
     [
@@ -410,28 +214,28 @@
       50
     ],
     [
-      "c1908",
-      1,
+      "c1355",
+      7,
       10
     ],
     [
-      "c1908",
-      1,
+      "c1355",
+      7,
       20
     ],
     [
-      "c1908",
-      1,
+      "c1355",
+      7,
       30
     ],
     [
-      "c1908",
-      1,
+      "c1355",
+      7,
       40
     ],
     [
-      "c1908",
-      1,
+      "c1355",
+      7,
       50
     ],
     [
@@ -482,219 +286,420 @@
     [
       "c1908",
       5,
+      50
+    ],
+    [
+      "c1908",
+      7,
+      10
+    ],
+    [
+      "c1908",
+      7,
+      20
+    ],
+    [
+      "c1908",
+      7,
+      30
+    ],
+    [
+      "c1908",
+      7,
+      40
+    ],
+    [
+      "c1908",
+      7,
+      50
+    ],
+    [
+      "c2670",
+      3,
+      10
+    ],
+    [
+      "c2670",
+      3,
+      20
+    ],
+    [
+      "c2670",
+      3,
+      30
+    ],
+    [
+      "c2670",
+      3,
+      40
+    ],
+    [
+      "c2670",
+      3,
+      50
+    ],
+    [
+      "c2670",
+      5,
+      10
+    ],
+    [
+      "c2670",
+      5,
+      20
+    ],
+    [
+      "c2670",
+      5,
+      30
+    ],
+    [
+      "c2670",
+      5,
+      40
+    ],
+    [
+      "c2670",
+      5,
+      50
+    ],
+    [
+      "c2670",
+      7,
+      10
+    ],
+    [
+      "c2670",
+      7,
+      20
+    ],
+    [
+      "c2670",
+      7,
+      30
+    ],
+    [
+      "c2670",
+      7,
+      40
+    ],
+    [
+      "c2670",
+      7,
+      50
+    ],
+    [
+      "c3540",
+      3,
+      10
+    ],
+    [
+      "c3540",
+      3,
+      20
+    ],
+    [
+      "c3540",
+      3,
+      30
+    ],
+    [
+      "c3540",
+      3,
+      40
+    ],
+    [
+      "c3540",
+      3,
+      50
+    ],
+    [
+      "c3540",
+      5,
+      10
+    ],
+    [
+      "c3540",
+      5,
+      20
+    ],
+    [
+      "c3540",
+      5,
+      30
+    ],
+    [
+      "c3540",
+      5,
+      40
+    ],
+    [
+      "c3540",
+      5,
+      50
+    ],
+    [
+      "c3540",
+      7,
+      10
+    ],
+    [
+      "c3540",
+      7,
+      20
+    ],
+    [
+      "c3540",
+      7,
+      30
+    ],
+    [
+      "c3540",
+      7,
+      40
+    ],
+    [
+      "c3540",
+      7,
       50
     ]
   ],
+  "instance_count": 74,
+  "limits": {
+    "attempts_per_cell": {
+      "base": 3,
+      "stress": 2
+    },
+    "max_minimum_diagnoses": {
+      "base": 4000,
+      "stress": 4000
+    },
+    "offline_cpu_seconds": {
+      "base": 90.0,
+      "stress": 120.0
+    }
+  },
   "name": "iscas85_multi_observation_diagnosis_train",
   "rejected_attempts": [
     {
       "attempt": 0,
-      "cell": "c432|1|30",
-      "reason": "no_failing_observations"
+      "cell": "base|c880|7|10|0",
+      "optimum": 6,
+      "partial_count": 4001,
+      "reason": "too_many"
     },
     {
       "attempt": 0,
-      "cell": "c880|5|30",
+      "cell": "base|c1355|5|10|0",
+      "optimum": 4,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c880|7|20|0",
+      "optimum": 6,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c1355|7|20|0",
       "optimum": 5,
-      "partial_count": 3001,
+      "partial_count": 4001,
       "reason": "too_many"
     },
     {
       "attempt": 0,
-      "cell": "c1355|1|10",
-      "reason": "no_failing_observations"
-    },
-    {
-      "attempt": 0,
-      "cell": "c1355|1|50",
-      "reason": "no_failing_observations"
-    },
-    {
-      "attempt": 0,
-      "cell": "c1355|5|10",
-      "optimum": 4,
-      "partial_count": 3001,
-      "reason": "too_many"
-    },
-    {
-      "attempt": 0,
-      "cell": "c1355|5|40",
-      "optimum": 4,
-      "partial_count": 3001,
-      "reason": "too_many"
-    },
-    {
-      "attempt": 0,
-      "cell": "c1908|5|10",
+      "cell": "base|c880|5|40|0",
       "optimum": 5,
-      "partial_count": 3001,
+      "partial_count": 4001,
       "reason": "too_many"
     },
     {
       "attempt": 0,
-      "cell": "c1908|5|40",
+      "cell": "base|c2670|5|10|0",
       "optimum": 5,
-      "partial_count": 3001,
+      "partial_count": 4001,
       "reason": "too_many"
     },
     {
       "attempt": 0,
-      "cell": "c1908|5|50",
+      "cell": "base|c1355|7|10|0",
       "optimum": 4,
-      "partial_count": 3001,
-      "reason": "too_many"
-    },
-    {
-      "attempt": 0,
-      "cell": "stress|c3540|5|10|0",
-      "optimum": 4,
-      "partial_count": 6001,
-      "reason": "too_many"
-    },
-    {
-      "attempt": 0,
-      "cell": "stress|c5315|3|10|0",
-      "optimum": 3,
-      "partial_count": 6001,
-      "reason": "too_many"
-    },
-    {
-      "attempt": 0,
-      "cell": "stress|c7552|3|50|0",
-      "optimum": 3,
-      "partial_count": 1937,
-      "reason": "too_slow"
-    },
-    {
-      "attempt": 1,
-      "cell": "stress|c7552|3|50|0",
-      "optimum": null,
-      "partial_count": 0,
-      "reason": "too_slow"
-    },
-    {
-      "attempt": 0,
-      "cell": "stress|c7552|5|10|0",
-      "optimum": 4,
-      "partial_count": 6001,
+      "partial_count": 4001,
       "reason": "too_many"
     },
     {
       "attempt": 1,
-      "cell": "stress|c7552|5|10|0",
-      "optimum": null,
-      "partial_count": 0,
+      "cell": "base|c1355|7|10|0",
+      "optimum": 4,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 2,
+      "cell": "base|c1355|7|10|0",
+      "optimum": 5,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c880|7|40|0",
+      "optimum": 6,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 1,
+      "cell": "base|c880|7|40|0",
+      "optimum": 7,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c2670|5|20|0",
+      "optimum": 5,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c1908|5|20|0",
+      "optimum": 4,
+      "partial_count": 313,
       "reason": "too_slow"
     },
     {
       "attempt": 0,
-      "cell": "stress|c7552|5|30|0",
-      "optimum": null,
-      "partial_count": 0,
+      "cell": "base|c1908|5|40|0",
+      "optimum": 5,
+      "partial_count": 3241,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c3540|5|50|0",
+      "optimum": 5,
+      "partial_count": 44,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 0,
+      "cell": "stress|c5315|7|10|0",
+      "optimum": 4,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 1,
+      "cell": "stress|c5315|7|10|0",
+      "optimum": 5,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c1908|7|10|0",
+      "optimum": 5,
+      "partial_count": 994,
       "reason": "too_slow"
     },
     {
       "attempt": 1,
-      "cell": "stress|c7552|5|30|0",
+      "cell": "base|c1908|7|10|0",
+      "optimum": 6,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 2,
+      "cell": "base|c1908|7|10|0",
+      "optimum": 4,
+      "partial_count": 4001,
+      "reason": "too_many"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c3540|7|30|0",
       "optimum": null,
       "partial_count": 0,
       "reason": "too_slow"
     },
     {
       "attempt": 0,
-      "cell": "stress|c7552|5|50|0",
+      "cell": "stress|c5315|5|50|0",
+      "optimum": 5,
+      "partial_count": 832,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 1,
+      "cell": "stress|c5315|5|50|0",
+      "optimum": 5,
+      "partial_count": 1328,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 0,
+      "cell": "stress|c5315|7|50|0",
       "optimum": 4,
-      "partial_count": 886,
+      "partial_count": 1295,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 1,
+      "cell": "stress|c5315|7|50|0",
+      "optimum": null,
+      "partial_count": 0,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c2670|5|50|0",
+      "optimum": 4,
+      "partial_count": 2134,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 0,
+      "cell": "stress|c5315|7|30|0",
+      "optimum": null,
+      "partial_count": 0,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c1908|7|40|0",
+      "optimum": 6,
+      "partial_count": 3898,
+      "reason": "too_slow"
+    },
+    {
+      "attempt": 0,
+      "cell": "base|c1908|7|30|0",
+      "optimum": null,
+      "partial_count": 0,
       "reason": "too_slow"
     }
   ],
-  "seed": "cfaults-iscas85-public-train-v2",
-  "skipped_cells": [
-    "stress|c7552|3|50|0",
-    "stress|c7552|5|10|0",
-    "stress|c7552|5|30|0"
-  ],
+  "seed": "cfaults-iscas85-public-train-v3",
+  "skipped_cells": {
+    "base|c1355|7|10|0": "no attempt enumerable offline",
+    "base|c1908|7|10|0": "no attempt enumerable offline",
+    "stress|c5315|5|50|0": "no attempt enumerable offline",
+    "stress|c5315|7|10|0": "no attempt enumerable offline",
+    "stress|c5315|7|50|0": "no attempt enumerable offline"
+  },
   "source": "ISCAS85 .bench netlists (scripts/download.sh), gate-type fault injection",
   "stress_circuits": [
-    "c2670",
-    "c3540",
     "c5315",
     "c7552"
   ],
   "stress_grid": [
     [
-      "c2670",
-      3,
-      10,
-      0
-    ],
-    [
-      "c2670",
-      3,
-      30,
-      0
-    ],
-    [
-      "c2670",
-      3,
-      50,
-      0
-    ],
-    [
-      "c2670",
-      5,
-      10,
-      0
-    ],
-    [
-      "c2670",
-      5,
-      30,
-      0
-    ],
-    [
-      "c2670",
-      5,
-      50,
-      0
-    ],
-    [
-      "c3540",
-      3,
-      10,
-      0
-    ],
-    [
-      "c3540",
-      3,
-      30,
-      0
-    ],
-    [
-      "c3540",
-      3,
-      50,
-      0
-    ],
-    [
-      "c3540",
-      5,
-      10,
-      0
-    ],
-    [
-      "c3540",
-      5,
-      30,
-      0
-    ],
-    [
-      "c3540",
-      5,
-      50,
-      0
-    ],
-    [
       "c5315",
       3,
       10,
@@ -731,6 +736,24 @@
       0
     ],
     [
+      "c5315",
+      7,
+      10,
+      0
+    ],
+    [
+      "c5315",
+      7,
+      30,
+      0
+    ],
+    [
+      "c5315",
+      7,
+      50,
+      0
+    ],
+    [
       "c7552",
       3,
       10,
@@ -763,9 +786,27 @@
     [
       "c7552",
       5,
+      50,
+      0
+    ],
+    [
+      "c7552",
+      7,
+      10,
+      0
+    ],
+    [
+      "c7552",
+      7,
+      30,
+      0
+    ],
+    [
+      "c7552",
+      7,
       50,
       0
     ]
   ],
-  "stress_version": 2
+  "version": 3
 }

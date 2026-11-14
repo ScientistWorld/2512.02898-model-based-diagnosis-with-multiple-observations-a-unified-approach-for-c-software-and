@@ -32,10 +32,10 @@ cat /proc/sys/kernel/perf_event_paranoid 2>/dev/null || true
 cat /sys/fs/cgroup/memory.max 2>/dev/null || cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null || true
 grep -E "MemTotal|MemAvailable" /proc/meminfo || true
 
-# concurrency: cores, and about 2.5 GB per concurrent solver process
+# concurrency: CPUs in this job's affinity set, and about 2.5 GB per concurrent solver process
 PAR=$(python - <<'EOF'
 import os
-n = os.cpu_count() or 1
+n = len(os.sched_getaffinity(0)) or 1  # CPUs this job may use (os.cpu_count() reports the whole node)
 mem = None
 for path in ("/sys/fs/cgroup/memory.max", "/sys/fs/cgroup/memory/memory.limit_in_bytes"):
     try:
