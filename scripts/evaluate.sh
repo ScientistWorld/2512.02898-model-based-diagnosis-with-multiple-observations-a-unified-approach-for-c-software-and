@@ -3,7 +3,7 @@
 #
 # Self-contained: uses only eval/ code and never imports method/.  Every
 # method registered under checkpoints/<name>/solver.json is run on the public
-# training instances under the fixed per-instance CPU budget and scored.
+# training instances under the fixed per-instance instruction budget and scored.
 # Writes scoring/scores.json (same content and format as scores_train.json).
 #
 # Usage:

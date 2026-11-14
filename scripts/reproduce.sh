@@ -17,6 +17,6 @@ cd "$REPO_ROOT"
 bash scripts/download.sh || echo "download skipped (offline); tracked data is sufficient for scoring"
 bash scripts/method.sh
 cp scoring/scores_train.json scoring/scores.json
-if [ -f eval/test/evaluate_circuit_outputs.py ] && [ -f eval/test/hidden_benchmark.json ]; then
+if [ -f eval/test/evaluate_circuit_outputs.py ] && [ -f eval/test/hidden_benchmark.json.gz ]; then
   bash scripts/evaluate_test.sh
 fi

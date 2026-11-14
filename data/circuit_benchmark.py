@@ -26,6 +26,7 @@ Command line (regenerates the public training split, deterministic):
 from __future__ import annotations
 
 import argparse
+import gzip
 import hashlib
 import json
 import random
@@ -41,17 +42,23 @@ UNARY_OPS = ("NOT", "BUF")
 
 # Benchmark grid (scaled version of the paper's 10 circuits x {1..50 faults}
 # x {10,20,30,40,50 observations}).
-# Base tier: the five smaller ISCAS85 circuits, full observation grid.
-CIRCUITS = ("c432", "c499", "c880", "c1355", "c1908")
-FAULT_COUNTS = (1, 3, 5)
+# Base tier: five mid-size ISCAS85 circuits (383-1669 gates), multi-fault,
+# full observation grid.
+CIRCUITS = ("c880", "c1355", "c1908", "c2670", "c3540")
+FAULT_COUNTS = (3, 5, 7)
 OBSERVATION_COUNTS = (10, 20, 30, 40, 50)
-# Scale-stress tier: the larger ISCAS85 circuits (1.2k-3.5k gates), multi-fault.
-STRESS_CIRCUITS = ("c2670", "c3540", "c5315", "c7552")
-STRESS_FAULT_COUNTS = (3, 5)
+BASE_SLOTS = {"train": 1, "test": 2}  # instances per base cell
+# Scale-stress tier: the two largest ISCAS85 circuits (2.3k-3.5k gates).
+STRESS_CIRCUITS = ("c5315", "c7552")
+STRESS_FAULT_COUNTS = (3, 5, 7)
 STRESS_OBSERVATION_COUNTS = (10, 30, 50)
 STRESS_SLOTS = {"train": 1, "test": 2}  # instances per stress cell
-STRESS_ATTEMPT_STRIDE = 100  # slot s uses attempt indices s*100, s*100+1, ...
-TRAIN_SEED = "cfaults-iscas85-public-train-v2"
+ATTEMPT_STRIDE = 100  # slot s of a cell uses attempt indices s*100, s*100+1, ...
+STRESS_ATTEMPT_STRIDE = ATTEMPT_STRIDE
+TRAIN_SEED = "cfaults-iscas85-public-train-v3"
+INSTANCES_FILE = "instances.jsonl.gz"
+GROUND_TRUTH_FILE = "ground_truth.json.gz"
+ALL_CIRCUITS = ("c432", "c499") + CIRCUITS + STRESS_CIRCUITS  # every netlist fetched by scripts/download.sh
 
 ISCAS85_URL = "https://pld.ttu.ee/~maksim/benchmarks/iscas85/bench/{name}.bench"
 ISCAS85_SHA256 = {
@@ -424,31 +431,68 @@ def stress_grid(slots: int = 1) -> list[tuple[str, int, int, int]]:
 
 
 def cell_key(tier: str, circuit: str, k: int, m: int, slot: int = 0) -> str:
-    return f"{circuit}|{k}|{m}" if tier == "base" else f"{tier}|{circuit}|{k}|{m}|{slot}"
+    return f"{tier}|{circuit}|{k}|{m}|{slot}"
 
 
 def split_cells(split: str) -> list[tuple[str, str, int, int, int]]:
-    return [("base", c, k, m, 0) for c, k, m in grid()] + [("stress", *c) for c in stress_grid(STRESS_SLOTS.get(split, 1))]
+    """Every (tier, circuit, faults, observations, slot) cell of a split."""
+    base = [("base", c, k, m, s) for c, k, m in grid() for s in range(BASE_SLOTS.get(split, 1))]
+    return base + [("stress", *c) for c in stress_grid(STRESS_SLOTS.get(split, 1))]
+
+
+def _open_text(path: Path, mode: str):
+    path = Path(path)
+    if path.suffix == ".gz":
+        return gzip.open(path, mode + "t", encoding="utf-8")
+    return path.open(mode)
+
+
+def read_json(path: Path):
+    with _open_text(path, "r") as fh:
+        return json.load(fh)
+
+
+def write_json(path: Path, data) -> None:
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    tmp = Path(str(path) + ".part")
+    if Path(path).suffix == ".gz":
+        with gzip.GzipFile(tmp, "wb", mtime=0) as raw:  # mtime=0: byte-identical output for identical data
+            raw.write(json.dumps(data, sort_keys=True, separators=(",", ":")).encode() + b"\n")
+    else:
+        tmp.write_text(json.dumps(data, sort_keys=True, separators=(",", ":")) + "\n")
+    tmp.replace(path)
 
 
 def read_jsonl(path: Path) -> list[dict]:
-    return [json.loads(line) for line in Path(path).read_text().splitlines() if line.strip()]
+    with _open_text(path, "r") as fh:
+        return [json.loads(line) for line in fh if line.strip()]
 
 
 def write_jsonl(path: Path, rows: Iterable[dict]) -> None:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
-    with Path(path).open("w") as fh:
-        for row in rows:
-            fh.write(json.dumps(row, sort_keys=True, separators=(",", ":")) + "\n")
+    tmp = Path(str(path) + ".part")
+    payload = "".join(json.dumps(row, sort_keys=True, separators=(",", ":")) + "\n" for row in rows).encode()
+    if Path(path).suffix == ".gz":
+        with gzip.GzipFile(tmp, "wb", mtime=0) as raw:
+            raw.write(payload)
+    else:
+        tmp.write_bytes(payload)
+    tmp.replace(path)
+
+
+def load_train_split(train_dir: Path = Path(__file__).resolve().parent / "iscas85_train") -> tuple[list[dict], dict]:
+    """Public training instances and their exact answers."""
+    train_dir = Path(train_dir)
+    return read_jsonl(train_dir / INSTANCES_FILE), read_json(train_dir / GROUND_TRUTH_FILE)
 
 
 def generate_split(bench_dir: Path, split: str, seed_text: str, accepted: dict[str, int] | None = None) -> list[dict]:
-    """Generate one instance per grid cell (base tier, then scale-stress tier).
+    """Generate the instances of a split, cell by cell (base tier, then scale-stress tier).
 
     ``accepted`` maps a cell key (see ``cell_key``) to the attempt index that
-    was accepted when the split was built (an attempt is rejected only if no
-    failing observations exist or the exact answer is too large to enumerate
-    offline); stress cells absent from ``accepted`` were skipped.
+    was accepted when the split was built (an attempt is rejected if no
+    failing observations exist or the exact answer is too large or too slow to
+    enumerate offline); cells absent from ``accepted`` were skipped.
     """
     circuits = {name: load_iscas85(bench_dir, name) for name in CIRCUITS + STRESS_CIRCUITS}
     rows = []
@@ -456,7 +500,7 @@ def generate_split(bench_dir: Path, split: str, seed_text: str, accepted: dict[s
         key = cell_key(tier, circuit_name, k, m, slot)
         if accepted is not None and key not in accepted:
             continue
-        attempt = (accepted or {}).get(key, slot * STRESS_ATTEMPT_STRIDE)
+        attempt = (accepted or {}).get(key, slot * ATTEMPT_STRIDE)
         while True:
             inst = make_instance(circuits[circuit_name], split, seed_text, k, m, attempt, tier)
             if inst is not None:
@@ -474,8 +518,8 @@ def main() -> None:
     manifest_path = args.out / "manifest.json"
     accepted = json.loads(manifest_path.read_text()).get("accepted_attempts") if manifest_path.exists() else None
     rows = generate_split(args.bench_dir, "train", TRAIN_SEED, accepted)
-    write_jsonl(args.out / "instances.jsonl", rows)
-    print(f"wrote {len(rows)} training instances to {args.out / 'instances.jsonl'}")
+    write_jsonl(args.out / INSTANCES_FILE, rows)
+    print(f"wrote {len(rows)} training instances to {args.out / INSTANCES_FILE}")
 
 
 if __name__ == "__main__":

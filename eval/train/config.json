@@ -1,59 +1,13 @@
 {
-  "calibration": {
-    "alignment_check": {
-      "alignment_phase_samples_cpu_seconds": {
-        "test": [
-          1.5572991060000003,
-          2.161989322,
-          1.996795473999999
-        ],
-        "train": [
-          1.8833534850000007,
-          1.9454536210000004,
-          1.821888889
-        ]
-      },
-      "decision": "kept the original train reference (measured at build time); no re-alignment",
-      "evidence_train_over_test_workload_ratio_same_node": {
-        "hardening job 9deb4bfa (alignment phase, min of 3 alternating measurements)": 1.17,
-        "hardening job 9deb4bfa (baselines phase, HSD then BugAssist, back to back)": [
-          0.802,
-          0.811
-        ],
-        "hardening job 9deb4bfa (official reference run, train then test)": 0.848,
-        "original references (test 1.4286, train 1.1877)": 0.831
-      },
-      "note": "A single calibration measurement varies by up to ~25% within a minute on the cluster nodes; the alignment phase's min-based ratio (1.17) was driven by one fast test sample (1.56 vs 2.16, 2.00). Three back-to-back pairs give 0.80-0.85, matching the original references' 0.83, so the original train reference already puts train and test budgets on the same machine scale."
-    },
-    "instance_ids": [
-      "inst_0fea1ac90275739c",
-      "inst_417e1dbd051a5356",
-      "inst_56727ae3ee4ecaf0",
-      "inst_891b690a25853a26",
-      "inst_bad0ca9783717559",
-      "inst_c6513f53afad810e"
-    ],
-    "method": "min over 5 runs of building the unified CNF and solving it with RC2 for these instances; factor clamped to [0.67, 1.5]",
-    "reference_cpu_seconds": 1.1876700180000004
+  "budget_fractions": {
+    "eighth_budget": 0.125,
+    "half_budget": 0.5,
+    "quarter_budget": 0.25
   },
-  "cpu_limit_seconds": 10.0,
-  "limit_selection": {
-    "candidates": [
-      2.5,
-      5.0,
-      10.0
-    ],
-    "chosen": 10.0,
-    "note": "Selected in hardening job 1 with the earlier fresh-solver reference. After restoring the paper's incremental RC2 enumeration (the authors' oracle.py) the budget is kept at 10 s: re-applying the rule would push it to 2.5 s, where interpreter start-up and formula construction dominate. Headroom is carried by the scale-stress tier.",
-    "probe_cap_seconds": 10.0,
-    "rule": "largest candidate budget at which the reference localises <= 75.0% of the public TRAIN instances (keeps headroom); smallest candidate if none",
-    "train_reference_coverage": {
-      "10.0": 73.33333333333333,
-      "2.5": 61.333333333333336,
-      "5.0": 66.66666666666667
-    }
-  },
+  "fallback_instructions_per_cpu_second": 5000000000.0,
+  "instruction_budget": 50000000000.0,
   "required_methods": [
     "cfaults"
-  ]
+  ],
+  "wall_limit_seconds": 240.0
 }

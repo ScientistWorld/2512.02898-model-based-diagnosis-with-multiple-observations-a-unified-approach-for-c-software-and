@@ -5,25 +5,31 @@ Run with no arguments (``bash scripts/evaluate_test.sh``).  It
 
 1. loads the hidden ISCAS85-derived test instances and their exact answers
    (the complete set of minimum-cardinality diagnoses) from ``eval/test/``;
-2. calibrates the per-instance CPU budget to the speed of this machine with a
-   fixed, evaluator-owned workload;
-3. discovers every method registered on disk (``checkpoints/*/solver.json``)
-   and runs it on each hidden instance in a fresh temporary directory, under
-   the CPU budget, giving it only the faulty netlist and the observations;
+2. discovers every method registered on disk (``checkpoints/*/solver.json``)
+   and runs it on each hidden instance in a fresh temporary directory, giving
+   it only the faulty netlist and the observations;
+3. counts the method's work as user-space instructions retired, with a
+   hardware counter (Linux perf_event) that the evaluator opens and owns and
+   that is inherited by every thread and process the method starts, however
+   it detaches.  The method is stopped when the count reaches the fixed
+   per-instance instruction budget, and only diagnoses that were already in
+   the output file at a moment when the count was within budget are credited;
 4. scores the raw diagnoses the method wrote.  Nothing the method reports
    about itself (validity flags, work counters, timings) is read.
 
-The CPU budget covers every process the method starts: the evaluator is a
-child subreaper and samples the CPU time of the whole process tree from
-/proc, so detached or auto-reaped workers are counted (and killed) too.
+Instruction counts do not depend on machine speed or load, so reruns are
+exact: methods run with PYTHONHASHSEED=0 and with address-space
+randomisation off.  If the kernel offers no hardware instruction counter,
+the evaluator falls back to the CPU time of the process tree converted with
+a fixed rate, and records ``accounting: cpu_fallback``.
+
 While method code runs, ``eval/test`` is unreadable and the evaluator's own
 memory is not readable by other processes; a method that changes the
 permissions, owner, location or contents of ``eval/test`` is recorded as
 tampering and its whole run is scored as failed.
 
 The evaluator is deliberately a single self-contained file: it imports only
-the standard library (and PySAT for the calibration workload), never code
-from ``data/``, ``method/`` or ``baseline/``.
+the standard library, never code from ``data/``, ``method/`` or ``baseline/``.
 
 Baselines (HSD, BugAssist-style voting) are evaluator-owned: their raw
 outputs on the hidden instances are stored in ``eval/test/baseline_outputs``
@@ -36,14 +42,16 @@ from __future__ import annotations
 
 import argparse
 import ctypes
+import errno
+import fcntl
+import gzip
 import json
-import math
 import os
+import platform
 import resource
 import shutil
 import signal
-import statistics
-import subprocess
+import struct
 import sys
 import tempfile
 import time
@@ -53,19 +61,19 @@ from pathlib import Path
 SLICE = "test"
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[1]
-BENCHMARK_FILE = HERE / "hidden_benchmark.json"
+BENCHMARK_FILE = HERE / "hidden_benchmark.json.gz"
 CONFIG_FILE = HERE / "config.json"
 BASELINE_DIR = HERE / "baseline_outputs"
 RUNS_DIR = HERE / "runs"
 DEFAULT_OUT = REPO_ROOT / "scoring" / "scores_test.json"
 
 OBSERVATION_BUCKETS = (10, 20, 30, 40, 50)
-FAULT_BUCKETS = (1, 3, 5)
+FAULT_BUCKETS = (3, 5, 7)
 DIR_ALIASES = {"cfaults_circuit": "cfaults", "hsd_circuit": "hsd"}
 RESERVED_KEYS = ("hsd", "bugassist_vote")
 MAX_OUTPUT_BYTES = 64 * 1024 * 1024
 MEMORY_LIMIT_BYTES = 8 * 1024 ** 3
-POLL_SECONDS = 0.02
+POLL_SECONDS = 0.01
 PR_SET_DUMPABLE = 4
 PR_SET_CHILD_SUBREAPER = 36
 try:
@@ -74,15 +82,36 @@ except (ValueError, OSError, AttributeError):
     CLK_TCK = 100.0
 
 
-def over_budget(cpu_seconds: float, cpu_limit: float) -> bool:
-    """The single budget rule: measured CPU of the whole process tree."""
-    return cpu_seconds > 1.1 * cpu_limit + 1.0
+_LIBC = None
+ADDR_NO_RANDOMIZE = 0x0040000
+
+
+def _libc():
+    global _LIBC
+    if _LIBC is None:
+        _LIBC = ctypes.CDLL(None, use_errno=True)
+    return _LIBC
+
+
+def _no_aslr() -> None:
+    """Turn off address-space randomisation for this process and its descendants.
+
+    CPython's behaviour depends on object addresses in places (e.g. its method
+    cache), so with randomised addresses the same program retires a slightly
+    different number of instructions on every run; without, counts are exact.
+    """
+    try:
+        libc = _libc()
+        current = libc.personality(ctypes.c_ulong(0xFFFFFFFF))
+        if current != -1:
+            libc.personality(ctypes.c_ulong(current | ADDR_NO_RANDOMIZE))
+    except (OSError, AttributeError):
+        pass
 
 
 def _prctl(option: int, value: int) -> bool:
     try:
-        libc = ctypes.CDLL(None, use_errno=True)
-        return libc.prctl(option, value, 0, 0, 0) == 0
+        return _libc().prctl(option, value, 0, 0, 0) == 0
     except (OSError, AttributeError):
         return False
 
@@ -93,14 +122,28 @@ def _prctl(option: int, value: int) -> bool:
 
 
 def load_json(path: Path, default=None):
+    path = Path(path)
     try:
-        return json.loads(Path(path).read_text())
-    except (OSError, json.JSONDecodeError):
+        if path.suffix == ".gz":
+            with gzip.open(path, "rt", encoding="utf-8") as fh:
+                return json.load(fh)
+        return json.loads(path.read_text())
+    except (OSError, ValueError, EOFError):
         return default
 
 
+def dump_json_gz(path: Path, payload) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = Path(str(path) + ".part")
+    with gzip.GzipFile(tmp, "wb", mtime=0) as fh:
+        fh.write(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode() + b"\n")
+    tmp.replace(path)
+
+
 def load_benchmark() -> tuple[list[dict], dict[str, dict]]:
-    data = json.loads(BENCHMARK_FILE.read_text())
+    data = load_json(BENCHMARK_FILE)
+    if data is None:
+        raise RuntimeError(f"cannot read {BENCHMARK_FILE}")
     instances = data["instances"]
     truth = data["ground_truth"]
     for inst in instances:
@@ -114,118 +157,75 @@ def public_view(instance: dict) -> dict:
 
 
 # --------------------------------------------------------------------------
-# Machine-speed calibration (evaluator-owned workload)
+# Work accounting: hardware instruction counter (perf_event), inherited
 # --------------------------------------------------------------------------
 
-
-def _guarded(op: str, out: int, ins: list[int], h: int) -> list[list[int]]:
-    g = -h
-    if op == "BUF":
-        return [[g, -out, ins[0]], [g, out, -ins[0]]]
-    if op == "NOT":
-        return [[g, -out, -ins[0]], [g, out, ins[0]]]
-    if op == "AND":
-        return [[g, out, *[-x for x in ins]], *[[g, -out, x] for x in ins]]
-    if op == "NAND":
-        return [[g, -out, *[-x for x in ins]], *[[g, out, x] for x in ins]]
-    if op == "OR":
-        return [[g, -out, *ins], *[[g, out, -x] for x in ins]]
-    if op == "NOR":
-        return [[g, out, *ins], *[[g, -out, -x] for x in ins]]
-    if op == "XOR":
-        a, b = ins
-        return [[g, -a, -b, -out], [g, -a, b, out], [g, a, -b, out], [g, a, b, -out]]
-    raise ValueError(op)
+PERF_TYPE_HARDWARE = 0
+PERF_COUNT_HW_INSTRUCTIONS = 1
+PERF_FORMAT_TOTAL_TIME_ENABLED = 1
+PERF_FORMAT_TOTAL_TIME_RUNNING = 2
+PERF_FLAG_FD_CLOEXEC = 8
+_ATTR_DISABLED = 1 << 0
+_ATTR_INHERIT = 1 << 1
+_ATTR_EXCLUDE_KERNEL = 1 << 5
+_ATTR_EXCLUDE_HV = 1 << 6
+_ATTR_ENABLE_ON_EXEC = 1 << 12
+_PERF_EVENT_OPEN_NR = {"x86_64": 298, "amd64": 298, "aarch64": 241, "arm64": 241}
 
 
-def _calibration_once(instances: list[dict]) -> float:
-    from pysat.examples.rc2 import RC2  # imported (and cached) before timing starts
-    from pysat.formula import WCNF
-
-    start = time.process_time()
-    for inst in instances:
-        circuit = inst["circuit"]
-        nv = 0
-        health = {}
-        for gate in circuit["gates"]:
-            nv += 1
-            health[gate["name"]] = nv
-        wcnf = WCNF()
-        for obs in inst["observations"]:
-            var = {}
-            for name in circuit["inputs"]:
-                nv += 1
-                var[name] = nv
-                wcnf.append([nv if obs["inputs"][name] else -nv])
-            for gate in circuit["gates"]:
-                nv += 1
-                var[gate["name"]] = nv
-            for gate in circuit["gates"]:
-                for clause in _guarded(gate["op"], var[gate["name"]], [var[x] for x in gate["inputs"]], health[gate["name"]]):
-                    wcnf.append(clause)
-            for name, value in obs["expected_outputs"].items():
-                wcnf.append([var[name] if value else -var[name]])
-        for h in health.values():
-            wcnf.append([h], weight=1)
-        with RC2(wcnf) as rc2:
-            rc2.compute()
-    return time.process_time() - start
+class _PerfAttr(ctypes.Structure):
+    _fields_ = [
+        ("type", ctypes.c_uint32), ("size", ctypes.c_uint32), ("config", ctypes.c_uint64),
+        ("sample_period", ctypes.c_uint64), ("sample_type", ctypes.c_uint64), ("read_format", ctypes.c_uint64),
+        ("flags", ctypes.c_uint64), ("wakeup_events", ctypes.c_uint32), ("bp_type", ctypes.c_uint32),
+        ("config1", ctypes.c_uint64),
+    ]
 
 
-def measure_calibration(instances: list[dict], ids: list[str], repeats: int = 5) -> float | None:
-    """Fastest of several runs of a fixed workload: robust to transient interference."""
-    chosen = [inst for inst in instances if inst["id"] in set(ids)]
-    if not chosen:
-        return None
-    try:
-        import gc
+def open_instruction_counter(pid: int) -> int:
+    """Counter of user-space instructions retired by ``pid`` and every task it creates later.
 
-        import pysat.examples.rc2  # noqa: F401  warm import outside the timed region
-        _calibration_once(chosen[:1])  # warm-up
-        gc.collect()
-        times = [_calibration_once(chosen) for _ in range(repeats)]
-    except Exception:  # PySAT missing or broken: fall back to the nominal budget
-        return None
-    return min(times)
+    The counter is created disabled and is enabled by the kernel at the
+    task's next exec (the method's command).  The evaluator owns it, so the
+    method cannot disable or reset it (PR_TASK_PERF_EVENTS_DISABLE only
+    affects counters the caller created), and ``inherit`` gives every thread
+    and descendant process a child counter that is summed into this one,
+    whether the descendant detaches, changes session or is re-parented.
+    """
+    nr = _PERF_EVENT_OPEN_NR.get(platform.machine().lower())
+    if nr is None:
+        raise OSError(errno.ENOSYS, "perf_event_open: unsupported architecture")
+    attr = _PerfAttr()
+    attr.type = PERF_TYPE_HARDWARE
+    attr.size = ctypes.sizeof(_PerfAttr)
+    attr.config = PERF_COUNT_HW_INSTRUCTIONS
+    attr.read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING
+    attr.flags = _ATTR_DISABLED | _ATTR_INHERIT | _ATTR_EXCLUDE_KERNEL | _ATTR_EXCLUDE_HV | _ATTR_ENABLE_ON_EXEC
+    libc = _libc()
+    libc.syscall.restype = ctypes.c_long
+    fd = libc.syscall(ctypes.c_long(nr), ctypes.byref(attr), ctypes.c_int(pid), ctypes.c_int(-1),
+                      ctypes.c_int(-1), ctypes.c_ulong(PERF_FLAG_FD_CLOEXEC))
+    if fd < 0:
+        err = ctypes.get_errno()
+        raise OSError(err, f"perf_event_open: {os.strerror(err)}")
+    return int(fd)
 
 
-def cpu_budget(config: dict, instances: list[dict]) -> dict:
-    nominal = float(config["cpu_limit_seconds"])
-    calib = config.get("calibration", {})
-    ref = calib.get("reference_cpu_seconds")
-    measured = measure_calibration(instances, calib.get("instance_ids", [])) if ref else None
-    if measured and ref:
-        factor = min(max(measured / float(ref), 0.67), 1.5)
-    else:
-        factor = 1.0
-    return {
-        "nominal_cpu_limit_seconds": nominal,
-        "calibration_reference_cpu_seconds": ref,
-        "calibration_measured_cpu_seconds": measured,
-        "speed_factor": factor,
-        "cpu_limit_seconds": nominal * factor,
-    }
+def read_instruction_counter(fd: int) -> tuple[int, bool]:
+    """(count, scaled): ``scaled`` if the kernel multiplexed the counter (estimate)."""
+    value, enabled, running = struct.unpack("QQQ", os.read(fd, 24))
+    if running and enabled and running < enabled:
+        return int(value * enabled / running), True
+    return int(value), False
 
 
 # --------------------------------------------------------------------------
 # Running a method on one instance
 # --------------------------------------------------------------------------
 
-
-def _parse_output(raw: bytes) -> tuple[list, bool]:
-    truncated = len(raw) > MAX_OUTPUT_BYTES
-    raw = raw[:MAX_OUTPUT_BYTES]
-    lines = raw.split(b"\n")
-    complete = lines[:-1]  # the last fragment is unterminated (or empty)
-    parsed = []
-    for line in complete:
-        if not line.strip():
-            continue
-        try:
-            parsed.append(json.loads(line))
-        except (ValueError, UnicodeDecodeError):
-            parsed.append({"__malformed__": True})
-    return parsed, truncated
+# /bin/sh waits on fd 3 until the evaluator has attached the counter, then
+# becomes the method's command (exec), which enables the counter.
+_GATE_SCRIPT = 'read _ <&3 || exit 125; exec 3<&-; exec "$@"'
 
 
 def _read_stat(pid: int):
@@ -239,13 +239,12 @@ def _read_stat(pid: int):
 
 
 class ProcessTree:
-    """Every process a method starts, however it detaches, and its CPU time.
+    """Every process a method starts, however it detaches (used to stop them all).
 
     The evaluator is a child subreaper, so processes orphaned inside the tree
     are re-parented to it (not to init) and stay in the tree.  Membership is
     found by following parent links in /proc; each member's own CPU time is
-    sampled at every poll and the last sample is kept after it exits, so CPU
-    spent in detached or auto-reaped workers is counted.
+    sampled at every poll (audit, and the fallback accounting).
     """
 
     def __init__(self) -> None:
@@ -337,10 +336,167 @@ def _kill_tree(tree: ProcessTree, root_pid: int, state: dict) -> None:
     _reap(root_pid, state)
 
 
+def _high_dup(fd: int) -> int:
+    return fcntl.fcntl(fd, fcntl.F_DUPFD_CLOEXEC, 64)
+
+
+def _spawn(argv: list[str], err_fd: int, env: dict, cpu_cap_seconds: int, use_counter: bool):
+    """Start ``argv`` behind a /bin/sh gate; attach the counter before it runs.
+
+    Returns (pid, counter_fd or None, counter_error or None).  The counter is
+    attached only after the child has exec-ed /bin/sh: a fresh image that
+    holds none of the evaluator's memory.
+    """
+    _libc()  # loaded before the fork
+    gate_r, gate_w = os.pipe()
+    exec_r, exec_w = os.pipe()
+    pid = os.fork()
+    if pid == 0:  # child
+        try:
+            os.setsid()
+            _no_aslr()
+            try:
+                resource.setrlimit(resource.RLIMIT_CPU, (cpu_cap_seconds, cpu_cap_seconds + 1))
+            except (ValueError, OSError):
+                pass
+            for res, value in ((resource.RLIMIT_AS, MEMORY_LIMIT_BYTES), (resource.RLIMIT_CORE, 0)):
+                try:
+                    resource.setrlimit(res, (value, value))
+                except (ValueError, OSError):
+                    pass
+            os.chdir(REPO_ROOT)
+            null = _high_dup(os.open(os.devnull, os.O_RDWR))
+            g, x, e = _high_dup(gate_r), _high_dup(exec_w), _high_dup(err_fd)
+            os.dup2(null, 0)
+            os.dup2(null, 1)
+            os.dup2(e, 2)
+            os.dup2(g, 3)  # inheritable: the gate
+            os.dup2(x, 4, inheritable=False)  # closed by the exec: tells the evaluator /bin/sh is running
+            try:
+                maxfd = os.sysconf("SC_OPEN_MAX")
+            except (ValueError, OSError):
+                maxfd = 65536
+            os.closerange(5, max(maxfd, 5))
+            os.execve("/bin/sh", ["sh", "-c", _GATE_SCRIPT, "sh", *argv], env)
+        except BaseException:
+            pass
+        os._exit(127)
+    os.close(gate_r)
+    os.close(exec_w)
+    while True:
+        try:
+            os.read(exec_r, 1)  # EOF once /bin/sh runs (or the child died)
+            break
+        except InterruptedError:
+            continue
+    os.close(exec_r)
+    counter, error = None, None
+    if use_counter:
+        try:
+            counter = open_instruction_counter(pid)
+        except OSError as exc:
+            error = str(exc)[:200]
+    try:
+        os.write(gate_w, b"go\n")
+    except OSError:
+        pass
+    os.close(gate_w)
+    return pid, counter, error
+
+
+class OutputObserver:
+    """What the method has written, as observed by the evaluator while it runs.
+
+    Every observation is kept (committed) only if the counted work, read
+    *after* the observation, is within the budget, so every committed byte was
+    in the file at a moment when the method's work was within budget.  A file
+    of up to FULL_READ_BYTES is re-read whole at every poll: if the method
+    rewrote what was already committed (truncate and rewrite, replace,
+    in-place edit), observation restarts from the new content and the earlier
+    trace is dropped.  Larger files are read append-only.
+    """
+
+    FULL_READ_BYTES = 4 * 1024 * 1024
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+        self.buf = bytearray()
+        self.lines = 0  # newline count in buf
+        self.ino = None
+        self.trace: list[list[int]] = []  # [count, complete lines] whenever the committed line count grows
+        self.truncated = False
+        self.rewritten = False
+        self.pending = None
+
+    def observe(self) -> None:
+        self.pending = None
+        try:
+            with open(self.path, "rb") as fh:
+                st = os.fstat(fh.fileno())
+                size = min(st.st_size, MAX_OUTPUT_BYTES)
+                n = len(self.buf)
+                same_file = st.st_ino == self.ino
+                if size <= self.FULL_READ_BYTES:
+                    data = fh.read(size)
+                    if same_file and len(data) >= n and data[:n] == self.buf:
+                        restart, chunk = False, data[n:]
+                    else:
+                        restart, chunk = True, data
+                elif same_file and size >= n:
+                    fh.seek(n)
+                    restart, chunk = False, fh.read(size - n)
+                else:
+                    restart, chunk = True, fh.read(size)
+        except OSError:
+            return
+        self.pending = (restart, st.st_ino, chunk, st.st_size > MAX_OUTPUT_BYTES)
+
+    def commit(self, count: int) -> None:
+        if self.pending is None:
+            return
+        restart, ino, chunk, over = self.pending
+        self.pending = None
+        self.ino = ino
+        if restart:
+            if self.buf:
+                self.rewritten = True
+            self.buf = bytearray()
+            self.lines = 0
+            self.trace = []
+        if chunk:
+            self.buf += chunk
+            self.lines += chunk.count(b"\n")
+        if over:
+            self.truncated = True
+        if self.lines and (not self.trace or self.trace[-1][1] != self.lines):
+            self.trace.append([int(count), self.lines])
+
+
+def _parse_committed(buf: bytes, trace: list[list[int]]) -> tuple[list, list[list[int]]]:
+    """Complete (newline-terminated) non-blank lines, and the trace in those units."""
+    parts = bytes(buf).split(b"\n")[:-1]
+    parsed: list = []
+    prefix = [0]
+    for line in parts:
+        if line.strip():
+            try:
+                parsed.append(json.loads(line))
+            except (ValueError, UnicodeDecodeError):
+                parsed.append({"__malformed__": True})
+        prefix.append(len(parsed))
+    line_trace: list[list[int]] = []
+    for count, n in trace:
+        k = prefix[min(n, len(parts))]
+        if not line_trace or line_trace[-1][1] != k:
+            line_trace.append([int(count), k])
+    return parsed, line_trace
+
+
 _TREE: ProcessTree | None = None
 
 
-def run_command_on_instance(command: list[str], instance: dict, cpu_limit: float) -> dict:
+def run_command_on_instance(command: list[str], instance: dict, run: dict) -> dict:
+    """Run one method on one instance under the instruction budget ``run['cap']``."""
     global _TREE
     if _TREE is None:
         _TREE = ProcessTree()
@@ -352,60 +508,67 @@ def run_command_on_instance(command: list[str], instance: dict, cpu_limit: float
     err_path = tmp / "stderr.log"
     inst_path.write_text(json.dumps(public_view(instance)))
     argv = [str(a).replace("{instance}", str(inst_path)).replace("{output}", str(out_path)) for a in command]
-    soft = max(1, int(math.ceil(cpu_limit)))
-    wall_limit = 2.0 * cpu_limit + 10.0
-
-    def limit_child() -> None:
-        os.setsid()
-        try:
-            hard_cap = resource.getrlimit(resource.RLIMIT_CPU)[1]
-            hard = soft + 1 if hard_cap == resource.RLIM_INFINITY else min(soft + 1, hard_cap)
-            resource.setrlimit(resource.RLIMIT_CPU, (min(soft, hard), hard))
-        except (ValueError, OSError):
-            pass
-        try:
-            resource.setrlimit(resource.RLIMIT_AS, (MEMORY_LIMIT_BYTES, MEMORY_LIMIT_BYTES))
-        except (ValueError, OSError):
-            pass
-        try:
-            resource.setrlimit(resource.RLIMIT_CORE, (0, 0))  # no core files from killed methods
-        except (ValueError, OSError):
-            pass
-
-    record = {"id": instance["id"], "status": "ok", "cpu_seconds": 0.0, "wall_seconds": 0.0}
+    cap = int(run["cap"])
+    wall_limit = float(run["wall_limit_seconds"])
+    rate = float(run["fallback_instructions_per_cpu_second"])
+    env = dict(os.environ)
+    env["PYTHONHASHSEED"] = "0"  # deterministic hashing: exact reruns of Python methods
+    observer = OutputObserver(out_path)
+    record = {"id": instance["id"], "status": "ok", "instructions": 0, "cpu_seconds": 0.0, "wall_seconds": 0.0}
+    state = {"root_status": None, "root_cpu": 0.0, "orphan_cpu": 0.0}
+    counter = None
+    scaled = False
     start = time.monotonic()
     try:
         with err_path.open("wb") as err:
-            proc = subprocess.Popen(
-                argv,
-                cwd=str(REPO_ROOT),
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL,
-                stderr=err,
-                preexec_fn=limit_child,
-            )
-            state = {"root_status": None, "root_cpu": 0.0, "orphan_cpu": 0.0}
-            stopped = None
-            while True:
-                tree.poll()
-                _reap(proc.pid, state)
-                if state["root_status"] is not None:
-                    break
-                if tree.cpu_seconds() > soft:
-                    stopped = "cpu_limit"  # the whole tree used the per-process CPU allowance
-                    break
-                if time.monotonic() - start > wall_limit:
-                    stopped = "wall_limit"
-                    break
-                time.sleep(POLL_SECONDS)
-            _kill_tree(tree, proc.pid, state)  # stray helpers of the method, however detached
-            if state["root_status"] is None:
-                try:
-                    _, status, usage = os.wait4(proc.pid, 0)
-                    state["root_status"], state["root_cpu"] = status, usage.ru_utime + usage.ru_stime
-                except ChildProcessError:
-                    state["root_status"] = 0
-            proc.returncode = 0  # already reaped with wait4
+            pid, counter, counter_error = _spawn(argv, err.fileno(), env, int(wall_limit) + 5, run["accounting"] == "perf")
+        use_perf = counter is not None
+        record["accounting"] = "perf" if use_perf else "cpu_fallback"
+        if counter_error:
+            record["counter_error"] = counter_error
+
+        def count() -> int:
+            nonlocal scaled
+            if use_perf:
+                value, was_scaled = read_instruction_counter(counter)
+                scaled = scaled or was_scaled
+                return value
+            return int(max(tree.cpu_seconds(), state["root_cpu"] + state["orphan_cpu"]) * rate)
+
+        stopped = None
+        while True:
+            tree.poll()
+            _reap(pid, state)
+            observer.observe()
+            work = count()  # read after the output: every observed byte was written with at most this much work
+            if work > cap:
+                stopped = "budget"
+                break
+            observer.commit(work)
+            if state["root_status"] is not None:
+                break
+            if time.monotonic() - start > wall_limit:
+                stopped = "wall_limit"
+                break
+            if tree.cpu_seconds() > wall_limit:
+                stopped = "cpu_guard"
+                break
+            time.sleep(POLL_SECONDS)
+        _kill_tree(tree, pid, state)  # whatever the method left running, however detached
+        if state["root_status"] is None:
+            try:
+                _, status, usage = os.wait4(pid, 0)
+                state["root_status"], state["root_cpu"] = status, usage.ru_utime + usage.ru_stime
+            except ChildProcessError:
+                state["root_status"] = 0
+        if stopped is None:  # the command exited: observe the final output
+            observer.observe()
+            work = count()
+            if work <= cap:
+                observer.commit(work)
+            else:
+                stopped = "budget"
+        record["instructions"] = int(count())
         status = state["root_status"]
         record["wall_seconds"] = time.monotonic() - start
         record["cpu_seconds"] = max(state["root_cpu"] + state["orphan_cpu"], tree.cpu_seconds())
@@ -413,21 +576,47 @@ def run_command_on_instance(command: list[str], instance: dict, cpu_limit: float
         if stopped:
             record["status"] = stopped
         elif os.WIFSIGNALED(status):
-            sig = os.WTERMSIG(status)
-            record["status"] = "cpu_limit" if sig in (signal.SIGXCPU, signal.SIGKILL) else f"signal_{sig}"
+            record["status"] = f"signal_{os.WTERMSIG(status)}"
         elif os.WEXITSTATUS(status) != 0:
             record["status"] = f"exit_{os.WEXITSTATUS(status)}"
-    except (OSError, subprocess.SubprocessError) as exc:
+    except OSError as exc:
         record["status"] = "launch_error"
         record["error"] = str(exc)[:500]
-    raw = out_path.read_bytes() if out_path.exists() else b""
-    record["diagnoses"], record["truncated"] = _parse_output(raw)
+    finally:
+        if counter is not None:
+            try:
+                os.close(counter)
+            except OSError:
+                pass
+    record["diagnoses"], record["line_trace"] = _parse_committed(observer.buf, observer.trace)
+    record["truncated"] = observer.truncated
+    record["rewritten"] = observer.rewritten
+    record["counter_scaled"] = scaled
     try:
         record["stderr_tail"] = err_path.read_bytes()[-1500:].decode(errors="replace")
     except OSError:
         record["stderr_tail"] = ""
     shutil.rmtree(tmp, ignore_errors=True)
     return record
+
+
+def detect_accounting() -> tuple[str, str | None]:
+    """'perf' if a hardware instruction counter can be attached to a child and counts, else 'cpu_fallback'."""
+    try:
+        with open(os.devnull, "wb") as err:
+            pid, counter, error = _spawn(["true"], err.fileno(), dict(os.environ), 10, True)
+        os.waitpid(pid, 0)
+    except OSError as exc:
+        return "cpu_fallback", str(exc)[:200]
+    if counter is None:
+        return "cpu_fallback", error
+    try:
+        value, _ = read_instruction_counter(counter)
+    finally:
+        os.close(counter)
+    if value <= 0:
+        return "cpu_fallback", "instruction counter attached but counted nothing"
+    return "perf", None
 
 
 def valid_registration(spec) -> list[str] | None:
@@ -525,24 +714,27 @@ class HiddenDataGuard:
         return False
 
 
-def run_method(command: list[str] | None, instances: list[dict], cpu_limit: float, log_name: str,
+def run_method(command: list[str] | None, instances: list[dict], run: dict, log_name: str,
                guard: HiddenDataGuard | None = None) -> list[dict]:
     records = []
     tampered = False
     for idx, inst in enumerate(instances):
         if command is None or tampered:
             records.append({"id": inst["id"], "status": "tampered" if tampered else "not_registered",
-                            "cpu_seconds": 0.0, "wall_seconds": 0.0, "diagnoses": [], "truncated": False})
+                            "instructions": 0, "cpu_seconds": 0.0, "wall_seconds": 0.0, "diagnoses": [],
+                            "line_trace": [], "truncated": False})
             continue
-        rec = run_command_on_instance(command, inst, cpu_limit)
+        rec = run_command_on_instance(command, inst, run)
         if guard is not None and guard.tampered():
             # The method touched the hidden directory: its whole run is failed.
             tampered = True
-            rec = {"id": inst["id"], "status": "tampered", "cpu_seconds": rec["cpu_seconds"],
-                   "wall_seconds": rec["wall_seconds"], "diagnoses": [], "truncated": False}
+            rec = {"id": inst["id"], "status": "tampered", "instructions": rec["instructions"],
+                   "cpu_seconds": rec["cpu_seconds"], "wall_seconds": rec["wall_seconds"], "diagnoses": [],
+                   "line_trace": [], "truncated": False}
         records.append(rec)
-        print(f"[{SLICE}] {log_name} {idx + 1}/{len(instances)} {rec['status']} cpu={rec['cpu_seconds']:.2f}s "
-              f"lines={len(rec['diagnoses'])}", file=sys.stderr, flush=True)
+        print(f"[{SLICE}] {log_name} {idx + 1}/{len(instances)} {rec['status']} "
+              f"instr={rec['instructions'] / 1e9:.2f}G cpu={rec['cpu_seconds']:.2f}s lines={len(rec['diagnoses'])}",
+              file=sys.stderr, flush=True)
     return records
 
 
@@ -551,7 +743,16 @@ def run_method(command: list[str] | None, instances: list[dict], cpu_limit: floa
 # --------------------------------------------------------------------------
 
 
-def score_instance(record: dict, inst: dict, truth_entry: dict, cpu_limit: float) -> dict:
+def credited_lines(record: dict, budget: float) -> list:
+    """Lines that were in the output file at a moment when the counted work was <= budget."""
+    n = 0
+    for count, k in record.get("line_trace") or []:
+        if count <= budget and k > n:
+            n = k
+    return list(record.get("diagnoses") or [])[:n]
+
+
+def score_instance(record: dict, inst: dict, truth_entry: dict, budget: float) -> dict:
     truth = {frozenset(d) for d in truth_entry["diagnoses"]}
     optimum = int(truth_entry["optimum"])
     gate_names = {g["name"] for g in inst["circuit"]["gates"]}
@@ -559,7 +760,8 @@ def score_instance(record: dict, inst: dict, truth_entry: dict, cpu_limit: float
     seen: set[frozenset] = set()
     sound = 0
     first = None
-    for diag in record.get("diagnoses", []):
+    lines = credited_lines(record, budget)
+    for diag in lines:
         if not isinstance(diag, list) or not all(isinstance(x, str) for x in diag):
             kinds["malformed"] += 1
             continue
@@ -579,7 +781,7 @@ def score_instance(record: dict, inst: dict, truth_entry: dict, cpu_limit: float
             kinds["not_minimum"] += 1
         else:
             kinds["invalid"] += 1
-    over_limit = bool(record.get("truncated")) or over_budget(float(record.get("cpu_seconds", 0.0)), cpu_limit)
+    over_limit = bool(record.get("truncated"))
     if over_limit:
         kinds["over_limit"] += 1
     unsound = sum(v for k, v in kinds.items() if k != "over_limit") > 0
@@ -605,40 +807,45 @@ def score_instance(record: dict, inst: dict, truth_entry: dict, cpu_limit: float
         "exact": exact,
         "status": record.get("status", "missing"),
         "cpu_seconds": float(record.get("cpu_seconds", 0.0)),
-        "lines": len(record.get("diagnoses", [])),
+        "instructions": float(record.get("instructions", 0.0)),
+        "lines": len(lines),
         "true_count": len(truth),
     }
 
 
-def worst_values() -> dict:
-    out = {
+def worst_values(fractions: dict[str, float]) -> dict:
+    return {
         "iscas85_localisation": {"localized_rate": 0.0, "min_diagnosis_recall": 0.0},
         "diagnosis_quality": {"unsound_output_rate": 100.0},
         "observation_scaling": {f"localized_rate_obs{m}": 0.0 for m in OBSERVATION_BUCKETS},
         "fault_scaling": {f"localized_rate_f{k}": 0.0 for k in FAULT_BUCKETS},
         "scale_stress": {"localized_rate_stress": 0.0, "min_diagnosis_recall_stress": 0.0},
+        "runtime_profile": {f"localized_rate_{name}": 0.0 for name in fractions},
     }
-    return out
 
 
-def aggregate(records: list[dict], instances: list[dict], truth: dict, cpu_limit: float) -> dict:
+def aggregate(records: list[dict], instances: list[dict], truth: dict, budget: float,
+              fractions: dict[str, float]) -> dict:
     by_id = {r["id"]: r for r in records}
     rows = []
     for inst in instances:
-        rec = by_id.get(inst["id"], {"id": inst["id"], "status": "missing", "diagnoses": []})
-        row = score_instance(rec, inst, truth[inst["id"]], cpu_limit)
+        rec = by_id.get(inst["id"], {"id": inst["id"], "status": "missing", "diagnoses": [], "line_trace": []})
+        row = score_instance(rec, inst, truth[inst["id"]], budget)
+        row["profile"] = {name: score_instance(rec, inst, truth[inst["id"]], frac * budget)["localized"]
+                          for name, frac in fractions.items()}
         row["observation_count"] = inst["observation_count"]
         row["fault_count"] = inst["fault_count"]
         row["tier"] = inst.get("tier", "base")
         rows.append(row)
     all_rows = rows
-    produced_any = any(r["lines"] > 0 for r in all_rows)
+    produced_any = any(len(by_id.get(inst["id"], {}).get("diagnoses") or []) > 0 for inst in instances)
     kinds = Counter()
     for r in all_rows:
         kinds.update(r["kinds"])
     stress = [r for r in all_rows if r["tier"] == "stress"]
     rows = [r for r in all_rows if r["tier"] == "base"]  # main/observation/fault experiments: base tier
     n = len(rows)
+    stopped = ("budget", "wall_limit", "cpu_guard")
 
     def rate(flag_rows, key):
         return 100.0 * sum(1 for r in flag_rows if r[key]) / max(1, len(flag_rows))
@@ -648,10 +855,11 @@ def aggregate(records: list[dict], instances: list[dict], truth: dict, cpu_limit
         "min_diagnosis_recall": 100.0 * sum(r["recall"] for r in rows) / max(1, n),
         "localized_count": sum(1 for r in rows if r["localized"]),
         "total_instances": n,
-        "cpu_limit_count": sum(1 for r in rows if r["status"] in ("cpu_limit", "wall_limit")),
-        "error_count": sum(1 for r in rows if r["status"] not in ("ok", "cpu_limit", "wall_limit")),
+        "budget_stop_count": sum(1 for r in rows if r["status"] in stopped),
+        "error_count": sum(1 for r in rows if r["status"] not in ("ok",) + stopped),
         "selected_fault_f1": 100.0 * sum(r["selected_fault_f1"] for r in rows) / max(1, n),
         "exact_fault_set_rate": rate(rows, "exact"),
+        "audit_mean_giga_instructions": sum(r["instructions"] for r in rows) / max(1, n) / 1e9,
         "audit_avg_cpu_seconds": sum(r["cpu_seconds"] for r in rows) / max(1, n),
     }
     quality = {  # constraint over every instance (both tiers)
@@ -681,23 +889,30 @@ def aggregate(records: list[dict], instances: list[dict], truth: dict, cpu_limit
         "min_diagnosis_recall_stress": 100.0 * sum(r["recall"] for r in stress) / max(1, len(stress)),
         "localized_count_stress": sum(1 for r in stress if r["localized"]),
         "total_instances_stress": len(stress),
-        "cpu_limit_count_stress": sum(1 for r in stress if r["status"] in ("cpu_limit", "wall_limit")),
+        "budget_stop_count_stress": sum(1 for r in stress if r["status"] in stopped),
     }
     for k in sorted({r["fault_count"] for r in stress}):
         bucket = [r for r in stress if r["fault_count"] == k]
         scale[f"localized_rate_stress_f{k}"] = rate(bucket, "localized")
+    profile = {}
+    for name in fractions:
+        profile[f"localized_rate_{name}"] = 100.0 * sum(1 for r in all_rows if r["profile"][name]) / max(1, len(all_rows))
+        profile[f"localized_count_{name}"] = sum(1 for r in all_rows if r["profile"][name])
+    profile["localized_rate_full_budget"] = rate(all_rows, "localized")
+    profile["total_instances_all"] = len(all_rows)
     result = {
         "iscas85_localisation": loc,
         "diagnosis_quality": quality,
         "observation_scaling": obs,
         "fault_scaling": faults,
         "scale_stress": scale,
+        "runtime_profile": profile,
     }
     tampered = any(r.get("status") == "tampered" for r in records)
     if tampered or not produced_any:
         # A run that produced nothing at all, or that touched the hidden test
         # directory, is a failed run: worst value of every metric.
-        for exp, metrics in worst_values().items():
+        for exp, metrics in worst_values(fractions).items():
             result[exp].update(metrics)
         result["iscas85_localisation"]["failed_run"] = 1
     else:
@@ -719,19 +934,31 @@ def write_scores(per_method: dict[str, dict], out: Path, extra: dict) -> dict:
 
 def save_runs(name: str, payload: dict) -> None:
     try:
-        RUNS_DIR.mkdir(parents=True, exist_ok=True)
-        (RUNS_DIR / f"{name}.json").write_text(json.dumps(payload, sort_keys=True) + "\n")
+        dump_json_gz(RUNS_DIR / f"{name}.json.gz", payload)
     except OSError:
         pass
+
+
+def run_settings(config: dict, accounting: str) -> dict:
+    budget = int(float(config["instruction_budget"]))
+    return {
+        "instruction_budget": budget,
+        "cap": budget,
+        "budget_fractions": {k: float(v) for k, v in config["budget_fractions"].items()},
+        "wall_limit_seconds": float(config["wall_limit_seconds"]),
+        "fallback_instructions_per_cpu_second": float(config["fallback_instructions_per_cpu_second"]),
+        "accounting": accounting,
+    }
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
-    # Build-time helpers used once when the gym is packaged; never needed for scoring.
-    parser.add_argument("--calibrate-only", action="store_true")
+    # Build-time helpers used when the gym is packaged; never needed for scoring.
     parser.add_argument("--store-baseline", default=None, help="run a baseline command and store its raw outputs")
     parser.add_argument("--command-json", default=None)
+    parser.add_argument("--rescore", action="store_true",
+                        help="score the raw outputs saved in eval/test/runs instead of running the methods")
     args = parser.parse_args()
 
     # The answers are held in this process's memory while method code runs:
@@ -740,26 +967,20 @@ def main() -> None:
     _prctl(PR_SET_DUMPABLE, 0)
     _prctl(PR_SET_CHILD_SUBREAPER, 1)
 
-    instances, truth = load_benchmark()
     config = json.loads(CONFIG_FILE.read_text())
-
-    if args.calibrate_only:
-        ids = config.get("calibration", {}).get("instance_ids", [])
-        print(json.dumps({"cpu_seconds": measure_calibration(instances, ids, repeats=7)}))
-        return
-
-    budget = cpu_budget(config, instances)
-    cpu_limit = budget["cpu_limit_seconds"]
-    print(f"[{SLICE}] cpu budget per instance: {json.dumps(budget)}", file=sys.stderr, flush=True)
+    accounting, accounting_note = ("rescore", None) if args.rescore else detect_accounting()
+    run = run_settings(config, accounting)
+    budget, fractions = run["instruction_budget"], run["budget_fractions"]
+    print(f"[{SLICE}] accounting={accounting} {accounting_note or ''} budget={budget / 1e9:.1f}G instructions "
+          f"per instance", file=sys.stderr, flush=True)
+    instances, truth = load_benchmark()
 
     if args.store_baseline:
         command = valid_registration({"command": json.loads(args.command_json)})
         with HiddenDataGuard(HERE) as guard:
-            records = run_method(command, instances, cpu_limit, args.store_baseline, guard)
-        BASELINE_DIR.mkdir(parents=True, exist_ok=True)
-        (BASELINE_DIR / f"{args.store_baseline}.json").write_text(
-            json.dumps({"method": args.store_baseline, "budget": budget, "records": records}, sort_keys=True) + "\n"
-        )
+            records = run_method(command, instances, run, args.store_baseline, guard)
+        dump_json_gz(BASELINE_DIR / f"{args.store_baseline}.json.gz",
+                     {"method": args.store_baseline, "run": run, "records": records})
         return
 
     registered = discover_methods(REPO_ROOT / "checkpoints")
@@ -768,26 +989,33 @@ def main() -> None:
 
     per_method: dict[str, dict] = {}
     run_payloads: dict[str, dict] = {}
-    with HiddenDataGuard(HERE) as guard:
+    if args.rescore:
         for key, command in sorted(registered.items()):
-            records = run_method(command, instances, cpu_limit, key, guard)
-            per_method[key] = aggregate(records, instances, truth, cpu_limit)
-            run_payloads[key] = {"method": key, "budget": budget, "command": command, "records": records}
-    for key, payload in run_payloads.items():
-        save_runs(key, payload)
+            saved = load_json(RUNS_DIR / f"{key}.json.gz") or {}
+            per_method[key] = aggregate(saved.get("records", []), instances, truth, budget, fractions)
+    else:
+        with HiddenDataGuard(HERE) as guard:
+            for key, command in sorted(registered.items()):
+                records = run_method(command, instances, run, key, guard)
+                per_method[key] = aggregate(records, instances, truth, budget, fractions)
+                run_payloads[key] = {"method": key, "run": run, "command": command, "records": records}
+        for key, payload in run_payloads.items():
+            save_runs(key, payload)
 
     for key in RESERVED_KEYS:
-        stored = load_json(BASELINE_DIR / f"{key}.json")
+        stored = load_json(BASELINE_DIR / f"{key}.json.gz")
         if stored is None:
             continue
-        stored_limit = float(stored.get("budget", {}).get("cpu_limit_seconds", cpu_limit))
-        per_method[key] = aggregate(stored.get("records", []), instances, truth, stored_limit)
+        stored_cap = float(stored.get("run", {}).get("cap", budget))
+        per_method[key] = aggregate(stored.get("records", []), instances, truth, min(budget, stored_cap), fractions)
 
     extra = {
         "_evaluation": {
             "slice": SLICE,
             "instance_count": len(instances),
-            "budget": budget,
+            "budget": {"instruction_budget": budget, "budget_fractions": fractions,
+                       "wall_limit_seconds": run["wall_limit_seconds"], "accounting": accounting,
+                       "unit": "user-space instructions retired by the method's whole process tree"},
             "methods_run": sorted(registered),
             "baselines_from": "eval/test/baseline_outputs (evaluator-owned, fixed)",
         }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Summarise the hardened-gym audit: ranks, seed spread, paired comparisons.
+"""Summarise the hardened-gym audit: ranks, paired comparisons, rerun exactness.
 
 rank = sum over ranked metrics of
        weight(experiment) * |coefficient| * direction * (value - reference) / sd
@@ -11,6 +11,7 @@ The reference is the official run in ``scoring/scores_test.json``.
 
 from __future__ import annotations
 
+import gzip
 import importlib.util
 import json
 import math
@@ -24,7 +25,11 @@ RESULTS = HARD / "results"
 
 
 def load(path: Path):
-    return json.loads(Path(path).read_text())
+    path = Path(path)
+    if path.suffix == ".gz":
+        with gzip.open(path, "rt") as fh:
+            return json.load(fh)
+    return json.loads(path.read_text())
 
 
 def get(scores: dict, exp: str, metric: str, method: str = "cfaults"):
@@ -45,11 +50,12 @@ def main() -> None:
     metrics = [(e, m, ex["weight"] * abs(md["coefficient"]), md["higher_is_better"])
                for e, ex in reference_cfg.items() for m, md in ex["metrics"].items() if md["coefficient"] != 0]
     main_scores = load(ROOT / "scoring" / "scores_test.json")
-    ref_dir = RESULTS / "reference_seed_0"
+    ref_dir = RESULTS / "reference"
     ref_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / "scoring" / "scores_test.json", ref_dir / "scores_test.json")
-    if (ROOT / "eval" / "test" / "runs").exists():
-        shutil.copytree(ROOT / "eval" / "test" / "runs", ref_dir / "runs", dirs_exist_ok=True)
+    if (ROOT / "eval" / "test" / "runs" / "cfaults.json.gz").exists():
+        (ref_dir / "runs").mkdir(exist_ok=True)
+        shutil.copy2(ROOT / "eval" / "test" / "runs" / "cfaults.json.gz", ref_dir / "runs" / "cfaults.json.gz")
 
     cases = {p.parent.name: load(p) for p in sorted(RESULTS.glob("*/scores_test.json"))}
     entries = {name: (scores, "cfaults") for name, scores in cases.items()}
@@ -59,34 +65,33 @@ def main() -> None:
         entries["late_method_shortcut[late_method]"] = (cases["late_method_shortcut"], "late_method")
 
     sds = {}
-    # Cases scored by the pre-fix evaluator ("__before") are evidence, not attempts
-    # this gym will rank: they are kept out of the normalisation cohort.
-    cohort = {n: v for n, v in entries.items() if not n.endswith("__before")}
     for e, m, w, high in metrics:
-        vals = [get(s, e, m, k) for s, k in cohort.values()]
+        vals = [get(s, e, m, k) for s, k in entries.values()]
         vals = [v for v in vals if isinstance(v, (int, float))]
         sds[f"{e}/{m}"] = statistics.pstdev(vals) if len(vals) > 1 else 0.0
 
-    test_eval = None
     spec = importlib.util.spec_from_file_location("test_eval", ROOT / "eval/test/evaluate_circuit_outputs.py")
     test_eval = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(test_eval)
     instances, truth = test_eval.load_benchmark()
+    budget = float(main_scores["_evaluation"]["budget"]["instruction_budget"])
 
-    def per_instance(case: str, key: str = "cfaults"):
-        path = RESULTS / case / "runs" / f"{key}.json"
+    def records_of(case: str, key: str = "cfaults"):
+        path = RESULTS / case / "runs" / f"{key}.json.gz"
+        if case.startswith("baseline_"):
+            path = ROOT / "eval" / "test" / "baseline_outputs" / f"{case[len('baseline_'):]}.json.gz"
         if not path.exists():
             return None
-        payload = load(path)
-        limit = float(payload["budget"]["cpu_limit_seconds"])
-        by_id = {r["id"]: r for r in payload["records"]}
-        flags = {}
-        for inst in instances:
-            rec = by_id.get(inst["id"], {"id": inst["id"], "diagnoses": []})
-            flags[inst["id"]] = test_eval.score_instance(rec, inst, truth[inst["id"]], limit)
-        return flags
+        return {r["id"]: r for r in load(path)["records"]}
 
-    ref_flags = per_instance("reference_seed_0")
+    def per_instance(case: str, key: str = "cfaults"):
+        recs = records_of(case, key)
+        if recs is None:
+            return None
+        return {inst["id"]: test_eval.score_instance(recs.get(inst["id"], {"diagnoses": []}), inst, truth[inst["id"]], budget)
+                for inst in instances}
+
+    ref_flags = per_instance("reference")
     rows = {}
     for name, (scores, key) in entries.items():
         rank, contributions, missing = 0.0, {}, []
@@ -104,16 +109,17 @@ def main() -> None:
             "localized_rate": get(scores, "iscas85_localisation", "localized_rate", key),
             "min_diagnosis_recall": get(scores, "iscas85_localisation", "min_diagnosis_recall", key),
             "unsound_output_rate": get(scores, "diagnosis_quality", "unsound_output_rate", key),
-            "localized_rate_f5": get(scores, "fault_scaling", "localized_rate_f5", key),
+            "localized_rate_f7": get(scores, "fault_scaling", "localized_rate_f7", key),
             "localized_rate_stress": get(scores, "scale_stress", "localized_rate_stress", key),
             "min_diagnosis_recall_stress": get(scores, "scale_stress", "min_diagnosis_recall_stress", key),
-            "selected_fault_f1_audit": get(scores, "iscas85_localisation", "selected_fault_f1", key),
+            "localized_rate_quarter_budget": get(scores, "runtime_profile", "localized_rate_quarter_budget", key),
             "failed_run": get(scores, "iscas85_localisation", "failed_run", key),
+            "tamper_detected": get(scores, "iscas85_localisation", "tamper_detected", key),
             "missing_ranked_metrics": missing,
             "contributions": contributions,
         }
-        case_dir = name if name in cases else None
-        if case_dir and ref_flags is not None:
+        case_dir = name if (name in cases or name.startswith("baseline_")) else None
+        if case_dir and ref_flags is not None and name != "reference":
             flags = per_instance(case_dir, key)
             if flags is not None:
                 wins = sum(1 for i in flags if flags[i]["localized"] and not ref_flags[i]["localized"])
@@ -127,38 +133,44 @@ def main() -> None:
                 }
         rows[name] = row
 
-    seeds = [n for n in ("reference_seed_0", "reference_seed_1", "reference_seed_2") if n in rows]
-    spread = {}
-    for e, m, _, _ in metrics:
-        vals = [get(cases[s], e, m) for s in seeds]
-        vals = [v for v in vals if v is not None]
-        if vals:
-            spread[f"{e}/{m}"] = max(vals) - min(vals)
-    spread["rank_vs_reference"] = (max(rows[s]["rank_vs_reference"] for s in seeds) -
-                                   min(rows[s]["rank_vs_reference"] for s in seeds)) if seeds else None
+    exactness = None
+    a, b = records_of("reference"), records_of("reference_repeat")
+    if a and b:
+        diffs = []
+        for i, ra in a.items():
+            rb = b.get(i)
+            if rb and ra.get("status") == "ok" and rb.get("status") == "ok" and ra["instructions"]:
+                diffs.append(abs(ra["instructions"] - rb["instructions"]) / ra["instructions"])
+        repeat_flags = per_instance("reference_repeat")
+        flips = sum(1 for i in ref_flags if ref_flags[i]["localized"] != repeat_flags[i]["localized"])
+        exactness = {"instances_compared": len(diffs), "max_relative_instruction_difference": max(diffs) if diffs else None,
+                     "median_relative_instruction_difference": statistics.median(diffs) if diffs else None,
+                     "localized_flips": flips,
+                     "rank_difference": rows.get("reference_repeat", {}).get("rank_vs_reference")}
     train = load(ROOT / "scoring" / "scores_train.json")
     doc = {
         "rank_convention": "sum(weight*|coefficient|*direction*(value-reference)/population_sd_over_audit_cohort); missing skipped; "
-                           "cohort = every case scored by the final evaluator plus the evaluator-owned baselines",
-        "cohort": sorted(cohort),
+                           "cohort = every audit case plus the evaluator-owned baselines",
+        "cohort": sorted(entries),
         "reference": "scoring/scores_test.json (official reference run, cfaults)",
         "budget": main_scores.get("_evaluation", {}).get("budget"),
         "metric_sd": sds,
-        "seed_spread": spread,
+        "rerun_exactness": exactness,
         "reference_train_vs_test": {
             f"{e}/{m}": {"train": get(train, e, m), "test": get(main_scores, e, m)} for e, m, _, _ in metrics
         },
         "runs": rows,
     }
     (HARD / "summary.json").write_text(json.dumps(doc, indent=2, sort_keys=True) + "\n")
-    print(f"{'case':42s} {'rank':>8s} {'loc%':>6s} {'recall%':>8s} {'unsound%':>8s} {'f5%':>6s} {'stress%':>7s} paired(w/l,p)")
+    print(f"{'case':40s} {'rank':>7s} {'loc%':>6s} {'rec%':>6s} {'uns%':>6s} {'f7%':>6s} {'str%':>6s} {'q-bud%':>6s} paired(w/l,p)")
     for name, r in sorted(rows.items(), key=lambda kv: -kv[1]["rank_vs_reference"]):
         p = r.get("paired_vs_reference")
         ptxt = f"{p['instances_localized_only_by_case']}/{p['instances_localized_only_by_reference']},{p['sign_test_p']:.3g}" if p else ""
         fmt = lambda v: f"{v:6.1f}" if isinstance(v, (int, float)) else "     -"
-        print(f"{name:42s} {r['rank_vs_reference']:8.3f} {fmt(r['localized_rate'])} {fmt(r['min_diagnosis_recall']):>8s} "
-              f"{fmt(r['unsound_output_rate']):>8s} {fmt(r['localized_rate_f5'])} {fmt(r['localized_rate_stress']):>7s} {ptxt}")
-    print("seed spread:", json.dumps(spread))
+        print(f"{name:40s} {r['rank_vs_reference']:7.3f} {fmt(r['localized_rate'])} {fmt(r['min_diagnosis_recall'])} "
+              f"{fmt(r['unsound_output_rate'])} {fmt(r['localized_rate_f7'])} {fmt(r['localized_rate_stress'])} "
+              f"{fmt(r['localized_rate_quarter_budget'])} {ptxt}")
+    print("rerun exactness:", json.dumps(exactness))
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@
 #
 # Baselines: HSD (hitting-set dualisation, the paper's circuit competitor) and
 # a BugAssist-style per-observation voting baseline.  Their raw outputs are
-# stored in eval/train/baseline_outputs/ and scored by scripts/evaluate_train.sh
+# stored in eval/train/baseline_outputs/*.json.gz and scored by scripts/evaluate_train.sh
 # under the keys "hsd" and "bugassist_vote".  (The hidden-test baseline
 # outputs are stored with the hidden test and cannot be regenerated here.)
 #

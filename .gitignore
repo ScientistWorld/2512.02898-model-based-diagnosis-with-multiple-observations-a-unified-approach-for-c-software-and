@@ -244,3 +244,15 @@ redteam/hardening/workspaces/
 redteam/hardening/results/*/runs/
 redteam/hardening/results_base_only/*/runs/
 redteam/hardening/results_stress_v1/*/runs/
+
+# Gzipped benchmark data and evaluator-owned baseline outputs ARE tracked
+# (exceptions to the global *.gz rule above).
+!eval/test/hidden_benchmark.json.gz
+!eval/test/baseline_outputs/*.json.gz
+!eval/train/baseline_outputs/*.json.gz
+!data/iscas85_train/instances.jsonl.gz
+!data/iscas85_train/ground_truth.json.gz
+*.part
+redteam/hardening/snapshot/
+redteam/hardening/results/*/runs/
+redteam/hardening/results_iter11/*/runs/

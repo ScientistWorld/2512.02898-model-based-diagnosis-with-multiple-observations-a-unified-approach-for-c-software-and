@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Run audit cases through the real hidden test (``bash scripts/evaluate_test.sh``).
 
-Each case gets a fresh copy of the workspace (data, method, baseline, scripts,
-eval incl. the hidden test as restored for scoring), its own method
-registrations under ``checkpoints/``, optional pre-steps (e.g. pre-written
-scores), and then the hidden test is run with no arguments.  Scores and raw
-per-instance records are kept in ``redteam/hardening/results/<case>/``.
+``snapshot`` copies the gym as the hidden test will see it (data, method,
+baseline, scripts, eval incl. the hidden test) into ``redteam/hardening/snapshot``
+once the benchmark and budget are fixed.  Each case then gets a fresh copy of
+that snapshot, its own method registrations under ``checkpoints/``, optional
+pre-steps (e.g. pre-written scores), and the hidden test is run with no
+arguments.  Cases run in parallel (instruction counts do not depend on load).
+Scores and raw per-instance records are kept in ``redteam/hardening/results/<case>/``.
 """
 
 from __future__ import annotations
@@ -16,29 +18,20 @@ import shutil
 import subprocess
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 HARD = ROOT / "redteam" / "hardening"
 RESULTS = HARD / "results"
 WORK = HARD / "workspaces"
-# Cases named "<case>__before" are scored by the hidden-test evaluator as it was
-# before this hardening iteration (process-tree CPU accounting and tamper
-# detection absent), to measure what the fixed shortcuts paid.
-BEFORE_EVALUATOR = HARD / "before" / "evaluate_test_before.py"
+SNAPSHOT = HARD / "snapshot"
 
 
 def force_rmtree(path: Path) -> None:
     """rmtree that also handles directories left at mode 0 by an interrupted hidden test."""
     if not path.exists():
         return
-    for root, dirs, _ in os.walk(path):
-        for d in dirs:
-            try:
-                os.chmod(os.path.join(root, d), 0o700)
-            except OSError:
-                pass
-    # os.walk cannot list a mode-0 directory before it is chmod-ed: repeat until clean
     for _ in range(10):
         stuck = []
         for root, dirs, _ in os.walk(path):
@@ -70,56 +63,62 @@ def cut(name):
 
 HSD = ["python", "baseline/hsd_circuit.py", "--instance", "{instance}", "--output", "{output}"]
 
-# name -> (registrations {checkpoint_dir: command}, env overrides, pre-step)
+# name -> (registrations {checkpoint_dir: command}, pre-step); heavy cases first
 CASES = {
-    "lazy_observations": ({"cfaults_circuit": var("lazy_observations")}, {}, None),
-    "fresh_solver_previous_reference": ({"cfaults_circuit": var("fresh_solver")}, {}, None),
-    "satenum": ({"cfaults_circuit": var("satenum")}, {}, None),
-    "hsd_as_method": ({"cfaults_circuit": HSD}, {}, None),
-    "weaker_one_observation": ({"cfaults_circuit": var("weaker_one_observation")}, {}, None),
-    "first_only": ({"cfaults_circuit": var("first_only")}, {}, None),
-    "hidden_file_read_shortcut": ({"cfaults_circuit": cut("hidden_file_read")}, {}, None),
-    "golden_diff_shortcut": ({"cfaults_circuit": cut("golden_diff")}, {}, None),
-    "train_answer_lookup_shortcut": ({"cfaults_circuit": cut("train_answer_lookup")}, {}, None),
-    "all_gates_shortcut": ({"cfaults_circuit": cut("all_gates")}, {}, None),
-    "constant_gate_shortcut": ({"cfaults_circuit": cut("constant_gate")}, {}, None),
-    "claimed_success_shortcut": ({"cfaults_circuit": cut("claimed_success")}, {}, None),
-    "singleton_spam_shortcut": ({"cfaults_circuit": cut("singleton_spam")}, {}, None),
-    "empty_output_shortcut": ({"cfaults_circuit": cut("empty_output")}, {}, None),
-    "crash_shortcut": ({"cfaults_circuit": cut("crash")}, {}, None),
-    "unregistered_shortcut": ({}, {}, None),
-    "late_method_shortcut": ({"cfaults_circuit": cut("constant_gate"), "late_method": cut("empty_output")}, {}, "late"),
+    "brute_force": ({"cfaults_circuit": var("brute_force")}, None),
+    "parallel_portfolio_shortcut": ({"cfaults_circuit": cut("parallel_portfolio")}, None),
+    "reference_repeat": ({"cfaults_circuit": ref()}, None),
+    "exhaust_minz": ({"cfaults_circuit": var("exhaust_minz")}, None),
+    "fresh_solver_previous_reference": ({"cfaults_circuit": var("fresh_solver")}, None),
+    "lazy_observations": ({"cfaults_circuit": var("lazy_observations")}, None),
+    "lean": ({"cfaults_circuit": var("lean")}, None),
+    "lean_exhaust_minz": ({"cfaults_circuit": var("lean_exhaust_minz")}, None),
+    "hsd_as_method": ({"cfaults_circuit": HSD}, None),
+    "cpu_escape_relay_shortcut": ({"cfaults_circuit": cut("cpu_escape_relay")}, None),
+    "perf_disable_shortcut": ({"cfaults_circuit": cut("perf_disable")}, None),
+    "placeholder_overwrite_shortcut": ({"cfaults_circuit": cut("placeholder_overwrite")}, None),
+    "nonminimal_padding_shortcut": ({"cfaults_circuit": cut("nonminimal_padding")}, None),
+    "duplicate_diagnosis_shortcut": ({"cfaults_circuit": cut("duplicate_diagnosis")}, None),
+    "first_only": ({"cfaults_circuit": var("first_only")}, None),
+    "weaker_one_observation": ({"cfaults_circuit": var("weaker_one_observation")}, None),
+    "chmod_hidden_read_shortcut": ({"cfaults_circuit": cut("chmod_hidden_read")}, None),
+    "hidden_file_read_shortcut": ({"cfaults_circuit": cut("hidden_file_read")}, None),
+    "golden_diff_shortcut": ({"cfaults_circuit": cut("golden_diff")}, None),
+    "train_answer_lookup_shortcut": ({"cfaults_circuit": cut("train_answer_lookup")}, None),
+    "all_gates_shortcut": ({"cfaults_circuit": cut("all_gates")}, None),
+    "constant_gate_shortcut": ({"cfaults_circuit": cut("constant_gate")}, None),
+    "claimed_success_shortcut": ({"cfaults_circuit": cut("claimed_success")}, None),
+    "singleton_spam_shortcut": ({"cfaults_circuit": cut("singleton_spam")}, None),
+    "empty_output_shortcut": ({"cfaults_circuit": cut("empty_output")}, None),
+    "crash_shortcut": ({"cfaults_circuit": cut("crash")}, None),
+    "unregistered_shortcut": ({}, None),
+    "late_method_shortcut": ({"cfaults_circuit": cut("constant_gate"), "late_method": cut("empty_output")}, "late"),
     "replace_baseline_shortcut": ({"cfaults_circuit": cut("constant_gate"), "hsd_circuit": cut("empty_output"),
-                                   "bugassist_vote": cut("empty_output")}, {}, None),
-    "prewrite_scores_shortcut": ({"cfaults_circuit": cut("constant_gate")}, {}, "prewrite"),
-    "brute_force": ({"cfaults_circuit": var("brute_force")}, {}, None),
-    "nonminimal_padding_shortcut": ({"cfaults_circuit": cut("nonminimal_padding")}, {}, None),
-    "duplicate_diagnosis_shortcut": ({"cfaults_circuit": cut("duplicate_diagnosis")}, {}, None),
-    "reference_seed_1": ({"cfaults_circuit": ref()}, {"PYTHONHASHSEED": "1"}, None),
-    "reference_seed_2": ({"cfaults_circuit": ref()}, {"PYTHONHASHSEED": "2"}, None),
-    # Shortcuts closed in hardening iteration 11 (part 2), each also run against the previous evaluator.
-    "chmod_hidden_read_shortcut": ({"cfaults_circuit": cut("chmod_hidden_read")}, {}, None),
-    "chmod_hidden_read_shortcut__before": ({"cfaults_circuit": cut("chmod_hidden_read")}, {}, None),
-    "cpu_escape_relay_shortcut": ({"cfaults_circuit": cut("cpu_escape_relay")}, {}, None),
-    "cpu_escape_relay_shortcut__before": ({"cfaults_circuit": cut("cpu_escape_relay")}, {}, None),
+                                   "bugassist_vote": cut("empty_output")}, None),
+    "prewrite_scores_shortcut": ({"cfaults_circuit": cut("constant_gate")}, "prewrite"),
 }
+
+
+def snapshot() -> None:
+    force_rmtree(SNAPSHOT)
+    SNAPSHOT.mkdir(parents=True)
+    ignore = shutil.ignore_patterns("__pycache__", "runs", "*.pyc", "baseline_outputs", "downloads")
+    for name in ("data", "method", "baseline", "scripts", "eval"):
+        shutil.copytree(ROOT / name, SNAPSHOT / name, ignore=ignore)
+    shutil.copytree(ROOT / "data" / "downloads", SNAPSHOT / "data" / "downloads")
+    print(f"snapshot at {SNAPSHOT}", flush=True)
 
 
 def stage(case: str, registrations: dict, pre: str | None) -> Path:
     work = WORK / case
     force_rmtree(work)
-    work.mkdir(parents=True)
-    ignore = shutil.ignore_patterns("__pycache__", "runs", "*.pyc")
-    for name in ("data", "method", "baseline", "scripts", "eval"):
-        shutil.copytree(ROOT / name, work / name, ignore=ignore)
+    shutil.copytree(SNAPSHOT, work)
     (work / "scoring").mkdir()
-    for doc in ("TARGETS.md", "CONSTRAINTS.md", "DIRECTION.md", "EXPERIMENTS.md", "scores_train.json"):
+    for doc in ("TARGETS.md", "CONSTRAINTS.md", "DIRECTION.md", "EXPERIMENTS.md"):
         if (ROOT / "scoring" / doc).exists():
             shutil.copy2(ROOT / "scoring" / doc, work / "scoring" / doc)
     shutil.copy2(HARD / "audit_variants.py", work / "method" / "audit_variants.py")
     shutil.copy2(HARD / "audit_shortcuts.py", work / "method" / "audit_shortcuts.py")
-    if case.endswith("__before"):
-        shutil.copy2(BEFORE_EVALUATOR, work / "eval" / "test" / "evaluate_circuit_outputs.py")
     (work / "checkpoints").mkdir()
     for directory, command in registrations.items():
         if pre == "late" and directory == "late_method":
@@ -136,7 +135,7 @@ def stage(case: str, registrations: dict, pre: str | None) -> Path:
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         path = work / "checkpoints" / "late_method" / "solver.json"
         path.parent.mkdir(parents=True)
-        path.write_text(json.dumps({"command": registrations["late_method"]}) + "\n")
+        path.write_text(json.dumps({"command": CASES[case][0]["late_method"]}) + "\n")
     return work
 
 
@@ -145,16 +144,15 @@ def execute(case: str) -> None:
     if (out / "scores_test.json").exists():
         print(f"skip {case} (done)", flush=True)
         return
-    registrations, env_over, pre = CASES[case]
+    registrations, pre = CASES[case]
     work = stage(case, registrations, pre)
-    env = dict(os.environ, **env_over)
     out.mkdir(parents=True, exist_ok=True)
     start = time.time()
     with (out / "run.log").open("w") as log:
-        proc = subprocess.run(["bash", "scripts/evaluate_test.sh"], cwd=work, env=env, stdout=log, stderr=subprocess.STDOUT)
+        proc = subprocess.run(["bash", "scripts/evaluate_test.sh"], cwd=work, stdout=log, stderr=subprocess.STDOUT)
     meta = {"case": case, "hidden_command": ["bash", "scripts/evaluate_test.sh"], "hidden_arguments": [],
             "returncode": proc.returncode, "wall_seconds": time.time() - start,
-            "registrations": registrations, "env": env_over, "pre_step": pre}
+            "registrations": registrations, "pre_step": pre}
     scores = work / "scoring" / "scores_test.json"
     if scores.exists():
         shutil.copy2(scores, out / "scores_test.json.tmp")
@@ -169,17 +167,28 @@ def execute(case: str) -> None:
 
 
 def main() -> None:
-    cases = sys.argv[1:] or list(CASES)
-    if cases == ["all"]:
-        cases = list(CASES)
+    args = sys.argv[1:]
+    if args == ["snapshot"]:
+        snapshot()
+        return
+    jobs = 1
+    if args and args[0].startswith("--jobs="):
+        jobs = max(1, int(args[0].split("=", 1)[1]))
+        args = args[1:]
+    cases = list(CASES) if not args or args == ["all"] else args
     failures = {}
-    for case in cases:
+
+    def guarded(case: str) -> None:
         try:
             execute(case)
         except Exception as exc:  # keep going; record the failure
             failures[case] = repr(exc)
             print(f"FAILED {case}: {exc!r}", flush=True)
+
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        list(pool.map(guarded, cases))
     if failures:
+        RESULTS.mkdir(parents=True, exist_ok=True)
         (RESULTS / "harness_failures.json").write_text(json.dumps(failures, indent=2) + "\n")
 
 

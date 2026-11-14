@@ -1,19 +1,19 @@
 {
   "experiments": {
     "iscas85_localisation": {
-      "description": "Main circuit result (paper Table 5 'All'), base tier (c432, c499, c880, c1355, c1908; 1/3/5 faults; 10-50 observations): share of hidden ISCAS85-derived instances whose complete set of minimum-cardinality diagnoses the method localises within the fixed per-instance CPU budget. The method is run by the hidden test on instances it has never seen.",
+      "description": "Main circuit result (paper Table 5 'All'), base tier (c880, c1355, c1908, c2670, c3540; 3, 5 or 7 injected faults; 10-50 observations): share of hidden ISCAS85-derived instances whose complete set of minimum-cardinality diagnoses the method localises within the fixed per-instance work budget (user-space instructions retired by the method's whole process tree, counted by the evaluator). The method is run by the hidden test on instances it has never seen.",
       "weight": 0.25,
       "primary_metric": "localized_rate",
       "metrics": {
         "localized_rate": {
           "higher_is_better": true,
           "coefficient": 1.0,
-          "description": "Percentage of hidden instances for which the method wrote, within the per-instance CPU budget, exactly the complete set of minimum-cardinality diagnoses and nothing else (every reported diagnosis valid for all observations, of minimum cardinality, well-formed and distinct). The paper's 'successfully localised' measure (Table 5)."
+          "description": "Percentage of hidden base-tier instances for which the output file held, at a moment when the method's counted work was within the per-instance budget, exactly the complete set of minimum-cardinality diagnoses and nothing else (every reported diagnosis valid for all observations, of minimum cardinality, well-formed and distinct). The paper's 'successfully localised' measure (Table 5)."
         },
         "min_diagnosis_recall": {
           "higher_is_better": true,
           "coefficient": 0.5,
-          "description": "Mean percentage of each instance's minimum-cardinality diagnoses that the method reported within the budget; an instance with any unsound report (invalid, non-minimum, malformed, duplicate) or a budget violation counts 0."
+          "description": "Mean percentage of each base-tier instance's minimum-cardinality diagnoses that the method had reported within the budget; an instance with any unsound report (invalid, non-minimum, malformed, duplicate) counts 0."
         },
         "localized_count": {
           "higher_is_better": true,
@@ -24,11 +24,6 @@
           "higher_is_better": true,
           "coefficient": 0.0,
           "description": "Number of evaluated instances (audit)."
-        },
-        "cpu_limit_count": {
-          "higher_is_better": false,
-          "coefficient": 0.0,
-          "description": "Instances on which the method was stopped by the CPU or wall guard (audit; the paper's timeout count)."
         },
         "error_count": {
           "higher_is_better": false,
@@ -48,17 +43,27 @@
         "audit_avg_cpu_seconds": {
           "higher_is_better": false,
           "coefficient": 0.0,
-          "description": "Audit only, never ranked: mean CPU seconds per instance as measured by the evaluator."
+          "description": "Audit only, never ranked: mean CPU seconds per base-tier instance."
         },
         "failed_run": {
           "higher_is_better": false,
           "coefficient": 0.0,
-          "description": "1 if the method produced no output on any instance (then every ranked metric is set to its worst value)."
+          "description": "1 if the method produced no output on any instance, or tampered with the hidden test (then every ranked metric is set to its worst value)."
         },
         "tamper_detected": {
           "higher_is_better": false,
           "coefficient": 0.0,
           "description": "Audit: 1 if the method changed the permissions, owner, location or contents of the hidden test directory while it ran; the run is then scored as failed (worst value of every metric)."
+        },
+        "budget_stop_count": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Audit: base-tier instances on which the method was stopped by the work budget or the wall-clock guard (the paper's timeouts)."
+        },
+        "audit_mean_giga_instructions": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Audit only: mean counted work per base-tier instance, in 10^9 user-space instructions (capped near the budget)."
         }
       },
       "results": {
@@ -166,7 +171,7 @@
         "over_limit_count": {
           "higher_is_better": false,
           "coefficient": 0.0,
-          "description": "Audit: instances whose measured CPU exceeded the budget or whose output exceeded the size cap."
+          "description": "Audit: instances whose output exceeded the 64 MB size cap (not credited)."
         }
       },
       "results": {
@@ -217,7 +222,7 @@
       }
     },
     "observation_scaling": {
-      "description": "Paper Table 5 rows on the base tier: localisation rate for 10, 20, 30, 40 and 50 failing observations (each bucket is a distinct set of hidden instances).",
+      "description": "Paper Table 5 rows on the base tier: localisation rate for 10, 20, 30, 40 and 50 failing observations (each bucket is a distinct set of 30 hidden instances).",
       "weight": 0.1,
       "primary_metric": "localized_rate_obs50",
       "metrics": {
@@ -394,34 +399,24 @@
       }
     },
     "fault_scaling": {
-      "description": "Base-tier localisation rate by number of injected faults (1, 3, 5). Multi-fault instances are where the number of minimum diagnoses grows and exhaustive candidate search fails.",
+      "description": "Base-tier localisation rate by number of injected faults (3, 5, 7). More faults mean larger minimum diagnoses and many more of them, which is where exhaustive candidate search fails and enumeration cost dominates.",
       "weight": 0.1,
-      "primary_metric": "localized_rate_f3",
+      "primary_metric": "localized_rate_f7",
       "metrics": {
-        "localized_rate_f1": {
-          "higher_is_better": true,
-          "coefficient": 0.2,
-          "description": "localized_rate on single-fault instances."
-        },
         "localized_rate_f3": {
           "higher_is_better": true,
-          "coefficient": 0.4,
+          "coefficient": 0.2,
           "description": "localized_rate on three-fault instances."
         },
         "localized_rate_f5": {
           "higher_is_better": true,
           "coefficient": 0.4,
-          "description": "localized_rate on five-fault instances, where exhaustive candidate search is hopeless and the number of minimum diagnoses grows."
+          "description": "localized_rate on five-fault instances."
         },
-        "min_diagnosis_recall_f1": {
+        "localized_rate_f7": {
           "higher_is_better": true,
-          "coefficient": 0.0,
-          "description": "Audit: min_diagnosis_recall on 1-fault instances."
-        },
-        "localized_count_f1": {
-          "higher_is_better": true,
-          "coefficient": 0.0,
-          "description": "Audit: localized count on 1-fault instances."
+          "coefficient": 0.4,
+          "description": "localized_rate on seven-fault instances, where minimum diagnoses are largest and most numerous."
         },
         "min_diagnosis_recall_f3": {
           "higher_is_better": true,
@@ -442,6 +437,16 @@
           "higher_is_better": true,
           "coefficient": 0.0,
           "description": "Audit: localized count on 5-fault instances."
+        },
+        "min_diagnosis_recall_f7": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: min_diagnosis_recall on 7-fault instances."
+        },
+        "localized_count_f7": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: localized count on 7-fault instances."
         }
       },
       "results": {
@@ -487,8 +492,8 @@
       }
     },
     "scale_stress": {
-      "description": "Where the paper's method falls short: scale. The larger ISCAS85 circuits (c2670, c3540, c5315, c7552; 1.2k-3.5k gates) with 3 or 5 injected faults and 10/30/50 observations (two hidden instances per cell; up to 6,000 minimum diagnoses per instance), same budget and scoring as the main experiment. On the base tier the paper's method and HSD localise nearly every instance at gym scale, so this tier carries most of the weight: it is where methods still differ.",
-      "weight": 0.4,
+      "description": "Where the paper's method falls short: scale. The two largest ISCAS85 circuits (c5315, c7552; 2.3k-3.5k gates) with 3, 5 or 7 injected faults and 10, 30 or 50 observations (two hidden instances per cell; up to 4,000 minimum diagnoses per instance), same budget and scoring as the main experiment.",
+      "weight": 0.25,
       "primary_metric": "localized_rate_stress",
       "metrics": {
         "localized_rate_stress": {
@@ -511,10 +516,10 @@
           "coefficient": 0.0,
           "description": "Audit: number of stress-tier instances."
         },
-        "cpu_limit_count_stress": {
+        "budget_stop_count_stress": {
           "higher_is_better": false,
           "coefficient": 0.0,
-          "description": "Audit: stress instances stopped by the CPU/wall guard."
+          "description": "Audit: stress instances stopped by the work budget or the wall-clock guard."
         },
         "localized_rate_stress_f3": {
           "higher_is_better": true,
@@ -525,6 +530,11 @@
           "higher_is_better": true,
           "coefficient": 0.0,
           "description": "Audit: stress-tier localized_rate, 5 injected faults."
+        },
+        "localized_rate_stress_f7": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: stress-tier localized_rate, 7 injected faults."
         }
       },
       "results": {
@@ -561,6 +571,57 @@
       },
       "_paper_reported": {
         "note": "The paper's full benchmark includes these circuits (and c6288) with up to 50 faults; CFaults localises 73.84% and HSD 80.14% of all 12,147 instances within 1800 s. No per-circuit breakdown is reported."
+      }
+    },
+    "runtime_profile": {
+      "description": "Paper Figure 6 (CPU-time comparison, cactus plot) on the instruction scale: share of ALL hidden instances (both tiers) localised within one half, one quarter and one eighth of the per-instance budget, read from the same run (each diagnosis is credited at the counted work at which it was observed in the output). A method that localises the same instances with less work scores higher.",
+      "weight": 0.15,
+      "primary_metric": "localized_rate_quarter_budget",
+      "metrics": {
+        "localized_rate_half_budget": {
+          "higher_is_better": true,
+          "coefficient": 0.3333,
+          "description": "Percentage of all hidden instances localised within one half of the per-instance work budget."
+        },
+        "localized_rate_quarter_budget": {
+          "higher_is_better": true,
+          "coefficient": 0.3333,
+          "description": "Percentage of all hidden instances localised within one quarter of the per-instance work budget."
+        },
+        "localized_rate_eighth_budget": {
+          "higher_is_better": true,
+          "coefficient": 0.3333,
+          "description": "Percentage of all hidden instances localised within one eighth of the per-instance work budget."
+        },
+        "localized_count_half_budget": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: count behind the rate."
+        },
+        "localized_count_quarter_budget": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: count behind the rate."
+        },
+        "localized_count_eighth_budget": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: count behind the rate."
+        },
+        "localized_rate_full_budget": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: localised share of all instances (both tiers) at the full budget."
+        },
+        "total_instances_all": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Audit: number of hidden instances (both tiers)."
+        }
+      },
+      "results": {},
+      "_paper_reported": {
+        "note": "Paper Figure 6a: cactus plot of CPU time against circuits localised (no numeric table). HSD localises more circuits than CFaults at every time limit and is faster on most circuits (Figures 6b-6d)."
       }
     }
   },

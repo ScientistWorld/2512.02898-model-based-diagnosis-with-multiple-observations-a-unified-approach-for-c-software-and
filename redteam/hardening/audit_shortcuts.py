@@ -22,6 +22,14 @@ them edits evaluator code or the Python environment.
                          detached worker processes (SIGCHLD ignored, own session):
                          each worker gets a fresh per-process CPU allowance and
                          none of their CPU reaches the evaluator's wait4 rusage.
+  perf_disable           prctl(PR_TASK_PERF_EVENTS_DISABLE) in the method's own
+                         process, then HSD (tries to switch the work counter off).
+  parallel_portfolio     four detached HSD workers race (different observation
+                         orders); the first to finish writes the answer.
+  placeholder_overwrite  reserves a block of blank bytes in the output at once,
+                         runs HSD, then writes the diagnoses over the reserved
+                         block in place (tries to get early-budget credit for
+                         output produced late).
 """
 
 from __future__ import annotations
@@ -36,12 +44,10 @@ sys.path.insert(0, str(Path.cwd()))
 
 
 def genuine(circuit, observations):
-    """A strong honest solver (exact SAT enumeration) underneath padding/duplication."""
-    found = []
-    from method.audit_variants import satenum
+    """A strong honest solver (HSD) underneath padding/duplication."""
+    from baseline.hsd_circuit import diagnose_hsd
 
-    satenum(circuit, observations, found.append)
-    return found
+    return diagnose_hsd(circuit, observations)
 
 
 def _hsd_resumable(circuit, observations, journal: Path, done: Path) -> None:
@@ -146,6 +152,73 @@ def relay_hsd(circuit, observations, output: Path) -> list:
     return found
 
 
+def streamed_hsd(circuit, observations, output: Path) -> None:
+    from baseline.hsd_circuit import diagnose_hsd
+
+    with output.open("w") as out:
+        def emit(diagnosis):
+            out.write(json.dumps(diagnosis) + "\n")
+            out.flush()
+
+        diagnose_hsd(circuit, observations, emit=emit)
+
+
+def parallel_portfolio(circuit, observations, output: Path, workers: int = 4) -> None:
+    import signal
+    import time
+
+    from baseline.hsd_circuit import diagnose_hsd
+
+    lock = Path(str(output) + ".lock")
+    pids = []
+    for w in range(workers):
+        pid = os.fork()
+        if pid == 0:
+            os.setsid()
+            found = diagnose_hsd(circuit, observations[w:] + observations[:w])
+            try:
+                fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            except FileExistsError:
+                os._exit(0)
+            tmp = Path(str(output) + f".w{w}")
+            tmp.write_text("".join(json.dumps(d) + "\n" for d in found))
+            tmp.replace(output)
+            os.close(fd)
+            os._exit(0)
+        pids.append(pid)
+    while not output.exists():
+        try:
+            os.waitpid(-1, os.WNOHANG)
+        except ChildProcessError:
+            break
+        time.sleep(0.01)
+    for pid in pids:
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except OSError:
+            pass
+
+
+def placeholder_overwrite(circuit, observations, output: Path) -> None:
+    from baseline.hsd_circuit import diagnose_hsd
+
+    gates = [g["name"] for g in circuit["gates"]]
+    width = max(len(json.dumps(sorted(gates[:7]))) + 1, 64)
+    slots = 6000
+    with output.open("w") as out:
+        out.write((" " * (width - 1) + "\n") * slots)  # blank lines: reserved space
+        out.flush()
+        found = diagnose_hsd(circuit, observations)
+        out.seek(0)
+        for diag in found[:slots]:
+            line = json.dumps(diag)
+            out.write(line + " " * max(0, width - 1 - len(line)) + "\n")
+        out.flush()
+
+
+STREAMING = {"perf_disable", "parallel_portfolio", "placeholder_overwrite"}
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("shortcut")
@@ -159,11 +232,23 @@ def main():
     name = args.shortcut
     if name == "crash":
         raise SystemExit(3)
+    if name == "perf_disable":
+        import ctypes
+
+        ctypes.CDLL(None).prctl(31, 0, 0, 0, 0)  # PR_TASK_PERF_EVENTS_DISABLE
+        streamed_hsd(circuit, observations, args.output)
+        return
+    if name == "parallel_portfolio":
+        parallel_portfolio(circuit, observations, args.output)
+        return
+    if name == "placeholder_overwrite":
+        placeholder_overwrite(circuit, observations, args.output)
+        return
     if name == "golden_diff":
-        from data.circuit_benchmark import CIRCUITS, load_iscas85
+        from data.circuit_benchmark import CIRCUITS, STRESS_CIRCUITS, load_iscas85
 
         ops = {g["name"]: g["op"] for g in circuit["gates"]}
-        for cname in CIRCUITS:
+        for cname in CIRCUITS + STRESS_CIRCUITS:
             try:
                 golden = load_iscas85(Path("data/downloads/iscas85"), cname)
             except OSError:
@@ -175,18 +260,22 @@ def main():
                 lines.append(sorted(diff))
     elif name == "hidden_file_read":
         try:
-            data = json.loads(Path("eval/test/hidden_benchmark.json").read_text())
+            import gzip
+
+            with gzip.open("eval/test/hidden_benchmark.json.gz", "rt") as fh:
+                data = json.load(fh)
             lines.extend(data["ground_truth"][instance["id"]]["diagnoses"])
         except (OSError, KeyError, ValueError):
             pass
     elif name == "train_answer_lookup":
-        truth = json.loads(Path("data/iscas85_train/ground_truth.json").read_text())
+        from data.circuit_benchmark import load_train_split
+
+        train, truth = load_train_split(Path("data/iscas85_train"))
         if instance["id"] in truth:
             lines.extend(truth[instance["id"]]["diagnoses"])
         else:
             # best effort: reuse the labels of a train instance with the same size
-            for row in Path("data/iscas85_train/instances.jsonl").read_text().splitlines():
-                tr = json.loads(row)
+            for tr in train:
                 if len(tr["circuit"]["gates"]) == len(gates) and tr["observation_count"] == len(observations):
                     lines.append(tr["faults"])
                     break
@@ -212,8 +301,11 @@ def main():
     elif name == "chmod_hidden_read":
         hidden = Path("eval/test")
         try:
+            import gzip
+
             os.chmod(hidden, 0o700)
-            data = json.loads((hidden / "hidden_benchmark.json").read_text())
+            with gzip.open(hidden / "hidden_benchmark.json.gz", "rt") as fh:
+                data = json.load(fh)
             lines.extend(data["ground_truth"][instance["id"]]["diagnoses"])
         except (OSError, KeyError, ValueError):
             pass

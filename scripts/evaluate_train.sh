@@ -4,8 +4,8 @@
 # Same protocol as the hidden test, on the public instances in
 # data/iscas85_train/: every method registered on disk
 # (checkpoints/<name>/solver.json) is run on each instance under the same
-# per-instance CPU budget and scored against the exact answers in
-# data/iscas85_train/ground_truth.json.  Writes scoring/scores_train.json.
+# per-instance instruction budget and scored against the exact answers in
+# data/iscas85_train/ground_truth.json.gz.  Writes scoring/scores_train.json.
 
 set -e
 
