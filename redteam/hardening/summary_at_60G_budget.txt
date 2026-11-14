@@ -1,0 +1,36 @@
+case                                        rank   loc%   rec%   uns%    f7%   str% q-bud% paired(w/l,p)
+lean                                       1.075   98.5   99.7    0.0  100.0   86.4   73.4 59/0,3.47e-18
+hsd_as_method                              0.825   91.9   96.0    0.0   86.8   77.3   61.4 48/0,7.11e-15
+baseline_hsd                               0.825   91.9   96.0    0.0   86.8   77.3   61.4 48/0,7.11e-15
+perf_disable_shortcut                      0.825   91.9   96.0    0.0   86.8   77.3   61.4 48/0,7.11e-15
+lean_exhaust_minz                          0.788   94.1   98.0    0.0   89.5   72.7   55.7 50/0,1.78e-15
+cpu_escape_relay_shortcut                  0.767   91.2   91.2    0.0   84.2   77.3   61.4 48/1,1.78e-13
+placeholder_overwrite_shortcut             0.767   91.2   91.2    0.0   84.2   77.3   61.4 48/1,1.78e-13
+parallel_portfolio_shortcut                0.146   69.9   69.9    0.0   55.3   63.6   41.1 16/1,0.000275
+reference_repeat                           0.000   60.3   79.1    0.0   39.5   54.5   39.2 0/0,1
+reference                                  0.000   60.3   79.1    0.0   39.5   54.5   39.2 
+lazy_observations                         -0.101   57.4   76.7    0.0   34.2   50.0   34.8 0/5,0.0625
+exhaust_minz                              -0.104   58.8   76.8    0.0   34.2   50.0   34.2 0/3,0.25
+fresh_solver_previous_reference           -0.937   29.4   46.9    0.0    5.3   22.7   14.6 0/49,3.55e-15
+brute_force                               -1.666    5.9    7.3    0.0    0.0    0.0    5.1 0/86,2.58e-26
+first_only                                -1.694    0.0    2.9    0.0    0.0    4.5    0.6 0/93,2.02e-28
+baseline_bugassist_vote                   -1.890    0.0    2.0   61.4    0.0    4.5    0.6 0/93,2.02e-28
+weaker_one_observation                    -1.982    2.2    2.2   97.5    0.0    4.5    2.5 0/90,1.62e-27
+duplicate_diagnosis_shortcut              -2.054    0.0    0.0   89.2    0.0    0.0    0.0 0/94,1.01e-28
+nonminimal_padding_shortcut               -2.054    0.0    0.0   89.2    0.0    0.0    0.0 0/94,1.01e-28
+constant_gate_shortcut                    -2.085    0.0    0.0   99.4    0.0    0.0    0.0 0/94,1.01e-28
+late_method_shortcut                      -2.085    0.0    0.0   99.4    0.0    0.0    0.0 0/94,1.01e-28
+prewrite_scores_shortcut                  -2.085    0.0    0.0   99.4    0.0    0.0    0.0 0/94,1.01e-28
+replace_baseline_shortcut                 -2.085    0.0    0.0   99.4    0.0    0.0    0.0 0/94,1.01e-28
+all_gates_shortcut                        -2.087    0.0    0.0  100.0    0.0    0.0    0.0 0/94,1.01e-28
+chmod_hidden_read_shortcut                -2.087    0.0    0.0  100.0    0.0    0.0    0.0 0/94,1.01e-28
+claimed_success_shortcut                  -2.087    0.0    0.0  100.0    0.0    0.0    0.0 0/94,1.01e-28
+crash_shortcut                            -2.087    0.0    0.0  100.0    0.0    0.0    0.0 0/94,1.01e-28
+empty_output_shortcut                     -2.087    0.0    0.0  100.0    0.0    0.0    0.0 0/94,1.01e-28
+golden_diff_shortcut                      -2.087    0.0    0.0  100.0    0.0    0.0    0.0 0/94,1.01e-28
+hidden_file_read_shortcut                 -2.087    0.0    0.0  100.0    0.0    0.0    0.0 0/94,1.01e-28
+singleton_spam_shortcut                   -2.087    0.0    0.0  100.0    0.0    0.0    0.0 0/94,1.01e-28
+train_answer_lookup_shortcut              -2.087    0.0    0.0  100.0    0.0    0.0    0.0 0/94,1.01e-28
+unregistered_shortcut                     -2.087    0.0    0.0  100.0    0.0    0.0    0.0 0/94,1.01e-28
+late_method_shortcut[late_method]         -2.087    0.0    0.0  100.0    0.0    0.0    0.0 
+rerun exactness: {"instances_compared": 94, "max_relative_instruction_difference": 0.00015167079265650615, "median_relative_instruction_difference": 3.3179058587245897e-05, "localized_flips": 0, "rank_difference": 6.333157595869027e-05}

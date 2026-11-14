@@ -115,6 +115,9 @@ wait "$CHAIN_B" || { echo "chain B (train) failed"; tail -20 logs/reference_trai
 date
 tail -40 logs/harness.log || true
 
+if [ -d tmp/rescored ]; then
+  echo "== verification run vs earlier rescoring"; python redteam/hardening/compare_rescored.py || true
+fi
 echo "== summary"; python redteam/hardening/summarize.py | tee redteam/hardening/summary.txt
 echo "== validate"; python validate.py || true
 date

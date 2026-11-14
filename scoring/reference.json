@@ -69,49 +69,52 @@
       "results": {
         "cfaults": {
           "type": "proposed",
-          "localized_rate": 97.3333,
-          "min_diagnosis_recall": 99.2364,
-          "localized_count": 73,
-          "total_instances": 75,
-          "cpu_limit_count": 2,
+          "localized_rate": 50.0,
+          "min_diagnosis_recall": 65.2728,
+          "localized_count": 68,
+          "total_instances": 136,
           "error_count": 0,
-          "selected_fault_f1": 26.2212,
-          "exact_fault_set_rate": 13.3333,
-          "audit_avg_cpu_seconds": 1.713,
+          "selected_fault_f1": 17.9132,
+          "exact_fault_set_rate": 0.7353,
+          "audit_avg_cpu_seconds": 3.9607,
           "failed_run": 0,
-          "tamper_detected": 0
+          "tamper_detected": 0,
+          "budget_stop_count": 54,
+          "audit_mean_giga_instructions": 33.5524
         },
         "hsd": {
           "type": "baseline",
-          "localized_rate": 100.0,
-          "min_diagnosis_recall": 100.0,
-          "localized_count": 75,
-          "total_instances": 75,
-          "cpu_limit_count": 0,
+          "localized_rate": 77.9412,
+          "min_diagnosis_recall": 88.8933,
+          "localized_count": 106,
+          "total_instances": 136,
           "error_count": 0,
-          "selected_fault_f1": 28.7175,
-          "exact_fault_set_rate": 10.6667,
-          "audit_avg_cpu_seconds": 0.9132,
+          "selected_fault_f1": 20.1108,
+          "exact_fault_set_rate": 0.7353,
+          "audit_avg_cpu_seconds": 3.561,
           "failed_run": 0,
-          "tamper_detected": 0
+          "tamper_detected": 0,
+          "budget_stop_count": 12,
+          "audit_mean_giga_instructions": 17.6485
         },
         "bugassist_vote": {
           "type": "baseline",
-          "localized_rate": 10.6667,
-          "min_diagnosis_recall": 19.0915,
-          "localized_count": 8,
-          "total_instances": 75,
-          "cpu_limit_count": 0,
+          "localized_rate": 0.0,
+          "min_diagnosis_recall": 2.0325,
+          "localized_count": 0,
+          "total_instances": 136,
           "error_count": 0,
-          "selected_fault_f1": 21.2466,
-          "exact_fault_set_rate": 14.6667,
-          "audit_avg_cpu_seconds": 1.0009,
+          "selected_fault_f1": 6.6906,
+          "exact_fault_set_rate": 0.0,
+          "audit_avg_cpu_seconds": 1.4523,
           "failed_run": 0,
-          "tamper_detected": 0
+          "tamper_detected": 0,
+          "budget_stop_count": 0,
+          "audit_mean_giga_instructions": 12.7581
         }
       },
       "_paper_reported": {
-        "note": "Paper-reported numbers (augmented ISCAS85: 10 circuits, 12,147 instances, 1-50 injected faults, 10-50 observations, 1800 s per circuit on Xeon Silver 4110). Not on this gym's scale (5 circuits, 1/3/5 faults, 75 hidden instances, a few CPU-seconds per instance), so kept here for context only and never used as targets.",
+        "note": "Paper-reported numbers (augmented ISCAS85: 10 circuits, 12,147 instances, 1-50 injected faults, 10-50 observations, 1800 s per circuit on Xeon Silver 4110). Not on this gym's scale (seven ISCAS85 circuits c880-c7552, 3/5/7 faults, 158 hidden instances, a budget of 3e10 instructions per instance, about 4-6 CPU-seconds for the reference), so kept here for context only and never used as targets.",
         "cfaults": {
           "localized_count": 8969,
           "localized_rate": 73.84,
@@ -189,7 +192,7 @@
         "hsd": {
           "type": "baseline",
           "unsound_output_rate": 0.0,
-          "sound_output_rate": 100.0,
+          "sound_output_rate": 97.4684,
           "unsound_count": 0,
           "invalid_count": 0,
           "not_minimum_count": 0,
@@ -199,10 +202,10 @@
         },
         "bugassist_vote": {
           "type": "baseline",
-          "unsound_output_rate": 43.2203,
-          "sound_output_rate": 55.9322,
-          "unsound_count": 51,
-          "invalid_count": 51,
+          "unsound_output_rate": 54.4304,
+          "sound_output_rate": 36.7089,
+          "unsound_count": 86,
+          "invalid_count": 86,
           "not_minimum_count": 0,
           "malformed_count": 0,
           "duplicate_count": 0,
@@ -305,61 +308,61 @@
       "results": {
         "cfaults": {
           "type": "proposed",
-          "localized_rate_obs10": 100.0,
-          "localized_rate_obs20": 100.0,
-          "localized_rate_obs30": 100.0,
-          "localized_rate_obs40": 86.6667,
-          "localized_rate_obs50": 100.0,
-          "min_diagnosis_recall_obs10": 100.0,
-          "localized_count_obs10": 15,
-          "min_diagnosis_recall_obs20": 100.0,
-          "localized_count_obs20": 15,
-          "min_diagnosis_recall_obs30": 100.0,
-          "localized_count_obs30": 15,
-          "min_diagnosis_recall_obs40": 96.1822,
-          "localized_count_obs40": 13,
-          "min_diagnosis_recall_obs50": 100.0,
-          "localized_count_obs50": 15
+          "localized_rate_obs10": 67.8571,
+          "localized_rate_obs20": 62.963,
+          "localized_rate_obs30": 46.4286,
+          "localized_rate_obs40": 42.8571,
+          "localized_rate_obs50": 28.0,
+          "min_diagnosis_recall_obs10": 81.7873,
+          "localized_count_obs10": 19,
+          "min_diagnosis_recall_obs20": 75.7932,
+          "localized_count_obs20": 17,
+          "min_diagnosis_recall_obs30": 62.5955,
+          "localized_count_obs30": 13,
+          "min_diagnosis_recall_obs40": 59.6043,
+          "localized_count_obs40": 12,
+          "min_diagnosis_recall_obs50": 44.7619,
+          "localized_count_obs50": 7
         },
         "hsd": {
           "type": "baseline",
-          "localized_rate_obs10": 100.0,
-          "localized_rate_obs20": 100.0,
-          "localized_rate_obs30": 100.0,
-          "localized_rate_obs40": 100.0,
-          "localized_rate_obs50": 100.0,
-          "min_diagnosis_recall_obs10": 100.0,
-          "localized_count_obs10": 15,
-          "min_diagnosis_recall_obs20": 100.0,
-          "localized_count_obs20": 15,
-          "min_diagnosis_recall_obs30": 100.0,
-          "localized_count_obs30": 15,
-          "min_diagnosis_recall_obs40": 100.0,
-          "localized_count_obs40": 15,
-          "min_diagnosis_recall_obs50": 100.0,
-          "localized_count_obs50": 15
+          "localized_rate_obs10": 92.8571,
+          "localized_rate_obs20": 85.1852,
+          "localized_rate_obs30": 75.0,
+          "localized_rate_obs40": 67.8571,
+          "localized_rate_obs50": 68.0,
+          "min_diagnosis_recall_obs10": 96.6459,
+          "localized_count_obs10": 26,
+          "min_diagnosis_recall_obs20": 93.0122,
+          "localized_count_obs20": 23,
+          "min_diagnosis_recall_obs30": 85.561,
+          "localized_count_obs30": 21,
+          "min_diagnosis_recall_obs40": 82.5646,
+          "localized_count_obs40": 19,
+          "min_diagnosis_recall_obs50": 86.582,
+          "localized_count_obs50": 17
         },
         "bugassist_vote": {
           "type": "baseline",
-          "localized_rate_obs10": 6.6667,
-          "localized_rate_obs20": 13.3333,
-          "localized_rate_obs30": 6.6667,
-          "localized_rate_obs40": 13.3333,
-          "localized_rate_obs50": 13.3333,
-          "min_diagnosis_recall_obs10": 17.2931,
-          "localized_count_obs10": 1,
-          "min_diagnosis_recall_obs20": 25.1525,
-          "localized_count_obs20": 2,
-          "min_diagnosis_recall_obs30": 13.4405,
-          "localized_count_obs30": 1,
-          "min_diagnosis_recall_obs40": 16.7608,
-          "localized_count_obs40": 2,
-          "min_diagnosis_recall_obs50": 22.8105,
-          "localized_count_obs50": 2
+          "localized_rate_obs10": 0.0,
+          "localized_rate_obs20": 0.0,
+          "localized_rate_obs30": 0.0,
+          "localized_rate_obs40": 0.0,
+          "localized_rate_obs50": 0.0,
+          "min_diagnosis_recall_obs10": 3.2583,
+          "localized_count_obs10": 0,
+          "min_diagnosis_recall_obs20": 1.5616,
+          "localized_count_obs20": 0,
+          "min_diagnosis_recall_obs30": 2.9624,
+          "localized_count_obs30": 0,
+          "min_diagnosis_recall_obs40": 1.6601,
+          "localized_count_obs40": 0,
+          "min_diagnosis_recall_obs50": 0.5439,
+          "localized_count_obs50": 0
         }
       },
       "_paper_reported": {
-        "note": "Paper-reported numbers (augmented ISCAS85: 10 circuits, 12,147 instances, 1-50 injected faults, 10-50 observations, 1800 s per circuit on Xeon Silver 4110). Not on this gym's scale (5 circuits, 1/3/5 faults, 75 hidden instances, a few CPU-seconds per instance), so kept here for context only and never used as targets.",
+        "note": "Paper-reported numbers (augmented ISCAS85: 10 circuits, 12,147 instances, 1-50 injected faults, 10-50 observations, 1800 s per circuit on Xeon Silver 4110). Not on this gym's scale (seven ISCAS85 circuits c880-c7552, 3/5/7 faults, 158 hidden instances, a budget of 3e10 instructions per instance, about 4-6 CPU-seconds for the reference), so kept here for context only and never used as targets.",
         "cfaults": {
           "localized_rate_obs10": 81.62,
           "localized_rate_obs20": 76.12,
@@ -452,39 +455,39 @@
       "results": {
         "cfaults": {
           "type": "proposed",
-          "localized_rate_f1": 100.0,
-          "localized_rate_f3": 96.0,
-          "localized_rate_f5": 96.0,
-          "min_diagnosis_recall_f1": 100.0,
-          "localized_count_f1": 25,
-          "min_diagnosis_recall_f3": 99.4432,
-          "localized_count_f3": 24,
-          "min_diagnosis_recall_f5": 98.2661,
-          "localized_count_f5": 24
+          "localized_rate_f3": 74.0,
+          "localized_rate_f5": 41.6667,
+          "localized_rate_f7": 28.9474,
+          "min_diagnosis_recall_f3": 84.1475,
+          "localized_count_f3": 37,
+          "min_diagnosis_recall_f5": 58.0378,
+          "localized_count_f5": 20,
+          "min_diagnosis_recall_f7": 49.5766,
+          "localized_count_f7": 11
         },
         "hsd": {
           "type": "baseline",
-          "localized_rate_f1": 100.0,
-          "localized_rate_f3": 100.0,
-          "localized_rate_f5": 100.0,
-          "min_diagnosis_recall_f1": 100.0,
-          "localized_count_f1": 25,
-          "min_diagnosis_recall_f3": 100.0,
-          "localized_count_f3": 25,
-          "min_diagnosis_recall_f5": 100.0,
-          "localized_count_f5": 25
+          "localized_rate_f3": 94.0,
+          "localized_rate_f5": 75.0,
+          "localized_rate_f7": 60.5263,
+          "min_diagnosis_recall_f3": 98.0494,
+          "localized_count_f3": 47,
+          "min_diagnosis_recall_f5": 85.6081,
+          "localized_count_f5": 36,
+          "min_diagnosis_recall_f7": 80.9954,
+          "localized_count_f7": 23
         },
         "bugassist_vote": {
           "type": "baseline",
-          "localized_rate_f1": 28.0,
           "localized_rate_f3": 0.0,
-          "localized_rate_f5": 4.0,
-          "min_diagnosis_recall_f1": 46.1637,
-          "localized_count_f1": 7,
-          "min_diagnosis_recall_f3": 4.8593,
+          "localized_rate_f5": 0.0,
+          "localized_rate_f7": 0.0,
+          "min_diagnosis_recall_f3": 4.4427,
           "localized_count_f3": 0,
-          "min_diagnosis_recall_f5": 6.2514,
-          "localized_count_f5": 1
+          "min_diagnosis_recall_f5": 0.9194,
+          "localized_count_f5": 0,
+          "min_diagnosis_recall_f7": 0.2671,
+          "localized_count_f7": 0
         }
       },
       "_paper_reported": {
@@ -540,33 +543,36 @@
       "results": {
         "cfaults": {
           "type": "proposed",
-          "localized_rate_stress": 67.4419,
-          "min_diagnosis_recall_stress": 76.5228,
-          "localized_count_stress": 29,
-          "total_instances_stress": 43,
-          "cpu_limit_count_stress": 14,
-          "localized_rate_stress_f3": 91.6667,
-          "localized_rate_stress_f5": 36.8421
+          "localized_rate_stress": 40.9091,
+          "min_diagnosis_recall_stress": 56.8157,
+          "localized_count_stress": 9,
+          "total_instances_stress": 22,
+          "budget_stop_count_stress": 10,
+          "localized_rate_stress_f3": 45.4545,
+          "localized_rate_stress_f5": 28.5714,
+          "localized_rate_stress_f7": 50.0
         },
         "hsd": {
           "type": "baseline",
-          "localized_rate_stress": 90.6977,
-          "min_diagnosis_recall_stress": 97.1013,
-          "localized_count_stress": 39,
-          "total_instances_stress": 43,
-          "cpu_limit_count_stress": 4,
-          "localized_rate_stress_f3": 100.0,
-          "localized_rate_stress_f5": 78.9474
+          "localized_rate_stress": 68.1818,
+          "min_diagnosis_recall_stress": 79.0422,
+          "localized_count_stress": 15,
+          "total_instances_stress": 22,
+          "budget_stop_count_stress": 5,
+          "localized_rate_stress_f3": 81.8182,
+          "localized_rate_stress_f5": 42.8571,
+          "localized_rate_stress_f7": 75.0
         },
         "bugassist_vote": {
           "type": "baseline",
-          "localized_rate_stress": 2.3256,
-          "min_diagnosis_recall_stress": 5.2557,
+          "localized_rate_stress": 4.5455,
+          "min_diagnosis_recall_stress": 9.3343,
           "localized_count_stress": 1,
-          "total_instances_stress": 43,
-          "cpu_limit_count_stress": 1,
-          "localized_rate_stress_f3": 4.1667,
-          "localized_rate_stress_f5": 0.0
+          "total_instances_stress": 22,
+          "budget_stop_count_stress": 0,
+          "localized_rate_stress_f3": 9.0909,
+          "localized_rate_stress_f5": 0.0,
+          "localized_rate_stress_f7": 0.0
         }
       },
       "_paper_reported": {
@@ -619,7 +625,41 @@
           "description": "Audit: number of hidden instances (both tiers)."
         }
       },
-      "results": {},
+      "results": {
+        "cfaults": {
+          "type": "proposed",
+          "localized_rate_half_budget": 39.2405,
+          "localized_rate_quarter_budget": 22.7848,
+          "localized_rate_eighth_budget": 11.3924,
+          "localized_count_half_budget": 62,
+          "localized_count_quarter_budget": 36,
+          "localized_count_eighth_budget": 18,
+          "localized_rate_full_budget": 48.7342,
+          "total_instances_all": 158
+        },
+        "hsd": {
+          "type": "baseline",
+          "localized_rate_half_budget": 61.3924,
+          "localized_rate_quarter_budget": 45.5696,
+          "localized_rate_eighth_budget": 29.1139,
+          "localized_count_half_budget": 97,
+          "localized_count_quarter_budget": 72,
+          "localized_count_eighth_budget": 46,
+          "localized_rate_full_budget": 76.5823,
+          "total_instances_all": 158
+        },
+        "bugassist_vote": {
+          "type": "baseline",
+          "localized_rate_half_budget": 0.6329,
+          "localized_rate_quarter_budget": 0.6329,
+          "localized_rate_eighth_budget": 0.0,
+          "localized_count_half_budget": 1,
+          "localized_count_quarter_budget": 1,
+          "localized_count_eighth_budget": 0,
+          "localized_rate_full_budget": 0.6329,
+          "total_instances_all": 158
+        }
+      },
       "_paper_reported": {
         "note": "Paper Figure 6a: cactus plot of CPU time against circuits localised (no numeric table). HSD localises more circuits than CFaults at every time limit and is faster on most circuits (Figures 6b-6d)."
       }
@@ -648,6 +688,6 @@
       },
       "known_minimal_faulty_lines": "{5,8,11}"
     },
-    "scale_note": "'results' hold this gym's official hidden-test run (hardening iteration 11, final evaluator): the paper's method (cfaults) at a calibrated budget of 9.09 CPU-s per instance (speed factor 0.909), and the evaluator-owned baselines from eval/test/baseline_outputs. The paper's own numbers (10 ISCAS85 circuits, 12,147 instances, 1800 s per circuit) are not on this scale and live under each experiment's '_paper_reported'."
+    "scale_note": "'results' hold this gym's official hidden-test run (hardening iteration 12): the paper's method (cfaults) and the evaluator-owned baselines, run under a budget of 3e10 user-space instructions per instance counted by the evaluator over the method's whole process tree (exact on reruns). 158 hidden instances: 136 base-tier (c880-c3540) and 22 scale-stress (c5315, c7552). The paper's own numbers (10 ISCAS85 circuits, 12,147 instances, 1800 s per circuit) are not on this scale and live under each experiment's '_paper_reported'."
   }
 }

@@ -8,7 +8,7 @@
         "half_budget": 0.5,
         "quarter_budget": 0.25
       },
-      "instruction_budget": 60000000000,
+      "instruction_budget": 30000000000.0,
       "unit": "user-space instructions retired by the method's whole process tree",
       "wall_limit_seconds": 240.0
     },
@@ -16,6 +16,15 @@
     "methods_run": [
       "cfaults"
     ],
+    "rescored": {
+      "budget_fractions": {
+        "eighth_budget": 0.125,
+        "half_budget": 0.5,
+        "quarter_budget": 0.25
+      },
+      "instruction_budget": 30000000000.0,
+      "note": "rescored from the saved raw outputs of the audit job (run with a 60G cap)"
+    },
     "slice": "test"
   },
   "experiments": {
@@ -36,30 +45,30 @@
     "fault_scaling": {
       "results": {
         "cfaults": {
-          "localized_count_f3": 41,
-          "localized_count_f5": 24,
-          "localized_count_f7": 13,
-          "localized_rate_f3": 82.0,
-          "localized_rate_f5": 50.0,
-          "localized_rate_f7": 34.21052631578947,
-          "min_diagnosis_recall_f3": 91.54280847057726,
-          "min_diagnosis_recall_f5": 70.48809460882579,
-          "min_diagnosis_recall_f7": 64.91080459747707
+          "localized_count_f3": 37,
+          "localized_count_f5": 20,
+          "localized_count_f7": 10,
+          "localized_rate_f3": 74.0,
+          "localized_rate_f5": 41.666666666666664,
+          "localized_rate_f7": 26.31578947368421,
+          "min_diagnosis_recall_f3": 82.40450888151422,
+          "min_diagnosis_recall_f5": 55.842358282674105,
+          "min_diagnosis_recall_f7": 47.18123548046228
         }
       }
     },
     "iscas85_localisation": {
       "results": {
         "cfaults": {
-          "audit_avg_cpu_seconds": 4.874947860294116,
+          "audit_avg_cpu_seconds": 4.874947860294118,
           "audit_mean_giga_instructions": 34.748801637794124,
           "budget_stop_count": 58,
           "error_count": 0,
           "exact_fault_set_rate": 0.0,
           "failed_run": 0,
-          "localized_count": 78,
-          "localized_rate": 57.35294117647059,
-          "min_diagnosis_recall": 76.67043779012226,
+          "localized_count": 67,
+          "localized_rate": 49.26470588235294,
+          "min_diagnosis_recall": 63.18783521986496,
           "selected_fault_f1": 20.06806102394338,
           "tamper_detected": 0,
           "total_instances": 136
@@ -69,34 +78,34 @@
     "observation_scaling": {
       "results": {
         "cfaults": {
-          "localized_count_obs10": 20,
-          "localized_count_obs20": 19,
-          "localized_count_obs30": 16,
-          "localized_count_obs40": 14,
-          "localized_count_obs50": 9,
-          "localized_rate_obs10": 71.42857142857143,
-          "localized_rate_obs20": 70.37037037037037,
-          "localized_rate_obs30": 57.142857142857146,
-          "localized_rate_obs40": 50.0,
-          "localized_rate_obs50": 36.0,
-          "min_diagnosis_recall_obs10": 93.33766120644317,
-          "min_diagnosis_recall_obs20": 84.40544996360461,
-          "min_diagnosis_recall_obs30": 74.47658380423785,
-          "min_diagnosis_recall_obs40": 71.91106726914019,
-          "min_diagnosis_recall_obs50": 57.43694586417242
+          "localized_count_obs10": 18,
+          "localized_count_obs20": 17,
+          "localized_count_obs30": 13,
+          "localized_count_obs40": 12,
+          "localized_count_obs50": 7,
+          "localized_rate_obs10": 64.28571428571429,
+          "localized_rate_obs20": 62.96296296296296,
+          "localized_rate_obs30": 46.42857142857143,
+          "localized_rate_obs40": 42.857142857142854,
+          "localized_rate_obs50": 28.0,
+          "min_diagnosis_recall_obs10": 80.38565840755915,
+          "min_diagnosis_recall_obs20": 74.04140992340513,
+          "min_diagnosis_recall_obs30": 60.30254632645185,
+          "min_diagnosis_recall_obs40": 57.867678493562046,
+          "min_diagnosis_recall_obs50": 41.394511663906044
         }
       }
     },
     "runtime_profile": {
       "results": {
         "cfaults": {
-          "localized_count_eighth_budget": 33,
-          "localized_count_half_budget": 74,
-          "localized_count_quarter_budget": 55,
-          "localized_rate_eighth_budget": 20.88607594936709,
-          "localized_rate_full_budget": 56.32911392405063,
-          "localized_rate_half_budget": 46.835443037974684,
-          "localized_rate_quarter_budget": 34.81012658227848,
+          "localized_count_eighth_budget": 17,
+          "localized_count_half_budget": 55,
+          "localized_count_quarter_budget": 33,
+          "localized_rate_eighth_budget": 10.759493670886076,
+          "localized_rate_full_budget": 46.835443037974684,
+          "localized_rate_half_budget": 34.81012658227848,
+          "localized_rate_quarter_budget": 20.88607594936709,
           "total_instances_all": 158
         }
       }
@@ -105,12 +114,12 @@
       "results": {
         "cfaults": {
           "budget_stop_count_stress": 11,
-          "localized_count_stress": 11,
-          "localized_rate_stress": 50.0,
-          "localized_rate_stress_f3": 63.63636363636363,
+          "localized_count_stress": 7,
+          "localized_rate_stress": 31.818181818181817,
+          "localized_rate_stress_f3": 36.36363636363637,
           "localized_rate_stress_f5": 28.571428571428573,
-          "localized_rate_stress_f7": 50.0,
-          "min_diagnosis_recall_stress": 65.96128171153333,
+          "localized_rate_stress_f7": 25.0,
+          "min_diagnosis_recall_stress": 52.61558686728596,
           "total_instances_stress": 22
         }
       }

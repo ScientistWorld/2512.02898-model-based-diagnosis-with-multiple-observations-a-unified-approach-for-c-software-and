@@ -8,7 +8,7 @@
         "half_budget": 0.5,
         "quarter_budget": 0.25
       },
-      "instruction_budget": 60000000000,
+      "instruction_budget": 30000000000.0,
       "unit": "user-space instructions retired by the method's whole process tree",
       "wall_limit_seconds": 240.0
     },
@@ -16,6 +16,15 @@
     "methods_run": [
       "cfaults"
     ],
+    "rescored": {
+      "budget_fractions": {
+        "eighth_budget": 0.125,
+        "half_budget": 0.5,
+        "quarter_budget": 0.25
+      },
+      "instruction_budget": 30000000000.0,
+      "note": "rescored from the saved raw outputs of the audit job (run with a 60G cap)"
+    },
     "slice": "test"
   },
   "experiments": {
@@ -43,15 +52,15 @@
           "localized_rate_f5": 0.0,
           "localized_rate_f7": 0.0,
           "min_diagnosis_recall_f3": 6.020865334887542,
-          "min_diagnosis_recall_f5": 1.4541973239211192,
-          "min_diagnosis_recall_f7": 0.5942047896089464
+          "min_diagnosis_recall_f5": 1.454197323921119,
+          "min_diagnosis_recall_f7": 0.5942047896089465
         }
       }
     },
     "iscas85_localisation": {
       "results": {
         "cfaults": {
-          "audit_avg_cpu_seconds": 0.5167243897058822,
+          "audit_avg_cpu_seconds": 0.5167243897058824,
           "audit_mean_giga_instructions": 3.291768570448529,
           "budget_stop_count": 0,
           "error_count": 0,
@@ -59,8 +68,8 @@
           "failed_run": 0,
           "localized_count": 0,
           "localized_rate": 0.0,
-          "min_diagnosis_recall": 2.892827355130375,
-          "selected_fault_f1": 17.91316118522,
+          "min_diagnosis_recall": 2.8928273551303736,
+          "selected_fault_f1": 17.91316118522001,
           "tamper_detected": 0,
           "total_instances": 136
         }
@@ -79,10 +88,10 @@
           "localized_rate_obs30": 0.0,
           "localized_rate_obs40": 0.0,
           "localized_rate_obs50": 0.0,
-          "min_diagnosis_recall_obs10": 3.424447401454315,
+          "min_diagnosis_recall_obs10": 3.424447401454316,
           "min_diagnosis_recall_obs20": 2.5025440159795647,
           "min_diagnosis_recall_obs30": 5.029935071087456,
-          "min_diagnosis_recall_obs40": 2.396583068783589,
+          "min_diagnosis_recall_obs40": 2.3965830687835896,
           "min_diagnosis_recall_obs50": 0.881151868366898
         }
       }
@@ -110,7 +119,7 @@
           "localized_rate_stress_f3": 9.090909090909092,
           "localized_rate_stress_f5": 0.0,
           "localized_rate_stress_f7": 0.0,
-          "min_diagnosis_recall_stress": 10.58468008993216,
+          "min_diagnosis_recall_stress": 10.584680089932156,
           "total_instances_stress": 22
         }
       }

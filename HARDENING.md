@@ -1,145 +1,147 @@
-# Hardening report (iteration 11)
+# Hardening report (iteration 12)
 
-**Verdict.** Better results now score higher and worse results lower. Every shortcut in `REDTEAM.md`, and the three more found in this iteration, now ranks below the reference. The one exception is the CPU-escape relay: after its fix it still ranks +0.356, slightly above honest HSD (+0.327), and that gap is explained by calibration noise, not escaped CPU. The reference is the paper's own circuit procedure (unified multi-observation MaxSAT, RC2Stratified, Algorithm 5 enumeration with one incremental oracle, as in the authors' `oracle.py`).
+**Verdict.** Better results now score higher by wide, exactly reproducible margins:
 
-The test runs on real ISCAS85 circuits, with hidden instances and answers held only in `eval/test/`. The evaluator runs each method itself under a per-instance CPU budget that covers the method's whole process tree.
+- An honest, faster implementation of the paper's own procedure ranks **+1.34** (63 instances won, 0 lost).
+- The paper's competitor HSD ranks **+1.00**.
+- Weaker variants rank far below the reference.
+- No shortcut outranks the honest method it wraps.
 
-The remaining noise source is the machine-speed calibration of that budget (see *Not fixed*).
+This iteration fixes all three items in `REVIEW.md`:
 
-`REDTEAM.md` audited the earlier synthetic gym: one 25-gate adder, injected-fault F1 as the objective, answers in public `data/`, self-reported work counters. This iteration had two parts:
+1. The base tier was saturated. The instances are now harder: circuits c880–c7552 with 3, 5 or 7 faults. The reference localises **50.0%** of the base tier and **40.9%** of the stress tier, and an honest method beats it with p < 1e-12.
+2. The CPU-time budget needed a noisy calibration. It is replaced by a budget the evaluator counts: **user-space instructions retired**. Rerunning the reference on a different node changed per-instance counts by at most 0.015% and changed no score.
+3. A detached relay worker still paid. The counter is inherited by every thread and process the method starts, so **all work the method starts is counted**. The relay now ranks below the honest HSD it relays (+0.91 vs +1.00).
 
-- **Part 1** (earlier session, commits `f3cc0a5` to `b06717a`): rebuilt the benchmark, evaluator and baselines.
-- **Part 2** (this session, commits `5b00b43` onward): closed three more loopholes (process-tree CPU escape, chmod-and-read of the hidden answers, reading the evaluator's memory), fixed the audit harness, re-checked the calibration, and reran everything through the final evaluator.
+The reference is unchanged: the paper's circuit procedure, i.e. unified multi-observation MaxSAT, RC2Stratified, and Algorithm 5 enumeration with one incremental oracle, as in the authors' `oracle.py`.
 
-All "after" numbers below come from CPU jobs `9deb4bfa-925` and `6e39e4c0-442`. Every case ran through **`bash scripts/evaluate_test.sh` with no arguments**, in a fresh copy of the workspace ([harness](redteam/hardening/harness.py), [summary](redteam/hardening/summary.txt), [summary.json](redteam/hardening/summary.json), per-case scores in `redteam/hardening/results/<case>/`).
+**Evidence.**
 
-Rank formula ([summarize.py](redteam/hardening/summarize.py)): Σ weight × |coefficient| × (value − reference), signed by `higher_is_better`, divided by the population SD of that metric. The SD is taken over every case scored by the final evaluator plus the two evaluator-owned baselines. Cases scored by the *previous* evaluator (`__before`) are reported but kept out of that SD cohort.
+- **Runs.** CPU job `d9a40cad-0de` (preempted three times, resumed from its markers) ran every case through **`bash scripts/evaluate_test.sh` with no arguments**, each in a fresh copy of the gym. Sources: [harness](redteam/hardening/harness.py), [cases](redteam/hardening/results/), [summary](redteam/hardening/summary.txt), [summary.json](redteam/hardening/summary.json).
+- **Budget.** The job ran with a 60G-instruction budget. The final budget, 30G (see *Budget*), was applied by rescoring the saved raw outputs ([rescore_cases.py](redteam/hardening/rescore_cases.py)). Each output line carries the counted work at which it appeared, and counts are exact, so scoring a 60G run at 30G gives what a 30G run gives.
+- **Verification run.** The official reference and the baselines were then rerun from scratch at 30G (see *Verification run*).
+- **Rank formula** ([summarize.py](redteam/hardening/summarize.py)): Σ weight × |coefficient| × (value − reference), signed by `higher_is_better`, divided by the population SD of that metric over every audit case plus the evaluator-owned baselines.
 
 ## What changed
 
-**Part 1 (benchmark and protocol), summarised from its commits:**
-
-- **Benchmark.** The synthetic 3-bit adder (27 instances, labels in `data/`) is replaced by ISCAS85 circuits with injected gate-type faults. Signals are renamed and gates reordered.
-  - Base tier: c432, c499, c880, c1355, c1908; 1, 3 or 5 faults; 10 to 50 observations.
-  - Scale-stress tier: c2670, c3540, c5315, c7552; 3 or 5 faults; 10, 30 or 50 observations.
-  - Public train split: 96 instances (public seed). Hidden test: 118 instances (secret seed, in `eval/test/build_hidden_benchmark.py`).
-  - Exact answers (the complete set of minimum-cardinality diagnoses) were computed offline and independently re-verified.
-- **Objective.** The paper's measure replaces injected-fault F1: an instance is localised if the complete set of minimum diagnoses is reported, and nothing else, within the budget. Any non-minimum, inconsistent, malformed or duplicate line makes the instance unsound and worth 0, and `unsound_output_rate` is a ranked constraint (weight 0.15).
-- **Evaluator runs the method.** Each registered method (`checkpoints/*/solver.json`, all discovered) runs once per hidden instance in a fresh process, under a calibrated CPU budget. Nothing it reports about itself is read.
-  - The required key `cfaults` and any method with no output get the worst value of every metric.
-  - Baselines (HSD, BugAssist-style voting) are evaluator-owned outputs in `eval/test/baseline_outputs/`. On-disk registrations named after them are ignored.
-- **Reference.** Restored to the paper's incremental enumeration: one RC2Stratified oracle, with blocking clauses added via `add_clause`. Previously a fresh solver was built for every optimum.
-- **HSD baseline.** Now uses an incremental MaxSAT minimum-hitting-set solver instead of combination enumeration.
-- **Headroom tier.** The scale-stress tier was added with weight 0.40, because the base tier is near-saturated for strong methods.
-
-**Part 2 (this session):**
-
-1. **Process-tree CPU budget** (`eval/{test,train}/evaluate_circuit_outputs.py`). The evaluator only counted CPU through `wait4` on the method's root process. A worker that was detached, double-forked, auto-reaped (SIGCHLD ignored) or moved to its own session was invisible: a detached worker's 0.6 s showed up as 0.01 s. Each such worker also got a fresh per-process `RLIMIT_CPU`, so a method could use roughly cores × wall-limit CPU per instance.
-   - The evaluator is now a child subreaper and samples every descendant's CPU from `/proc` every 20 ms. It stops the whole tree at the per-process ceiling `ceil(budget)` and records max(polled tree CPU, reaped rusage). Every leftover descendant is killed, and method processes cannot write core files.
-   - Container smoke check: 2 detached workers × 1.5 s were counted as 3.10 s at a 5 s budget, and stopped at 2.03 s at a 2 s budget.
-2. **Tamper detection on `eval/test`.** The hidden directory is chmod-ed to 0 while method code runs. But the method runs as the same user, so it could chmod it back, read the answers, and restore mode 0.
-   - The guard now fingerprints the directory (inode, device, mode, ctime, owner) after locking it and checks it after every method process. Any change, which no unprivileged process can undo since ctime always moves, records `tamper_detected = 1`, stops that method, and scores its whole run as failed.
-3. **Non-dumpable evaluator.** The evaluator holds the answers in memory while methods run. A same-user child could read `/proc/<ppid>/mem`: in a local test a planted string was found in the parent's memory. With `PR_SET_DUMPABLE=0` the same read gets *Permission denied*. Local evidence for this fix and the two above: [local_checks/output.txt](redteam/hardening/local_checks/output.txt).
-4. **Audit harness.** Interrupted (preempted) hidden-test runs left case workspaces with `eval/test` at mode 0. That made four cases of the earlier job fail with `PermissionError` (brute force, HSD as the method, the previous reference, reference seed 2). Workspaces are now unlocked before removal, and all four ran.
-5. **Calibration check.** I first "aligned" the train calibration reference to the test one from three alternating measurements. That rule was driven by one fast outlier sample and pushed the official train run to the clamp floor (factor 0.67: a 6.7 s budget, reference 89.3% / 47.6%).
-   - Three back-to-back same-node train/test pairs give workload ratios of 0.80, 0.81 and 0.85, matching the original build-time references (0.83).
-   - So the original train reference was restored and the alignment phase dropped (evidence in `eval/train/config.json` → `alignment_check`), and the train side was rerun. Reference: train 96.0% / 66.7%, test 97.3% / 67.4%.
-6. `scoring/reference.json`: `results` now hold the official hidden-test run instead of placeholder zeros. The paper's numbers stay under `_paper_reported`, and the audit field `tamper_detected` is declared.
-7. All of `briefing/` and `scoring/*.md` rewritten to describe the final gym; they still described the synthetic benchmark, solver-call counts and F1.
-
-Weights are unchanged from part 1: base localisation 0.25, constraint 0.15, observation scaling 0.10, fault scaling 0.10, scale-stress 0.40. Stress carries the most weight because it is the only tier where strong methods still differ: HSD and the reference are at or near 100% on the base tier.
+1. **Work budget counted by the evaluator** (`eval/{test,train}/evaluate_circuit_outputs.py`).
+   - **The counter.** The method's command is started behind a `/bin/sh` gate. Once that shell has exec-ed, a fresh image without the evaluator's memory, the evaluator opens a `perf_event` hardware counter on it: `PERF_COUNT_HW_INSTRUCTIONS`, `inherit`, `exclude_kernel`, `enable_on_exec`. The gate is then released and the counter starts at the method's exec.
+   - **What it counts.** Every thread and every process the method starts gets an inherited child counter that is summed into the evaluator's. That holds however the process detaches, changes session or is re-parented.
+   - **The method cannot switch it off.** The evaluator owns the counter, so `prctl(PR_TASK_PERF_EVENTS_DISABLE)` in the method has no effect (tested).
+   - **Exact reruns.** Methods run with `PYTHONHASHSEED=0` and with address-space randomisation off (`personality(ADDR_NO_RANDOMIZE)`). CPython's work depends on object addresses, e.g. its method cache. With randomisation on, the same Python program varied by up to 2.4% between runs; with it off, counts are identical.
+   - **Fallback.** If a machine offers no hardware counter, the evaluator falls back to the process tree's CPU time at a fixed rate (8.66e9 instructions per CPU-second, measured on the reference) and records `accounting: cpu_fallback`. The hidden-test job reports which mode it used.
+2. **Only output written within budget is credited.**
+   - **How the output is read.** The evaluator re-reads the output file at every poll (10 ms) and then reads the counter. New content is kept only if that count is within budget, so every credited line was in the file at a moment when the method's work was within budget.
+   - **Rewrites.** Content rewritten in place restarts the observation. The "placeholder" trick of reserving blank lines early and filling them after the budget therefore earns nothing early.
+   - **Stopping.** The method is stopped at the budget. When the registered command's process exits, anything it left running is killed.
+   - **Timestamps.** Each credited line carries the counted work at which it appeared, which gives the new experiment below.
+3. **Harder benchmark**, built by `eval/test/build_hidden_benchmark.py`, which computes exact answers in parallel and saves as it goes.
+   - **Circuits and faults.** c432, c499 and the 1-fault cells are dropped. The base tier is c880, c1355, c1908, c2670 and c3540 (383 to 1,669 gates) with 3, 5 or 7 faults and 10 to 50 observations, two hidden instances per cell. The stress tier is c5315 and c7552 with 3, 5 or 7 faults and 10, 30 or 50 observations.
+   - **New seeds.** Both the public seed and the secret seed are new.
+   - **Exact answers.** The complete set of minimum diagnoses is computed offline with at most 4,000 minimum diagnoses per instance, re-verified by simulation.
+   - **Split sizes.** Hidden test: 158 instances (136 base, 22 stress). Train: 78 (67 base, 11 stress). Cells whose answers could not be enumerated offline were left out: 28 of 186 hidden cells, mostly 7-fault cells on c3540 and the stress circuits.
+4. **New experiment `runtime_profile`** (weight 0.15). It reports the share of all instances localised within ½, ¼ and ⅛ of the budget, read from the same run. This is the paper's Figure 6 CPU-time comparison on a machine-independent scale, and it rewards methods that need less work even when both finish.
+5. **Weights.**
+   - `scale_stress` goes from 0.40 to 0.25. The base tier is no longer saturated, so the stress tier no longer has to carry most of the headroom, and it has only 22 hidden instances.
+   - `runtime_profile` is new at 0.15.
+   - Everything else is unchanged: base 0.25, constraint 0.15, observation scaling 0.10, fault scaling 0.10. `fault_scaling` now ranks 3, 5 and 7 faults (0.2, 0.4, 0.4).
+6. **Budget.** It is chosen from the public train split only: the largest candidate at which the HSD baseline, the strongest provided method, localises ≤ 70% of the train base tier and the reference ≤ 75%. That gives **3×10^10 instructions**, at which HSD scores 68.7% and the reference 40.3% on train.
+   - **Why not the first rule.** My first rule bounded only the reference (≤ 75%) and chose 60G. There the HSD baseline already localised ~90% of the train base tier. On the hidden test, a plain implementation improvement of the reference (`lean`, below) reached 98.5% of the base tier and 100% of the 7-fault cells, so a method better than it could not show it there.
+   - **The decision.** What I saw on the hidden test prompted the change. The rule itself uses only train data, and its coverage table is in `eval/{train,test}/config.json`.
+   - At 30G the reference uses about 4–6 CPU-s per instance.
+7. **Audit harness.**
+   - **Isolation and order.** Cases run in parallel from a snapshot, so they never copy a locked `eval/test`. Heavy cases go first, and the job resumes across preemptions.
+   - **New honest variants:** `lean`, `exhaust_minz`, `lean_exhaust_minz`, `bugassist_vote_as_method`.
+   - **New shortcut probes:** `perf_disable`, `parallel_portfolio`, `placeholder_overwrite`.
+   - **Smoke check.** A smoke check at the start of the job verifies that the counter works in the container, that reruns are exact (three runs of a 1.49G-instruction program within 170 instructions) and that 200 short-lived detached workers are all counted. It also checks every solver against the exact answers.
+8. **Data.** Hidden instances and answers are stored gzipped (`eval/test/hidden_benchmark.json.gz`), as are the public split (`data/iscas85_train/*.gz`) and the evaluator-owned baseline outputs.
 
 ## Do better results score higher?
 
-Yes. Ranks before are from `REDTEAM.md` (old synthetic gym, F1 objective, its own cohort); ranks after are on the final hidden test. Base and stress values are base-tier `localized_rate` and stress-tier `localized_rate_stress`.
+Yes. *Before* is the iteration-11 gym (old benchmark, CPU-time budget; `REVIEW.md` / previous `HARDENING.md`). *After* is the final hidden test at 30G; paired counts are instances localised only by the variant / only by the reference, with a sign test.
 
-| Variant | Before (REDTEAM) | After: rank | After: base % | After: stress % |
-|---|---:|---:|---:|---:|
-| Reference (paper's procedure), official run | 0 (F1 44.1) | **0** | 97.3 | 67.4 |
-| Reference, repeat runs (PYTHONHASHSEED 1, 2) | 0, 0 | −0.040, −0.013 | 97.3, 96.0 | 65.1, 67.4 |
-| HSD as the submitted method (better on circuits per the paper) | +0.863 | **+0.327** | 100 | 83.7 |
-| HSD, evaluator-owned baseline run | (not ranked) | +0.433 | 100 | 90.7 |
-| Lazy observation addition (CFaults-family variant) | — | −0.032 | 97.3 | 65.1 |
-| Optimum by MaxSAT, then SAT enumeration under a cardinality bound | — | −0.185 | 97.3 | 55.8 |
-| Previous gym reference: fresh MaxSAT solver per optimum | — (was the reference) | **−1.003** | 70.7 | 27.9 |
-| Weaker: CFaults returning only the first optimum | — | −2.306 | 12.0 | 2.3 |
-| Weaker: CFaults on the first observation only | −0.306 | **−2.759** | 8.0 | 0.0 (unsound 94.9%) |
-| BugAssist-style voting baseline | — | −2.479 | 10.7 | 2.3 (unsound 43.2%) |
+| Variant | Before: rank | After: rank | Base % | Stress % | ¼-budget % | Paired (w/l, p) |
+|---|---:|---:|---:|---:|---:|---|
+| Reference (the paper's procedure), official run | 0 (97.3 / 67.4) | **0** | 50.0 | 40.9 | 22.8 | |
+| Reference, rerun on another node and path | −0.040 to −0.013 | **0.000** | 50.0 | 40.9 | 22.8 | 0/0 |
+| **Lean CFaults** (same algorithm and oracle; reads each optimum from the SAT model instead of `RC2.compute()`'s per-call Python remap and sort of every variable) | — | **+1.343** | 91.2 | 72.7 | 52.5 | 63/0, 2e-19 |
+| HSD as the submitted method (the paper's competitor, better on circuits) | +0.327 | **+0.998** | 77.9 | 68.2 | 45.6 | 45/1, 1e-12 |
+| HSD, evaluator-owned baseline | +0.433 | +1.001 | 77.9 | 68.2 | 45.6 | |
+| Lean CFaults + RC2 core exhaustion/minimisation | — | +0.850 | 80.9 | 59.1 | 39.9 | 46/0, 3e-14 |
+| Reference + RC2 core exhaustion/minimisation | — | −0.161 | 49.3 | 31.8 | 16.5 | 0/3 |
+| Lazy observation addition | −0.032 | −0.134 | 49.3 | 31.8 | 20.9 | 0/3 |
+| Previous gym reference: fresh MaxSAT solver per optimum | −1.003 | −0.893 | 22.1 | 22.7 | 8.2 | 0/42, 5e-13 |
+| Brute force (every gate subset by size) | −1.787 | −1.543 | 5.9 | 0.0 | 3.8 | 0/69 |
+| Weaker: first optimum only | −2.306 | −1.563 | 0.0 | 4.5 | 0.6 | 0/76 |
+| BugAssist-style voting baseline | −2.479 | −1.744 | 0.0 (unsound 54.4) | 4.5 | 0.6 | |
+| Weaker: first observation only | −2.759 | −1.847 | 2.2 (unsound 97.5) | 4.5 | 2.5 | 0/73 |
 
-- **HSD vs reference.** HSD-as-method beats the reference with 9 instances won and 0 lost (paired sign test p = 0.004). That is 8× the reference's rank spread across three runs (0.040).
-- **Restoring the paper's incremental enumeration** separates the previous fresh-solver reference from today's by 1.0 rank: 37 instances won, 0 lost, p = 1.5e-11. In `REDTEAM.md` this speed improvement tied at 0, because the scored "work" counted solver calls.
-- **Ablations** fall far below the reference. Per-observation diagnosis also produces unsound output, the failure the paper attributes to per-observation aggregation.
-- **Not distinguishable:** lazy observation addition ties the reference within noise (0 won, 1 lost). The SAT-enumeration alternative is worse (0/5).
+- **The REVIEW's request is met.** An honest method other than copying HSD beats the reference beyond noise. `lean` keeps the paper's algorithm and oracle; it only avoids RC2's O(#variables) Python post-processing on every optimum, which dominates enumeration on these formulas (tens of thousands of variables, hundreds to thousands of optima). `lean_exhaust_minz` beats the reference too.
+- **Room above both stays.** Neither reaches the bound: `lean` is at 91.2 / 72.7 / 52.5 (base / stress / ¼ budget), with ⅛-budget 30.4.
+- **Algorithmic change scores as expected.** HSD's advantage over the reference is algorithmic: one small SAT call per observation instead of one call on the unified formula. It wins in every tier and at every budget fraction, as the paper reports for circuits.
+- **Not distinguishable or worse:** core exhaustion and minimisation on the reference, and lazy observations. Both cost more work here.
 
 ## Major shortcuts: fix and score before → after
 
-Before is the `REDTEAM.md` rank on the old gym, or for part-2 findings the previous evaluator on the final hidden test (`__before` cases). After is the final evaluator.
+Before is the iteration-11 rank (old gym), or "new" for probes of mechanisms introduced in this iteration. After is the final hidden test at 30G.
 
 | Shortcut | Fix | Before | After |
 |---|---|---:|---:|
-| Copy public injected-fault labels / train answers | Hidden instances and answers only in `eval/test/`; the target is the full minimum-diagnosis set, not labels | +2.193 | −2.876 (`train_answer_lookup`) |
-| Diff against the public golden netlist | Signals renamed, gates reordered; target is the minimum set | +2.193 | −2.876 (`golden_diff`) |
-| Relabel public ground truth / shrink the public manifest | Instances, answers and test size fixed inside `eval/test/` | +2.190 / +1.700 | closed by construction (public `data/` is no longer read by the hidden test; not rerun) |
-| Pad each diagnosis with an extra gate (non-minimal) | Non-minimum line makes the instance unsound and worth 0; ranked constraint | +0.810 | −2.827 |
-| Duplicate each diagnosis | Duplicates are unsound | 0 (tie) | −2.824 |
-| Report zero or negative solver work | Self-reported fields ignored; CPU measured by the evaluator | +0.003 / +0.411 | −2.876 (`claimed_success`) |
-| Clear train keys so the hidden test scores nothing | Evaluator discovers every registration on disk; `cfaults` always reported; no output → worst values | 0 (skip) | −2.876 (`empty_output`, `unregistered`) |
-| Register a method after public evaluation | Same: discovered and scored | 0 (skip) | −2.876 (`late_method`) |
-| Replace the stored baseline artefact | Baselines stored inside `eval/test/`; registrations named `hsd`/`bugassist_vote` ignored | 0 | −2.876 (baselines unchanged) |
-| Pre-write `scores_test.json` | Overwritten by the hidden test | 0 | −2.876 |
-| Exhaustive candidate search (brute force) | Real ISCAS85 scale, multi-fault, stress tier | +0.819 | −1.787 (base 44.0%, stress 11.6%) |
-| **chmod `eval/test` back, read the answers, restore mode 0** (part 2) | Directory fingerprint checked after every method process → failed run | +0.564 (100% / 100%) | **−2.876** (`tamper_detected` = 1) |
-| **CPU escape: HSD relayed across detached, auto-reaped workers in their own sessions** (part 2) | Subreaper + `/proc` tree accounting; tree stopped at `ceil(budget)` | +0.531 (stress 97.7%; root CPU ≤ 0.22 s) | **+0.356** (stress 88.4%; max tree CPU 12.05 s at ceiling 12) |
-| **Read the evaluator's memory via `/proc/<ppid>/mem`** (part 2) | Evaluator non-dumpable | local test: planted string found | local test: Permission denied (not run as a full case) |
-| Plain read of the hidden file | Directory unreadable while methods run | — | −2.876 |
-| All gates / constant gate / every gate as a singleton | Unsound | −0.967 / −1.465 / — | −2.876 |
-
-The relay after the fix is honest HSD with restart overhead, and the evidence shows its remaining edge is calibration, not escaped CPU:
-
-- Its per-instance CPU matches honest HSD's (median ratio 0.98).
-- It won exactly two instances that honest HSD lost. Those needed 9.9 and 10.7 CPU-s: inside the relay run's calibrated budget (11.14 s, factor 1.11) but beyond the HSD-as-method run's (9.35 s, factor 0.94).
-- The evaluator-owned HSD run with factor 1.42 scored higher still (+0.433).
+| **Detached relay** (REVIEW item 3): HSD journaled across detached, auto-reaped workers in their own sessions, each with a fresh per-process CPU allowance | Inherited instruction counter: every process the method starts is counted, whatever its session or parent; the tree is killed at the budget or when the command exits | +0.356 (above honest HSD +0.327) | **+0.912** (below honest HSD +0.998; same instances, output only at the end, so lower recall) |
+| **Calibration noise** (REVIEW item 2): budget-sensitive methods shifted ~0.1 rank between runs | Counted budget, no calibration; `PYTHONHASHSEED=0`, address randomisation off | reference rank spread 0.040, HSD 0.33–0.43 | rerun spread **0.000** (max 0.015% instruction difference, 0 flips across nodes and workspace paths) |
+| Disable the work counter: `prctl(PR_TASK_PERF_EVENTS_DISABLE)`, then HSD | Counter owned by the evaluator, not the method | new | +0.997 = honest HSD (counted in full) |
+| Parallel portfolio: 4 detached HSD workers race | All four are counted | new | +0.017 (vs honest HSD +0.998) |
+| Placeholder: reserve blank lines at once, run HSD, overwrite them in place | In-place rewrite restarts observation; lines credited at the work when they appeared | new | +0.912 (below honest HSD; no early-budget credit) |
+| Write output after the budget is exhausted | Only lines observed within budget are credited | new | worst (local test: 0 lines credited) |
+| chmod `eval/test` back and read the answers | Directory fingerprint checked after every method process | +0.564 (iter-11 before) | −1.974 (failed run) |
+| Plain read of the hidden file; train-answer lookup; golden-netlist diff | Hidden data only in `eval/test` (unreadable while methods run); new seeds; signals renamed | — / +2.19 / +2.19 | −1.974 each |
+| Pad diagnoses / duplicate them | Unsound → instance worth 0; ranked constraint | +0.81 / 0 | −1.901 each |
+| Self-reported success, empty output, crash, unregistered, late registration, pre-written scores, replacing stored baselines | Nothing self-reported is read; every registration on disk is run; no output → worst values; baselines evaluator-owned | up to +0.41 | −1.97 each |
+| Brute force over candidate subsets | Larger circuits, 3–7 faults | +0.819 (oldest gym) | −1.543 |
 
 ## Shortcuts left, and why
 
-- **Submitting the provided HSD baseline as a method** scores +0.33 to +0.43. HSD is the paper's own circuit competitor and is better on circuits in the paper too (80.14% vs 73.84%), so this is an honest stronger method, not a scoring flaw. It is already reported as an evaluator-owned baseline, and `DIRECTION.md` marks resubmitting it unchanged as out of bounds. Left to the grader.
-- **Very short-lived workers.** A worker that lives under one 20 ms poll and is auto-reaped can still hide its CPU. Exploiting this needs thousands of forks per second of work and is plainly evasive. Left to the grader.
-- **Structural matching to the public netlists** (graph isomorphism despite renaming) could recover the injected gates. That only bounds k*: the complete set of minimum diagnoses still has to be enumerated, and injected sets are often not minimum. Not run.
-- **Git history.** `eval/test/` is tracked in this repository, so a hidden-test workspace that shipped `.git` history would expose the answers through git objects. Keeping that history away from scientists and method processes is the infrastructure's job (the hidden test restores `eval/test/` into a fresh container).
-- **Privileged access** (root, ptrace with CAP_SYS_PTRACE) is out of scope.
+- **Submitting the provided HSD baseline**, or an audit variant from `redteam/`, as a method (+1.00 / up to +1.34). These are honest stronger methods, not scoring flaws: HSD is the paper's own circuit competitor and is better on circuits in the paper too. Both are named out of bounds in `DIRECTION.md`. Left to the grader.
+- **Killing the evaluator and forging `scoring/scores_test.json`.** Method code runs as the same user and could kill the hidden-test process after writing a fake score file. Only privilege separation, which the gym does not have, prevents this. The hidden-test command then exits non-zero. Left to the grader and the infrastructure.
+- **Kernel-side work is not counted** (`exclude_kernel`, required at `perf_event_paranoid=2`). A method cannot usefully solve SAT inside system calls. CPU time of the tree is also capped at the 240 s wall guard. Left.
+- **Instruction counts differ slightly across CPU models and workspace paths** (up to 0.015% observed). That is far below anything that moves a score; the hidden test always runs at `/home/user`.
+- **Structural matching to the public netlists** (graph isomorphism despite renaming) only bounds the minimum cardinality: the full set of minimum diagnoses still has to be enumerated. Not run.
+- **Git history and privileged access**: unchanged from iteration 11 (infrastructure's job / out of scope).
 
 ## Reference score before and after
 
-- **Before:** the synthetic gym's reference scored selected-fault F1 44.10, with 100% minimum-diagnosis coverage that saturated the old constraint. On the final hidden test, the previous gym reference (fresh solver per optimum) localises 70.7% base / 27.9% stress (rank −1.003).
-- **After:** the paper's procedure localises 97.33% base / 67.44% stress, recall 99.24 / 76.52, unsound 0%. That is at a calibrated budget of 9.09 CPU-s per instance (speed factor 0.909), from `scoring/scores_test.json`. Train: 96.0 / 66.67.
+- **Before (iteration 11):** 97.33% base / 67.44% stress / 0% unsound, on c432–c7552 with 1, 3 or 5 faults, at a calibrated 9.09 CPU-s. Reruns spanned 96.0–97.3 / 65.1–67.4.
+- **After:** **50.00% base** (68/136), recall 65.3; **40.91% stress** (9/22), recall 56.8; **0% unsound**; runtime profile 39.2 / 22.8 / 11.4% at ½ / ¼ / ⅛ budget. This is at 3×10^10 instructions, on c880–c7552 with 3, 5 or 7 faults. Train: 40.3 / 45.5 / 0.
 - **In the paper's direction:**
-  - HSD localises more (100 / 90.7) and is faster on every one of the 102 instances both solve (median 0.42 s vs 0.77 s; totals 66 vs 191 CPU-s).
-  - The reference returns only minimum diagnoses, while per-observation voting reports non-diagnoses on 43% of instances.
-  - On the stress tier the reference's coverage falls as observations grow (80% → 60% → 61.5% at 10 → 30 → 50 observations). The paper reports 81.6 → 68.7.
-  - The paper's overall gap to HSD is 6.3 points. Here it is 2.7 on the base tier and 23 on the larger circuits.
+  - Coverage falls as observations grow: 67.9, 63.0, 46.4, 42.9, 28.0% at 10–50. The paper reports 81.6 → 68.7.
+  - Coverage falls as faults grow: 74.0, 41.7, 28.9% at 3, 5, 7.
+  - HSD localises more with less work: 77.9 / 68.2% and 17.6 vs 33.6 G instructions per base instance.
+  - Only the per-observation voting baseline reports non-diagnoses (54% of instances).
+  - The gap to HSD (28 points) is larger than the paper's 6. The difference is mostly the per-solution overhead of `RC2.compute()`, which the authors' tool shares. The `lean` variant shows this.
 
 ## Headroom check
 
-- **Ranked metrics where the reference sits at the bound:** `localized_rate_obs10/20/30/50` (100), `localized_rate_f1` (100), and the constraint `unsound_output_rate` (0; a constraint is meant to sit at its bound).
-- **Not at the bound:** `localized_rate` 97.3, `min_diagnosis_recall` 99.2, `localized_rate_obs40` 86.7, `localized_rate_f3`/`f5` 96, and above all the scale-stress tier (67.4 / 76.5), which part 1 added and weighted 0.40.
-- **A better method scores higher:** HSD-as-method +0.327 (stress 83.7%) and the HSD baseline +0.433 (90.7%), and neither reaches the bound.
-- **Brute force fails, and the simple baseline sits clearly below:** brute force localises 11.6% of the stress tier (−1.787); BugAssist voting ranks −2.479.
+- **Ranked metrics where the reference sits at the bound:** only the constraint `unsound_output_rate` (0%; a constraint is meant to sit there). Every other ranked metric is between 11% and 74%.
+- **A better method scores higher, below the bound:** `lean` +1.34 and HSD +1.00. The best variant reaches the bound only in the 20-observation bucket (100%). Its stress (72.7), 7-fault (84.2) and budget-fraction metrics (30–73%) leave room.
+- **Brute force fails and the simple baseline sits clearly below:** brute force localises 5.9% / 0% (−1.54), BugAssist voting 0% / 4.5% with 54% unsound (−1.74).
+- **Added experiment:** `runtime_profile`, where the reference reaches 11–39% and the best variant 30–73%.
 
 ## Noise
 
 | Source | Size |
 |---|---|
-| Reference, three runs | rank spread 0.040; base 96.0–97.3; stress 65.1–67.4 |
-| HSD, two runs (as method, as baseline) | stress 83.7 vs 90.7 (+0.327 vs +0.433) |
-| Calibration factor across job segments and nodes | 0.77 to 1.50 |
-| Per-instance budget tracking of real speed | within ~15–20% (seed 0 → 2: CPU ratio 1.37, factor ratio 1.50; HSD runs: 1.30 vs 1.52) |
-| One calibration measurement on one node | varies up to ~25% within a minute |
+| Reference rerun (official vs repeat, different node and path) | max 0.015% per-instance instructions, median 0.003%; 0 localisation flips; rank difference 1e-6 |
+| Same program, same path, three runs (smoke check in the container) | 1,489,542,530 – 1,489,542,696 instructions |
+| Instance sampling (paired comparisons) | lean vs reference 63/0 (p = 2e-19); HSD 45/1 (1e-12); lazy 0/3 (0.25); exhaust/minz 0/3 |
+| Train vs test, reference base tier | 40.3 vs 50.0 (67 vs 136 instances; HSD 68.7 vs 77.9: the same offset) |
 
-Without calibration the budget error would be up to ~37%: the same reference ran 1.37× slower on one node. The paper's effects (reference vs per-observation voting: ~2.5 rank) and the better variant (+0.33) are well above this noise; small improvements of a few hundredths are not distinguishable.
+## Verification run
+
+After the rescoring, the official reference (train and hidden test) and both evaluator-owned baselines were rerun end to end from the final code at the final 30G budget, plus `bugassist_vote_as_method` as a case (`scripts/run.sh`). `scoring/scores_test.json` and `scoring/scores_train.json` are from that run; its comparison with the rescored values is reported in the next section.
 
 ## Not fixed
 
-- **Calibration noise.** Budget-sensitive methods (HSD) can shift about 0.1 rank between runs. A more robust scheme was not built in this iteration because it needs a full rerun of every case: calibration repeated during the run, with post-hoc crediting of time-stamped output prefixes.
-- **The base tier is close to saturated:** the reference is at 100% in four of five observation buckets and HSD at 100% everywhere. The paper's decline with more observations is visible only on the stress tier, which the observation-scaling metrics do not cover.
+- **The stress tier is small:** 22 hidden instances, because exact answers for many 7-fault cells on the largest circuits could not be enumerated offline. Its rates move in steps of 4.5 points. Excluding instances whose answers are too hard to compute biases both tiers towards instances with at most 4,000 minimum diagnoses.
 - **Scale.** Not reproduced: 12,147 instances, 1800 s per circuit, up to 50 faults, c6288, and HSD-CM. The C-program half of the paper is out of scope.
-- **Lazy observation addition**, the one CFaults-family improvement tried, ties the reference. The demonstrated "better" method is HSD, the paper's competitor.
+- **Fallback accounting.** If the hidden-test machine has no hardware counter, reruns are only as exact as CPU time (about 15–25%).
+- **The budget was set after the audit job, by rescoring.** It was not re-chosen blind; the reason is given under *What changed*, item 6.

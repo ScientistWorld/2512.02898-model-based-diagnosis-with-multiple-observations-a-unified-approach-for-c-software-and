@@ -79,10 +79,11 @@ MAX_ATTEMPTS = {"base": 3, "stress": 2}
 BUILD_DEADLINE_SECONDS = {"train": 40 * 60, "test": 80 * 60}  # remaining cells are skipped after it
 
 # Per-instance budget: user-space instructions retired by the method's process tree.
-BUDGET_VERSION = 1
+BUDGET_VERSION = 2
 BUDGET_CANDIDATES = tuple(int(x * 1e9) for x in (5, 7.5, 10, 15, 20, 25, 30, 40, 50, 60))
 PROBE_CAP = int(80e9)
-TARGET_MAX_TRAIN_COVERAGE = 75.0
+TARGET_MAX_HSD_TRAIN_COVERAGE = 70.0  # the strongest provided method must leave >= 30% of the main tier unsolved
+TARGET_MAX_TRAIN_COVERAGE = 75.0  # and the reference must leave >= 25% unsolved
 BUDGET_FRACTIONS = {"half_budget": 0.5, "quarter_budget": 0.25, "eighth_budget": 0.125}
 WALL_LIMIT_SECONDS = 240.0
 DEFAULT_FALLBACK_RATE = 5e9  # instructions per CPU-second; replaced by the probe's measured rate
@@ -411,7 +412,34 @@ def _localized_at(record: dict, truth_entry: dict, budget: float) -> bool:
     return len(got) == len(set(got)) == len(expected) and set(got) == expected
 
 
+def _probe(name: str, command: list[str] | None) -> dict:
+    """Records of one method on the public train split, run up to PROBE_CAP instructions."""
+    runs = REPO_ROOT / "eval" / "train" / "runs" / f"budget_probe{'' if name == 'cfaults' else '_' + name}.json.gz"
+    if not runs.exists() and name == "hsd":
+        stored = REPO_ROOT / "eval" / "train" / "baseline_outputs" / "hsd.json.gz"
+        if stored.exists() and float(read_json(stored).get("run", {}).get("cap", 0)) >= max(BUDGET_CANDIDATES):
+            return read_json(stored)  # stored baseline run reaches every candidate budget
+    if not runs.exists():
+        if command is None:
+            subprocess.run([sys.executable, "-I", evaluator("train"), "--instruction-cap", str(PROBE_CAP), "--methods",
+                            "cfaults", "--runs-name", "budget_probe", "--out",
+                            str(REPO_ROOT / "tmp" / "budget_probe_scores.json")], cwd=REPO_ROOT, check=True)
+        else:
+            tmp_name = f"probe_{name}"
+            subprocess.run([sys.executable, "-I", evaluator("train"), "--instruction-cap", str(PROBE_CAP),
+                            "--store-baseline", tmp_name, "--command-json", json.dumps(command)], cwd=REPO_ROOT, check=True)
+            (REPO_ROOT / "eval" / "train" / "baseline_outputs" / f"{tmp_name}.json.gz").replace(runs)
+    return read_json(runs)
+
+
 def phase_budget() -> None:
+    """Choose the per-instance instruction budget from the PUBLIC train split only.
+
+    Rule: the largest candidate at which the strongest provided method (the HSD
+    baseline, the paper's circuit competitor) localises at most 70% of the
+    train base tier and the reference at most 75%: methods better than the
+    provided ones keep room to score higher.  Smallest candidate if none.
+    """
     ensure_configs()
     tcfg = json.loads(TRAIN_CONFIG.read_text())
     if tcfg.get("budget_selection", {}).get("version") == BUDGET_VERSION:
@@ -420,34 +448,39 @@ def phase_budget() -> None:
     reg = REPO_ROOT / "checkpoints" / "cfaults_circuit" / "solver.json"
     if not reg.exists():
         subprocess.run([sys.executable, "method/cfaults_circuit.py", "--register"], cwd=REPO_ROOT, check=True)
-    probe_runs = REPO_ROOT / "eval" / "train" / "runs" / "budget_probe.json.gz"
-    if not probe_runs.exists():
-        subprocess.run([sys.executable, "-I", evaluator("train"), "--instruction-cap", str(PROBE_CAP), "--methods",
-                        "cfaults", "--runs-name", "budget_probe", "--out", str(REPO_ROOT / "tmp" / "budget_probe_scores.json")],
-                       cwd=REPO_ROOT, check=True)
-    payload = read_json(probe_runs)
-    records = {r["id"]: r for r in payload["records"]}
+    probes = {"cfaults": _probe("cfaults", None), "hsd": _probe("hsd", BASELINES["hsd"])}
     instances, truth = read_jsonl(TRAIN_DIR / INSTANCES_FILE), read_json(TRAIN_DIR / GROUND_TRUTH_FILE)
     tiers = {"base": [i for i in instances if i["tier"] == "base"], "stress": [i for i in instances if i["tier"] == "stress"],
              "all": instances}
     coverage = {}
-    for b in BUDGET_CANDIDATES + (PROBE_CAP,):
-        coverage[f"{b / 1e9:g}G"] = {
-            tier: 100.0 * sum(1 for i in group if _localized_at(records.get(i["id"], {}), truth[i["id"]], b)) / max(1, len(group))
-            for tier, group in tiers.items()}
-    eligible = [b for b in BUDGET_CANDIDATES if coverage[f"{b / 1e9:g}G"]["base"] <= TARGET_MAX_TRAIN_COVERAGE]
+    for name, payload in probes.items():
+        records = {r["id"]: r for r in payload["records"]}
+        cap = float(payload.get("run", {}).get("cap", PROBE_CAP))
+        coverage[name] = {}
+        for b in BUDGET_CANDIDATES + (PROBE_CAP,):
+            if b > cap:
+                continue
+            coverage[name][f"{b / 1e9:g}G"] = {
+                tier: 100.0 * sum(1 for i in group if _localized_at(records.get(i["id"], {}), truth[i["id"]], b)) / max(1, len(group))
+                for tier, group in tiers.items()}
+    eligible = [b for b in BUDGET_CANDIDATES
+                if coverage["hsd"][f"{b / 1e9:g}G"]["base"] <= TARGET_MAX_HSD_TRAIN_COVERAGE
+                and coverage["cfaults"][f"{b / 1e9:g}G"]["base"] <= TARGET_MAX_TRAIN_COVERAGE]
     chosen = max(eligible) if eligible else min(BUDGET_CANDIDATES)
-    finished = [r for r in payload["records"] if r.get("status") == "ok" and r.get("cpu_seconds", 0) > 0.2
+    finished = [r for r in probes["cfaults"]["records"] if r.get("status") == "ok" and r.get("cpu_seconds", 0) > 0.2
                 and r.get("accounting") == "perf"]
     rate = (sum(r["instructions"] for r in finished) / sum(r["cpu_seconds"] for r in finished)) if finished else DEFAULT_FALLBACK_RATE
     selection = {
         "version": BUDGET_VERSION,
-        "rule": f"largest candidate budget at which the reference localises <= {TARGET_MAX_TRAIN_COVERAGE}% of the "
-                "public TRAIN base tier (at least a quarter of the main tier left unsolved: headroom); "
-                "smallest candidate if none",
+        "rule": f"largest candidate budget at which the HSD baseline (strongest provided method) localises <= "
+                f"{TARGET_MAX_HSD_TRAIN_COVERAGE}% and the reference <= {TARGET_MAX_TRAIN_COVERAGE}% of the public TRAIN "
+                "base tier (room above the provided methods); smallest candidate if none",
+        "history": "hardening 12 first used the reference-only rule (<= 75%), which chose 60G; there the HSD baseline "
+                   "already localised ~90% of the train base tier and a simple implementation improvement of the "
+                   "reference nearly saturated the main tier, so the rule now bounds the strongest provided method.",
         "candidates_giga_instructions": [b / 1e9 for b in BUDGET_CANDIDATES],
         "probe_cap_giga_instructions": PROBE_CAP / 1e9,
-        "train_reference_coverage_pct": coverage,
+        "train_coverage_pct": coverage,
         "chosen_giga_instructions": chosen / 1e9,
         "fallback_rate_note": "instructions per CPU-second of the reference on the train probe (used only if the "
                               "hidden-test machine has no hardware instruction counter)",

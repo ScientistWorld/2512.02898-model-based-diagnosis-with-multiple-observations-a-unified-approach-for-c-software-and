@@ -4,6 +4,10 @@
 
 ## Progress Log
 
+### [2026-11-14 02:30] - core_claim
+- Hardening iteration 12: the work budget is now user-space instructions counted by the evaluator over the method's whole process tree (exact on reruns), and only output written within budget is credited; the benchmark is harder (c880-c7552, 3/5/7 faults, 158 hidden instances) and a runtime-profile experiment (paper Fig. 6) was added.
+- The reproduced CFaults circuit method (unified multi-observation MaxSAT, RC2Stratified, incremental Algorithm 5 enumeration) localises 50.0% of the hidden base tier and 40.9% of the scale-stress tier with no unsound output; its coverage falls with more observations (67.9% -> 28.0%) and more faults, HSD localises more with less work (77.9% / 68.2%), and per-observation voting reports non-diagnoses on 54% of instances: the paper's circuit claims in direction (HARDENING.md).
+
 ### [2026-11-13 00:30] - core_claim
 - Hardening iteration 11 (part 2): the reproduced CFaults circuit method (unified multi-observation MaxSAT, RC2Stratified, incremental Algorithm 5 enumeration) localises 97.3% of the hidden base-tier and 67.4% of the hidden scale-stress ISCAS85 instances with no unsound output; HSD 100% / 90.7% and faster, per-observation voting 10.7% / 2.3% with 43% unsound, matching the paper's circuit claims in direction.
 - Closed CPU-escape, chmod-and-read and evaluator-memory loopholes; every shortcut now ranks below the reference (HARDENING.md).

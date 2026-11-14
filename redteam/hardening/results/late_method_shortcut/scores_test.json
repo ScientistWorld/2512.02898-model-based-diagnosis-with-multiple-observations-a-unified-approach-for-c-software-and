@@ -8,7 +8,7 @@
         "half_budget": 0.5,
         "quarter_budget": 0.25
       },
-      "instruction_budget": 60000000000,
+      "instruction_budget": 30000000000.0,
       "unit": "user-space instructions retired by the method's whole process tree",
       "wall_limit_seconds": 240.0
     },
@@ -17,6 +17,15 @@
       "cfaults",
       "late_method"
     ],
+    "rescored": {
+      "budget_fractions": {
+        "eighth_budget": 0.125,
+        "half_budget": 0.5,
+        "quarter_budget": 0.25
+      },
+      "instruction_budget": 30000000000.0,
+      "note": "rescored from the saved raw outputs of the audit job (run with a 60G cap)"
+    },
     "slice": "test"
   },
   "experiments": {
@@ -73,7 +82,7 @@
     "iscas85_localisation": {
       "results": {
         "cfaults": {
-          "audit_avg_cpu_seconds": 0.16112242647058828,
+          "audit_avg_cpu_seconds": 0.16112242647058822,
           "audit_mean_giga_instructions": 0.7728922695073529,
           "budget_stop_count": 0,
           "error_count": 0,
@@ -87,7 +96,7 @@
           "total_instances": 136
         },
         "late_method": {
-          "audit_avg_cpu_seconds": 0.15665686764705877,
+          "audit_avg_cpu_seconds": 0.1566568676470588,
           "audit_mean_giga_instructions": 0.7728639558823529,
           "budget_stop_count": 0,
           "error_count": 0,

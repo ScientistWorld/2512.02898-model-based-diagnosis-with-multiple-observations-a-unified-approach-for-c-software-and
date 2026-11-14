@@ -17,71 +17,126 @@
       50.0,
       60.0
     ],
-    "chosen_giga_instructions": 60.0,
+    "chosen_giga_instructions": 30.0,
     "fallback_rate_note": "instructions per CPU-second of the reference on the train probe (used only if the hidden-test machine has no hardware instruction counter)",
+    "history": "hardening 12 first used the reference-only rule (<= 75%), which chose 60G; there the HSD baseline already localised ~90% of the train base tier and a simple implementation improvement of the reference nearly saturated the main tier, so the rule now bounds the strongest provided method.",
     "probe_cap_giga_instructions": 80.0,
-    "rule": "largest candidate budget at which the reference localises <= 75.0% of the public TRAIN base tier (at least a quarter of the main tier left unsolved: headroom); smallest candidate if none",
-    "train_reference_coverage_pct": {
-      "10G": {
-        "all": 28.205128205128204,
-        "base": 29.850746268656717,
-        "stress": 18.181818181818183
+    "rule": "largest candidate budget at which the HSD baseline (strongest provided method) localises <= 70.0% and the reference <= 75.0% of the public TRAIN base tier (room above the provided methods); smallest candidate if none",
+    "train_coverage_pct": {
+      "cfaults": {
+        "10G": {
+          "all": 28.205128205128204,
+          "base": 29.850746268656717,
+          "stress": 18.181818181818183
+        },
+        "15G": {
+          "all": 33.333333333333336,
+          "base": 32.83582089552239,
+          "stress": 36.36363636363637
+        },
+        "20G": {
+          "all": 37.17948717948718,
+          "base": 37.3134328358209,
+          "stress": 36.36363636363637
+        },
+        "25G": {
+          "all": 39.743589743589745,
+          "base": 38.80597014925373,
+          "stress": 45.45454545454545
+        },
+        "30G": {
+          "all": 41.02564102564103,
+          "base": 40.298507462686565,
+          "stress": 45.45454545454545
+        },
+        "40G": {
+          "all": 46.15384615384615,
+          "base": 46.26865671641791,
+          "stress": 45.45454545454545
+        },
+        "50G": {
+          "all": 53.84615384615385,
+          "base": 53.73134328358209,
+          "stress": 54.54545454545455
+        },
+        "5G": {
+          "all": 11.538461538461538,
+          "base": 11.940298507462687,
+          "stress": 9.090909090909092
+        },
+        "60G": {
+          "all": 57.69230769230769,
+          "base": 58.208955223880594,
+          "stress": 54.54545454545455
+        },
+        "7.5G": {
+          "all": 19.23076923076923,
+          "base": 20.895522388059703,
+          "stress": 9.090909090909092
+        },
+        "80G": {
+          "all": 65.38461538461539,
+          "base": 62.6865671641791,
+          "stress": 81.81818181818181
+        }
       },
-      "15G": {
-        "all": 33.333333333333336,
-        "base": 32.83582089552239,
-        "stress": 36.36363636363637
-      },
-      "20G": {
-        "all": 37.17948717948718,
-        "base": 37.3134328358209,
-        "stress": 36.36363636363637
-      },
-      "25G": {
-        "all": 39.743589743589745,
-        "base": 38.80597014925373,
-        "stress": 45.45454545454545
-      },
-      "30G": {
-        "all": 41.02564102564103,
-        "base": 40.298507462686565,
-        "stress": 45.45454545454545
-      },
-      "40G": {
-        "all": 46.15384615384615,
-        "base": 46.26865671641791,
-        "stress": 45.45454545454545
-      },
-      "50G": {
-        "all": 53.84615384615385,
-        "base": 53.73134328358209,
-        "stress": 54.54545454545455
-      },
-      "5G": {
-        "all": 11.538461538461538,
-        "base": 11.940298507462687,
-        "stress": 9.090909090909092
-      },
-      "60G": {
-        "all": 57.69230769230769,
-        "base": 58.208955223880594,
-        "stress": 54.54545454545455
-      },
-      "7.5G": {
-        "all": 19.23076923076923,
-        "base": 20.895522388059703,
-        "stress": 9.090909090909092
-      },
-      "80G": {
-        "all": 65.38461538461539,
-        "base": 62.6865671641791,
-        "stress": 81.81818181818181
+      "hsd": {
+        "10G": {
+          "all": 51.282051282051285,
+          "base": 52.23880597014925,
+          "stress": 45.45454545454545
+        },
+        "15G": {
+          "all": 58.97435897435897,
+          "base": 58.208955223880594,
+          "stress": 63.63636363636363
+        },
+        "20G": {
+          "all": 67.94871794871794,
+          "base": 65.67164179104478,
+          "stress": 81.81818181818181
+        },
+        "25G": {
+          "all": 69.23076923076923,
+          "base": 67.16417910447761,
+          "stress": 81.81818181818181
+        },
+        "30G": {
+          "all": 71.7948717948718,
+          "base": 68.65671641791045,
+          "stress": 90.9090909090909
+        },
+        "40G": {
+          "all": 79.48717948717949,
+          "base": 76.11940298507463,
+          "stress": 100.0
+        },
+        "50G": {
+          "all": 84.61538461538461,
+          "base": 82.08955223880596,
+          "stress": 100.0
+        },
+        "5G": {
+          "all": 33.333333333333336,
+          "base": 35.82089552238806,
+          "stress": 18.181818181818183
+        },
+        "60G": {
+          "all": 91.02564102564102,
+          "base": 89.55223880597015,
+          "stress": 100.0
+        },
+        "7.5G": {
+          "all": 38.46153846153846,
+          "base": 38.80597014925373,
+          "stress": 36.36363636363637
+        }
       }
     },
-    "version": 1
+    "version": 2
   },
   "fallback_instructions_per_cpu_second": 8656000000.0,
-  "instruction_budget": 60000000000.0,
+  "instruction_budget": 30000000000.0,
   "required_methods": [
     "cfaults"
   ],
