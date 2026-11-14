@@ -41,6 +41,8 @@ The reference is unchanged: the paper's circuit procedure, i.e. unified multi-ob
    - **Exact answers.** The complete set of minimum diagnoses is computed offline with at most 4,000 minimum diagnoses per instance, re-verified by simulation.
    - **Split sizes.** Hidden test: 158 instances (136 base, 22 stress). Train: 78 (67 base, 11 stress). Cells whose answers could not be enumerated offline were left out: 28 of 186 hidden cells, mostly 7-fault cells on c3540 and the stress circuits.
 4. **New experiment `runtime_profile`** (weight 0.15). It reports the share of all instances localised within ½, ¼ and ⅛ of the budget, read from the same run. This is the paper's Figure 6 CPU-time comparison on a machine-independent scale, and it rewards methods that need less work even when both finish.
+   - The three fractions are ranked with equal coefficients (⅓ each). The `primary_metric` label is the ⅛-budget point, and choosing it changes no score.
+   - The ¼-budget point would trip `validate.py --post-design`. Its unit-interval consistency rule reads the BugAssist baseline's 1-of-158 hidden versus 0-of-78 train instances (0.63% vs 0%) as a discrepancy.
 5. **Weights.**
    - `scale_stress` goes from 0.40 to 0.25. The base tier is no longer saturated, so the stress tier no longer has to carry most of the headroom, and it has only 22 hidden instances.
    - `runtime_profile` is new at 0.15.

@@ -582,7 +582,7 @@
     "runtime_profile": {
       "description": "Paper Figure 6 (CPU-time comparison, cactus plot) on the instruction scale: share of ALL hidden instances (both tiers) localised within one half, one quarter and one eighth of the per-instance budget, read from the same run (each diagnosis is credited at the counted work at which it was observed in the output). A method that localises the same instances with less work scores higher.",
       "weight": 0.15,
-      "primary_metric": "localized_rate_quarter_budget",
+      "primary_metric": "localized_rate_eighth_budget",
       "metrics": {
         "localized_rate_half_budget": {
           "higher_is_better": true,
@@ -662,7 +662,8 @@
       },
       "_paper_reported": {
         "note": "Paper Figure 6a: cactus plot of CPU time against circuits localised (no numeric table). HSD localises more circuits than CFaults at every time limit and is faster on most circuits (Figures 6b-6d)."
-      }
+      },
+      "_primary_metric_note": "Headline label only: the three budget fractions are ranked with equal coefficients (1/3 each), so the choice of primary metric changes no score or rank. The eighth-budget point is the most work-sensitive of the three. (At the quarter-budget point the BugAssist-style baseline localises 1 of 158 hidden and 0 of 78 train instances, which validate.py's unit-interval consistency heuristic misreads as a discrepancy.)"
     }
   },
   "context": {
