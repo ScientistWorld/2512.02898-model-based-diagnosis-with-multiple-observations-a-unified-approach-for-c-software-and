@@ -1,0 +1,38 @@
+{
+  "test": {
+    "iscas85_localisation/cfaults/min_diagnosis_recall": [
+      65.27280955743106,
+      65.2701247189563
+    ],
+    "iscas85_localisation/hsd/min_diagnosis_recall": [
+      88.89326635638045,
+      88.89344818853452
+    ],
+    "runtime_profile/hsd/localized_rate_eighth_budget": [
+      29.11392405063291,
+      28.481012658227847
+    ],
+    "scale_stress/hsd/min_diagnosis_recall_stress": [
+      79.04215954095761,
+      79.0349552068302
+    ]
+  },
+  "train": {
+    "iscas85_localisation/cfaults/min_diagnosis_recall": [
+      59.666573411099726,
+      59.66764590427729
+    ],
+    "iscas85_localisation/hsd/min_diagnosis_recall": [
+      85.11454513256244,
+      85.11243706473607
+    ],
+    "scale_stress/cfaults/min_diagnosis_recall_stress": [
+      64.1678291307612,
+      64.17530520731624
+    ],
+    "scale_stress/hsd/min_diagnosis_recall_stress": [
+      97.6824162679426,
+      97.66746411483254
+    ]
+  }
+}

@@ -2,7 +2,7 @@
   "_evaluation": {
     "baselines_from": "eval/test/baseline_outputs (evaluator-owned, fixed)",
     "budget": {
-      "accounting": "rescore",
+      "accounting": "perf",
       "budget_fractions": {
         "eighth_budget": 0.125,
         "half_budget": 0.5,
@@ -62,7 +62,7 @@
           "localized_rate_f3": 0.0,
           "localized_rate_f5": 0.0,
           "localized_rate_f7": 0.0,
-          "min_diagnosis_recall_f3": 4.442716747352297,
+          "min_diagnosis_recall_f3": 4.442716747352296,
           "min_diagnosis_recall_f5": 0.919416487667765,
           "min_diagnosis_recall_f7": 0.2671420914597661
         },
@@ -73,9 +73,9 @@
           "localized_rate_f3": 74.0,
           "localized_rate_f5": 41.666666666666664,
           "localized_rate_f7": 28.94736842105263,
-          "min_diagnosis_recall_f3": 84.14750070011472,
-          "min_diagnosis_recall_f5": 58.03780828610061,
-          "min_diagnosis_recall_f7": 49.576638607159474
+          "min_diagnosis_recall_f3": 84.14760544286655,
+          "min_diagnosis_recall_f5": 58.02601114635991,
+          "min_diagnosis_recall_f7": 49.58179354235401
         },
         "hsd": {
           "localized_count_f3": 47,
@@ -84,53 +84,53 @@
           "localized_rate_f3": 94.0,
           "localized_rate_f5": 75.0,
           "localized_rate_f7": 60.526315789473685,
-          "min_diagnosis_recall_f3": 98.04942827033905,
-          "min_diagnosis_recall_f5": 85.60806325281216,
-          "min_diagnosis_recall_f7": 80.99541512673173
+          "min_diagnosis_recall_f3": 98.04995933778463,
+          "min_diagnosis_recall_f5": 85.61284545762487,
+          "min_diagnosis_recall_f7": 80.98932644172297
         }
       }
     },
     "iscas85_localisation": {
       "results": {
         "bugassist_vote": {
-          "audit_avg_cpu_seconds": 1.4522959191176472,
-          "audit_mean_giga_instructions": 12.758116261683822,
-          "budget_stop_count": 0,
+          "audit_avg_cpu_seconds": 1.2362787352941174,
+          "audit_mean_giga_instructions": 12.359632336095588,
+          "budget_stop_count": 8,
           "error_count": 0,
           "exact_fault_set_rate": 0.0,
           "failed_run": 0,
           "localized_count": 0,
           "localized_rate": 0.0,
-          "min_diagnosis_recall": 2.0324943253760197,
+          "min_diagnosis_recall": 2.03249432537602,
           "selected_fault_f1": 6.690592903828198,
           "tamper_detected": 0,
           "total_instances": 136
         },
         "cfaults": {
-          "audit_avg_cpu_seconds": 3.960654610294118,
-          "audit_mean_giga_instructions": 33.55244257173529,
-          "budget_stop_count": 54,
+          "audit_avg_cpu_seconds": 2.3303160882352936,
+          "audit_mean_giga_instructions": 19.881606453558824,
+          "budget_stop_count": 68,
           "error_count": 0,
           "exact_fault_set_rate": 0.7352941176470589,
           "failed_run": 0,
           "localized_count": 68,
           "localized_rate": 50.0,
-          "min_diagnosis_recall": 65.27280955743106,
-          "selected_fault_f1": 17.91316118522001,
+          "min_diagnosis_recall": 65.2701247189563,
+          "selected_fault_f1": 17.91316118522,
           "tamper_detected": 0,
           "total_instances": 136
         },
         "hsd": {
-          "audit_avg_cpu_seconds": 3.5610055441176467,
-          "audit_mean_giga_instructions": 17.648499563426473,
-          "budget_stop_count": 12,
+          "audit_avg_cpu_seconds": 1.9440372132352943,
+          "audit_mean_giga_instructions": 13.240443003227941,
+          "budget_stop_count": 30,
           "error_count": 0,
           "exact_fault_set_rate": 0.7352941176470589,
           "failed_run": 0,
           "localized_count": 106,
           "localized_rate": 77.94117647058823,
-          "min_diagnosis_recall": 88.89326635638045,
-          "selected_fault_f1": 20.110767500473383,
+          "min_diagnosis_recall": 88.89344818853452,
+          "selected_fault_f1": 20.110767500473376,
           "tamper_detected": 0,
           "total_instances": 136
         }
@@ -149,9 +149,9 @@
           "localized_rate_obs30": 0.0,
           "localized_rate_obs40": 0.0,
           "localized_rate_obs50": 0.0,
-          "min_diagnosis_recall_obs10": 3.258257617162695,
-          "min_diagnosis_recall_obs20": 1.5616207464033551,
-          "min_diagnosis_recall_obs30": 2.9623637407008054,
+          "min_diagnosis_recall_obs10": 3.2582576171626947,
+          "min_diagnosis_recall_obs20": 1.561620746403355,
+          "min_diagnosis_recall_obs30": 2.962363740700805,
           "min_diagnosis_recall_obs40": 1.66005291005291,
           "min_diagnosis_recall_obs50": 0.5438635438635439
         },
@@ -166,11 +166,11 @@
           "localized_rate_obs30": 46.42857142857143,
           "localized_rate_obs40": 42.857142857142854,
           "localized_rate_obs50": 28.0,
-          "min_diagnosis_recall_obs10": 81.78733299677324,
-          "min_diagnosis_recall_obs20": 75.79319731445706,
-          "min_diagnosis_recall_obs30": 62.59547427235345,
-          "min_diagnosis_recall_obs40": 59.60427636334445,
-          "min_diagnosis_recall_obs50": 44.76189722444371
+          "min_diagnosis_recall_obs10": 81.79575387643358,
+          "min_diagnosis_recall_obs20": 75.78233888676951,
+          "min_diagnosis_recall_obs30": 62.58105593379296,
+          "min_diagnosis_recall_obs40": 59.605378656113395,
+          "min_diagnosis_recall_obs50": 44.764501391110365
         },
         "hsd": {
           "localized_count_obs10": 26,
@@ -183,11 +183,11 @@
           "localized_rate_obs30": 75.0,
           "localized_rate_obs40": 67.85714285714286,
           "localized_rate_obs50": 68.0,
-          "min_diagnosis_recall_obs10": 96.6459457346157,
-          "min_diagnosis_recall_obs20": 93.01221417741884,
-          "min_diagnosis_recall_obs30": 85.56102806491269,
-          "min_diagnosis_recall_obs40": 82.56457886689472,
-          "min_diagnosis_recall_obs50": 86.58203868070346
+          "min_diagnosis_recall_obs10": 96.65572420190645,
+          "min_diagnosis_recall_obs20": 93.00743370772612,
+          "min_diagnosis_recall_obs30": 85.5630071310618,
+          "min_diagnosis_recall_obs40": 82.56248274872716,
+          "min_diagnosis_recall_obs50": 86.57736996978474
         }
       }
     },
@@ -214,10 +214,10 @@
           "total_instances_all": 158
         },
         "hsd": {
-          "localized_count_eighth_budget": 46,
+          "localized_count_eighth_budget": 45,
           "localized_count_half_budget": 97,
           "localized_count_quarter_budget": 72,
-          "localized_rate_eighth_budget": 29.11392405063291,
+          "localized_rate_eighth_budget": 28.481012658227847,
           "localized_rate_full_budget": 76.58227848101266,
           "localized_rate_half_budget": 61.392405063291136,
           "localized_rate_quarter_budget": 45.56962025316456,
@@ -228,7 +228,7 @@
     "scale_stress": {
       "results": {
         "bugassist_vote": {
-          "budget_stop_count_stress": 0,
+          "budget_stop_count_stress": 6,
           "localized_count_stress": 1,
           "localized_rate_stress": 4.545454545454546,
           "localized_rate_stress_f3": 9.090909090909092,
@@ -238,23 +238,23 @@
           "total_instances_stress": 22
         },
         "cfaults": {
-          "budget_stop_count_stress": 10,
+          "budget_stop_count_stress": 13,
           "localized_count_stress": 9,
           "localized_rate_stress": 40.90909090909091,
           "localized_rate_stress_f3": 45.45454545454545,
           "localized_rate_stress_f5": 28.571428571428573,
           "localized_rate_stress_f7": 50.0,
-          "min_diagnosis_recall_stress": 56.8156824666795,
+          "min_diagnosis_recall_stress": 56.815682466679505,
           "total_instances_stress": 22
         },
         "hsd": {
-          "budget_stop_count_stress": 5,
+          "budget_stop_count_stress": 7,
           "localized_count_stress": 15,
           "localized_rate_stress": 68.18181818181819,
           "localized_rate_stress_f3": 81.81818181818181,
           "localized_rate_stress_f5": 42.857142857142854,
           "localized_rate_stress_f7": 75.0,
-          "min_diagnosis_recall_stress": 79.04215954095761,
+          "min_diagnosis_recall_stress": 79.0349552068302,
           "total_instances_stress": 22
         }
       }

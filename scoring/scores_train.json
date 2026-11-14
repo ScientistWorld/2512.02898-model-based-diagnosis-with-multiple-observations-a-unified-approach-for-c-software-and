@@ -73,9 +73,9 @@
           "localized_rate_f3": 60.0,
           "localized_rate_f5": 34.78260869565217,
           "localized_rate_f7": 21.05263157894737,
-          "min_diagnosis_recall_f3": 75.08283177509935,
-          "min_diagnosis_recall_f5": 57.40920083060885,
-          "min_diagnosis_recall_f7": 42.114631845378675
+          "min_diagnosis_recall_f3": 75.07648575480789,
+          "min_diagnosis_recall_f5": 57.40758157109548,
+          "min_diagnosis_recall_f7": 42.12872397795716
         },
         "hsd": {
           "localized_count_f3": 20,
@@ -84,18 +84,18 @@
           "localized_rate_f3": 80.0,
           "localized_rate_f5": 69.56521739130434,
           "localized_rate_f7": 52.63157894736842,
-          "min_diagnosis_recall_f3": 92.43955041255717,
-          "min_diagnosis_recall_f5": 87.21475395654805,
-          "min_diagnosis_recall_f7": 72.93402224037628
+          "min_diagnosis_recall_f3": 92.43030920692958,
+          "min_diagnosis_recall_f5": 87.22437700436576,
+          "min_diagnosis_recall_f7": 72.92709905598234
         }
       }
     },
     "iscas85_localisation": {
       "results": {
         "bugassist_vote": {
-          "audit_avg_cpu_seconds": 1.6015702686567164,
-          "audit_mean_giga_instructions": 13.385525382537313,
-          "budget_stop_count": 0,
+          "audit_avg_cpu_seconds": 1.452758656716418,
+          "audit_mean_giga_instructions": 13.047932227343283,
+          "budget_stop_count": 5,
           "error_count": 0,
           "exact_fault_set_rate": 0.0,
           "failed_run": 0,
@@ -107,30 +107,30 @@
           "total_instances": 67
         },
         "cfaults": {
-          "audit_avg_cpu_seconds": 4.974942611940298,
-          "audit_mean_giga_instructions": 44.3362023508806,
-          "budget_stop_count": 25,
+          "audit_avg_cpu_seconds": 2.7668488805970153,
+          "audit_mean_giga_instructions": 21.617584935611937,
+          "budget_stop_count": 40,
           "error_count": 0,
           "exact_fault_set_rate": 0.0,
           "failed_run": 0,
           "localized_count": 27,
           "localized_rate": 40.298507462686565,
-          "min_diagnosis_recall": 59.666573411099726,
+          "min_diagnosis_recall": 59.66764590427729,
           "selected_fault_f1": 18.68398599741883,
           "tamper_detected": 0,
           "total_instances": 67
         },
         "hsd": {
-          "audit_avg_cpu_seconds": 4.2255288955223875,
-          "audit_mean_giga_instructions": 21.569987461925372,
-          "budget_stop_count": 8,
+          "audit_avg_cpu_seconds": 2.2104734626865667,
+          "audit_mean_giga_instructions": 14.783789632268656,
+          "budget_stop_count": 21,
           "error_count": 0,
           "exact_fault_set_rate": 0.0,
           "failed_run": 0,
           "localized_count": 46,
           "localized_rate": 68.65671641791045,
-          "min_diagnosis_recall": 85.11454513256244,
-          "selected_fault_f1": 19.371457729666684,
+          "min_diagnosis_recall": 85.11243706473607,
+          "selected_fault_f1": 19.371457729666687,
           "tamper_detected": 0,
           "total_instances": 67
         }
@@ -151,7 +151,7 @@
           "localized_rate_obs50": 0.0,
           "min_diagnosis_recall_obs10": 0.7219065821856836,
           "min_diagnosis_recall_obs20": 3.0207042331102483,
-          "min_diagnosis_recall_obs30": 0.8552472372348149,
+          "min_diagnosis_recall_obs30": 0.855247237234815,
           "min_diagnosis_recall_obs40": 0.6185335132703553,
           "min_diagnosis_recall_obs50": 0.0
         },
@@ -166,11 +166,11 @@
           "localized_rate_obs30": 35.714285714285715,
           "localized_rate_obs40": 30.76923076923077,
           "localized_rate_obs50": 28.571428571428573,
-          "min_diagnosis_recall_obs10": 72.50289873299377,
-          "min_diagnosis_recall_obs20": 80.59275893742253,
-          "min_diagnosis_recall_obs30": 57.513037263297484,
-          "min_diagnosis_recall_obs40": 46.337079224411426,
-          "min_diagnosis_recall_obs50": 42.84659408748264
+          "min_diagnosis_recall_obs10": 72.49280119164622,
+          "min_diagnosis_recall_obs20": 80.57026680966725,
+          "min_diagnosis_recall_obs30": 57.51600973818006,
+          "min_diagnosis_recall_obs40": 46.33851052561765,
+          "min_diagnosis_recall_obs50": 42.87768702871098
         },
         "hsd": {
           "localized_count_obs10": 11,
@@ -183,11 +183,11 @@
           "localized_rate_obs30": 71.42857142857143,
           "localized_rate_obs40": 46.15384615384615,
           "localized_rate_obs50": 57.142857142857146,
-          "min_diagnosis_recall_obs10": 96.43737615709932,
-          "min_diagnosis_recall_obs20": 90.617141421566,
-          "min_diagnosis_recall_obs30": 85.57474456982882,
-          "min_diagnosis_recall_obs40": 78.30203306373134,
-          "min_diagnosis_recall_obs50": 75.3566386823516
+          "min_diagnosis_recall_obs10": 96.42937838785589,
+          "min_diagnosis_recall_obs20": 90.60696070459261,
+          "min_diagnosis_recall_obs30": 85.55608316984721,
+          "min_diagnosis_recall_obs40": 78.31996749753115,
+          "min_diagnosis_recall_obs50": 75.36543809212284
         }
       }
     },
@@ -228,7 +228,7 @@
     "scale_stress": {
       "results": {
         "bugassist_vote": {
-          "budget_stop_count_stress": 1,
+          "budget_stop_count_stress": 3,
           "localized_count_stress": 0,
           "localized_rate_stress": 0.0,
           "localized_rate_stress_f3": 0.0,
@@ -238,23 +238,23 @@
           "total_instances_stress": 11
         },
         "cfaults": {
-          "budget_stop_count_stress": 2,
+          "budget_stop_count_stress": 6,
           "localized_count_stress": 5,
           "localized_rate_stress": 45.45454545454545,
           "localized_rate_stress_f3": 33.333333333333336,
           "localized_rate_stress_f5": 66.66666666666667,
           "localized_rate_stress_f7": 50.0,
-          "min_diagnosis_recall_stress": 64.1678291307612,
+          "min_diagnosis_recall_stress": 64.17530520731624,
           "total_instances_stress": 11
         },
         "hsd": {
-          "budget_stop_count_stress": 0,
+          "budget_stop_count_stress": 1,
           "localized_count_stress": 10,
           "localized_rate_stress": 90.9090909090909,
           "localized_rate_stress_f3": 100.0,
           "localized_rate_stress_f5": 66.66666666666667,
           "localized_rate_stress_f7": 100.0,
-          "min_diagnosis_recall_stress": 97.6824162679426,
+          "min_diagnosis_recall_stress": 97.66746411483254,
           "total_instances_stress": 11
         }
       }

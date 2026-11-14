@@ -5,4 +5,4 @@ action: submit
 gpus: 0
 test: false
 milestone: core_claim
-notes: "Hardening 12 check (resubmitted with concurrency from CPU affinity = 8): finish train/hidden splits with exact answers, choose instruction budget on train, store baselines, official reference train+test, ~30 audit cases through scripts/evaluate_test.sh, summary"
+notes: "Verification run at the final 30G-instruction budget: re-store HSD/BugAssist baselines (train+test), official reference train + hidden test via scripts/evaluate_*.sh, bugassist_vote_as_method audit case, compare with the rescored values, summary, validate"
