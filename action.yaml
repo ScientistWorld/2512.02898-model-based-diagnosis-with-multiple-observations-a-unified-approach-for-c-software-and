@@ -1,8 +1,6 @@
 # Once you set action to 'submit' or 'done', STOP immediately.
 # Do NOT sleep, poll, or wait for jobs. The system reads this file
 # only after your turn ends.
-action: submit
-gpus: 0
-test: false
+action: done
 milestone: core_claim
-notes: "Verification run at the final 30G-instruction budget: re-store HSD/BugAssist baselines (train+test), official reference train + hidden test via scripts/evaluate_*.sh, bugassist_vote_as_method audit case, compare with the rescored values, summary, validate"
+notes: "Hardening 12: evaluator-counted instruction budget (inherited perf counter, exact reruns), within-budget output crediting + runtime profile, harder ISCAS85 benchmark; reference 50.0/40.9%, HSD +1.01, honest lean CFaults +1.36, every shortcut below the honest method it wraps; validate (all modes) passes"
