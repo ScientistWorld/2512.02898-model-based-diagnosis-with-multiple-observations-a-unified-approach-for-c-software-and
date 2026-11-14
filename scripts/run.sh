@@ -26,6 +26,7 @@ cd "$REPO_ROOT"
 chmod u+rwx eval/test 2>/dev/null || true   # an interrupted hidden test leaves it at mode 0
 mkdir -p tmp logs
 
+bash scripts/download.sh || echo "download skipped (offline): netlists must already be in data/downloads/iscas85"
 echo "== python / pysat"; python --version; python -c "import pysat; print('pysat', pysat.__version__)"
 echo "== nproc $(nproc)"; date
 cat /proc/sys/kernel/perf_event_paranoid 2>/dev/null || true

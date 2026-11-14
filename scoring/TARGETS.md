@@ -48,7 +48,7 @@ The two largest ISCAS85 circuits, c5315 and c7552, with 3, 5 or 7 faults and 10,
 
 The share of all instances (both tiers) localised within one half, one quarter and one eighth of the budget. These are read from the same run, from the counted work at which each diagnosis appeared in the output.
 
-- **Metrics:** `localized_rate_half_budget`, `localized_rate_quarter_budget`, `localized_rate_eighth_budget` (higher, 1/3 each). Reference 39.2 / 22.8 / 11.4 [33.3 / 19.2 / 10.3]; HSD 61.4 / 45.6 / 29.1.
+- **Metrics:** `localized_rate_half_budget`, `localized_rate_quarter_budget`, `localized_rate_eighth_budget` (higher, 1/3 each). Reference 39.2 / 22.8 / 11.4 [33.3 / 19.2 / 10.3]; HSD 61.4 / 45.6 / 28.5.
 - **Audit only:** `localized_count_*_budget`, `localized_rate_full_budget`, `total_instances_all`.
 
 ## Failure rules
